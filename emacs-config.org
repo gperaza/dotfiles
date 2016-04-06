@@ -87,25 +87,17 @@ Send all backups to /tmp/
 
 *** Color theme
 #+BEGIN_SRC emacs-lisp
-(load-theme 'sanityinc-tomorrow-eighties t)
-;;(load-theme 'monokai t)
+(load-theme 'monokai t)
+;;(load-theme 'darktooth t)
 
 (custom-set-faces
  '(org-block-begin-line
-   ((t (:underline "#008ED1" :foreground "#008ED1"))))
- '(org-block-background
-   ((t (:background "gray23"))))
- '(org-block-end-line
-   ((t (:underline "#008ED1" :foreground "#008ED1"))))
+   ((t (:foreground "#bec0c7" :slant normal))))
+ '(font-lock-comment-face
+   ((t (:foreground "#9c9884"))))
+ ;; '(org-block-end-line
+ ;;   ((t (:underline "#008ED1" :foreground "#008ED1"))))
  '(writegood-weasels-face ((t (:underline (:color "gold" :style wave))))))
-
-;; (use-package ample-theme
-;;   :init (progn (load-theme 'ample t t)
-;;                (load-theme 'ample-flat t t)
-;;                (load-theme 'ample-light t t)
-;;                (enable-theme 'ample))
-;;   :defer t
-;;   :ensure t)
 #+END_SRC
 
 *** Powerline
@@ -1359,7 +1351,7 @@ compilation and white space handling.
 (define-key LaTeX-mode-map (kbd "C-c C-x C-l") 'org-preview-latex-fragment)
 #+END_SRC
 
-** orgmode
+** org-mode
 *** Basics
 #+BEGIN_SRC emacs-lisp
 (use-package org
