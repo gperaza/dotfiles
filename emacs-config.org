@@ -87,7 +87,10 @@ Send all backups to /tmp/
 
 *** Color theme
 #+BEGIN_SRC emacs-lisp
-(load-theme 'monokai t)
+(use-package monokai-theme
+  :ensure t
+  :config
+  (load-theme 'monokai t))
 ;;(load-theme 'darktooth t)
 
 (custom-set-faces
