@@ -2,3 +2,6 @@ Here I keep my dotfiles. I manage them using org-mode. This files are
 not deployed using symlinks, they need to be tangled from the
 respective org file. For an introduction to how to manage dotfiles
 with org-mode see [[https://expoundite.net/guides/dotfile-management][Dotfile Management and Documentation with Org-Mode]].
+
+Dotfile list:
+- Emacs init.el: Tangle emacs-config.org.

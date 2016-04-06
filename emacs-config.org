@@ -57,6 +57,20 @@ Send all backups to /tmp/
       `((".*" ,temporary-file-directory t)))
 #+END_SRC
 
+*** Safe local variables
+#+BEGIN_SRC emacs-lisp
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(safe-local-variable-values
+   (quote
+    ((eval setq system-time-locale "es")
+     (eval setq system-time-locale "C")
+     (eval setq org-link-file-path-type 'relative)))))
+#+END_SRC
+
 ** User interface
 *** Font settings
 #+BEGIN_SRC emacs-lisp
@@ -82,7 +96,8 @@ Send all backups to /tmp/
  '(org-block-background
    ((t (:background "gray23"))))
  '(org-block-end-line
-   ((t (:underline "#008ED1" :foreground "#008ED1")))))
+   ((t (:underline "#008ED1" :foreground "#008ED1"))))
+ '(writegood-weasels-face ((t (:underline (:color "gold" :style wave))))))
 
 ;; (use-package ample-theme
 ;;   :init (progn (load-theme 'ample t t)
@@ -251,6 +266,18 @@ Send all backups to /tmp/
 (setq echo-keystrokes 0.1)
 #+END_SRC
 
+*** Olivetti mode
+#+BEGIN_SRC emacs-lisp
+(use-package olivetti
+  :ensure t
+  :config
+  (add-hook 'text-mode-hook 'turn-on-olivetti-mode)
+  (add-hook 'prog-mode-hook 'turn-on-olivetti-mode)
+  (define-key olivetti-mode-map (kbd "C-c [") nil)
+  (define-key olivetti-mode-map (kbd "C-c ]") nil))
+
+#+END_SRC
+
 ** Function definitions
 #+BEGIN_SRC emacs-lisp
 (use-package dash
@@ -399,7 +426,7 @@ http://tuhdo.github.io/helm-intro.html.
   :config (key-chord-mode +1))
 #+END_SRC
 
-*** Maggit (C-x g)
+*** Magit (C-x g)
 #+BEGIN_SRC emacs-lisp
 (use-package magit
   :ensure t
@@ -413,11 +440,10 @@ http://tuhdo.github.io/helm-intro.html.
 (use-package undo-tree
   :ensure t
   :diminish undo-tree-mode
-  :init (global-undo-tree-mode)
   :config
+  (global-undo-tree-mode)
   (global-set-key (kbd "C-z") 'undo)
-  (global-set-key (kbd "C-S-z") 'undo-tree-redo)
-  (key-chord-define-global "uu" 'undo))
+  (global-set-key (kbd "C-S-z") 'undo-tree-redo))
 #+END_SRC
 
 *** Dired+
@@ -715,18 +741,12 @@ Set t for only indent, set 'complete to indent or complete at point.
    ))
 #+END_SRC
 
-*** Highlight current line
-#+BEGIN_SRC emacs-lisp
-(global-hl-line-mode 0)
-#+END_SRC
-
 *** Volatile highlights, highlight things like undo, copy, etc.
 #+BEGIN_SRC emacs-lisp
 (use-package volatile-highlights
   :ensure t
   :diminish volatile-highlights-mode
-  :config (volatile-highlights-mode t)
-  )
+  :config (volatile-highlights-mode t))
 #+END_SRC
 
 *** Make kill-region (C-w) kill single line when not selection is active
@@ -739,6 +759,15 @@ Set t for only indent, set 'complete to indent or complete at point.
    (if mark-active (list (region-beginning) (region-end))
      (list (line-beginning-position)
            (line-beginning-position 2)))))
+#+END_SRC
+
+*** Set up easy-kill, smart M-w replacement
+#+BEGIN_SRC emacs-lisp
+(use-package easy-kill
+  :ensure t
+  :config
+  (global-set-key [remap kill-ring-save] 'easy-kill)
+  (global-set-key [remap mark-sexp] 'easy-mark))
 #+END_SRC
 
 *** Tramp fos ssh
@@ -797,7 +826,7 @@ including the host address. /user@host.server.com:/home/bjm/myfile.org
 (put 'erase-buffer 'disabled nil)
 #+END_SRC
 
-*** Enable expand region (C-=)
+*** Enable expand region
 #+BEGIN_SRC emacs-lisp
 (use-package expand-region
   :ensure t
@@ -894,15 +923,6 @@ including the host address. /user@host.server.com:/home/bjm/myfile.org
 #+BEGIN_SRC emacs-lisp
 (require 're-builder)
 (setq reb-re-syntax 'string)
-#+END_SRC
-
-*** Set up easy-kill, smart M-w replacement
-#+BEGIN_SRC emacs-lisp
-(use-package easy-kill
-  :ensure t
-  :config
-  (global-set-key [remap kill-ring-save] 'easy-kill)
-  (global-set-key [remap mark-sexp] 'easy-mark))
 #+END_SRC
 
 *** Winner mode, undo-redo window configuration
@@ -1013,15 +1033,6 @@ Allows typing TeX characters after toggling the input method with C-\
 (subword-mode 1)
 #+END_SRC
 
-*** Hungry delete
-#+BEGIN_SRC emacs-lisp
-(use-package hungry-delete
-  :ensure t
-  :diminish hungry-delete-mode
-  :config
-  (global-hungry-delete-mode))
-#+END_SRC
-
 *** Better transpose characters
 #+BEGIN_SRC emacs-lisp
 ;; adjust transpose-chars to switch previous two characters
@@ -1029,6 +1040,16 @@ Allows typing TeX characters after toggling the input method with C-\
                 (lambda () (interactive)
                   (backward-char)
                   (transpose-chars 1)))
+#+END_SRC
+
+*** Writegood-mode
+#+BEGIN_SRC emacs-lisp
+(use-package writegood-mode
+  :ensure t
+  :config
+  (add-hook 'text-mode-hook 'writegood-turn-on)
+  (add-hook 'latex-mode-hook 'writegood-turn-on)
+  (add-hook 'org-mode-hook 'writegood-turn-on))
 #+END_SRC
 
 ** Navigation
@@ -1829,6 +1850,7 @@ http://endlessparentheses.com/embedding-youtube-videos-with-org-mode-links.html
 (require 'ox-html)
 (require 'ox-bibtex)
 (require 'ox-koma-letter)
+(require 'ox-rss)
 #+END_SRC
 
 **** Export behavior
@@ -1957,9 +1979,7 @@ contents exported. Also allow to create unnumbered headers.
 (add-to-list 'org-export-filter-headline-functions 'headline-nonumber)
 #+END_SRC
 
-*** Citations and references
-Org-ref only manages cross-references now. Zotero manages citations.
-
+*** Org ref
 #+BEGIN_SRC emacs-lisp
 (use-package helm-bibtex
   :ensure t)
@@ -1973,21 +1993,24 @@ Org-ref only manages cross-references now. Zotero manages citations.
 (global-set-key (kbd "\e\eR") 'org-ref-insert-ref-link)
 (global-set-key (kbd "\e\eC") 'org-ref-insert-cite-link)
 (global-set-key (kbd "\e\ef") 'org-footnote-action)
-#+END_SRC
 
-Use zotero to manage citations, org ref still manages
-cross-references. For this to work we need zotxt extension for Zotero
-and to change the better bibtex prefix to "-".
+(defun org-ref-get-zotero-filename (key)
+  (let* ((results (org-ref-get-bibtex-key-and-file key))
+         (bibfile (cdr results))
+         entry)
+    (with-temp-buffer
+      (insert-file-contents bibfile)
+      (bibtex-set-dialect (parsebib-find-bibtex-dialect) t)
+      (bibtex-search-entry key nil 0)
+      (setq entry (bibtex-parse-entry))
+      (let ((e (org-ref-reftex-get-bib-field "file" entry)))
+        (if (> (length e) 4)
+            (let ((clean-field (replace-regexp-in-string "{\\|}\\|\\\\" "" e)))
+              (let ((second-file (nth 1 (split-string clean-field ":" t))))
+                (format "%s" second-file))))))))
 
-#+BEGIN_SRC emacs-lisp
-(use-package zotxt
-  :ensure t)
-(add-hook 'org-mode-hook (lambda () (org-zotxt-mode 1)))
-(define-key org-mode-map
-  (kbd "C-c \" \"") (lambda () (interactive)
-                      (org-zotxt-insert-reference-link '(4))))
-(eval-after-load "zotxt"
-  '(setq org-zotxt-link-description-style :betterbibtexkey))
+(setq org-ref-get-pdf-filename-function 'org-ref-get-zotero-filename)
+
 #+END_SRC
 
 *** Images in org-mode
@@ -2019,6 +2042,152 @@ https://github.com/abo-abo/org-download
   :ensure t
   :diminish orglink-mode
   :config (add-hook 'prog-mode-hook 'orglink-mode))
+#+END_SRC
+
+*** Blog using org publish
+#+BEGIN_SRC emacs-lisp
+(add-to-list 'org-export-filter-timestamp-functions
+             #'endless/filter-timestamp)
+(defun endless/filter-timestamp (trans back _comm)
+  "Remove <> around time-stamps."
+  (pcase back
+    ((or `jekyll `html)
+     (replace-regexp-in-string "&[lg]t;" "" trans))
+    (`latex
+     (replace-regexp-in-string "[<>]" "" trans))))
+
+(setq-default org-display-custom-times t)
+;;; Before you ask: No, removing the <> here doesn't work.
+(setq org-time-stamp-custom-formats
+      '("<%d %b %Y>" . "<%d/%m/%y %a %H:%M>"))
+
+(defun my-blog-org-export-format-drawer (name content)
+  (concat "<div class=\"drawer " (downcase name) "\">\n"
+          content
+          "\n</div>"))
+
+(add-to-list 'org-structure-template-alist
+             '("bpost" "#+TITLE: ?
+,#+DATE:
+,#+SUBTITLE: Posted:
+# #+SUBTITLE: (/Last edited: {{{modification-time(%d %b %Y %H:%M)}}}/ )
+,#+AUTHOR: Gonzalo Peraza
+,#+EMAIL: ggperaza@gmail.com
+,#+LANGUAGE: en\n\n
+,* COMMENT local variables for this file
+# Local Variables:
+# eval: (setq system-time-locale \"es\")
+# ispell-local-dictionary: \"en\"
+# End:
+"))
+
+(add-to-list 'org-structure-template-alist
+             '("bprev" "* TODO ?
+:DATES:
+Posted:
+# (/Edited: /)
+:END:"))
+
+(setq my-preamble-posts
+      (concat
+       "<a href=\"../index.html\"> HOME </a>\n|\n"
+       "<a href=\"../blog.html\"> BLOG </a>\n |\n"
+       "<a href=\"../teaching.html\"> TEACHING </a>\n|\n"
+       "<a href=\"../research.html\"> RESEARCH </a>\n|\n"
+       "<a href=\"../about.html\"> ABOUT ME </a>\n|\n"
+       "<a href=\"archive.html\"> ARCHIVE </a>\n"
+       ))
+
+(setq my-preamble-pages
+      (concat
+       "<a href=\"index.html\"> HOME </a>\n|\n"
+       "<a href=\"blog.html\"> BLOG </a>\n |\n"
+       "<a href=\"teaching.html\"> TEACHING </a>\n|\n"
+       "<a href=\"research.html\"> RESEARCH </a>\n|\n"
+       "<a href=\"about.html\"> ABOUT ME </a>\n|\n"
+       "<a href=\"posts/archive.html\"> ARCHIVE </a>\n"
+       ))
+
+(use-package htmlize
+  :ensure t)
+(setq org-html-htmlize-output-type 'css)
+(setq org-publish-project-alist
+      `(("blog"
+         :components ("posts", "pages", "images", "css"))
+        ("posts"
+         :base-directory "~/Blog/posts/"
+         :base-extension "org"
+         :publishing-directory "~/Blog/pub/posts/"
+         :recursive nil
+
+         :publishing-function org-html-publish-to-html
+         ;; :preparation-function
+         ;; :completition-function
+
+         :htmlized-source t
+
+         :with-author t
+         :with-creator t
+         :with-date nil
+         :with-email t
+         :with-toc t
+
+         :headline-level 4
+         :section-numbers nil
+         :html-validation-link nil
+
+         :html-head "<link rel='stylesheet' href='../worg.css' />"
+         :html-head-include-default-style nil
+         :html-head-include-scripts t
+         :html-preamble ,my-preamble-posts
+
+         :auto-sitemap t
+         :sitemap-filename "archive"
+         :sitemap-title "Blog archive"
+         :sitemap-sort-files anti-chronologically
+         :sitemap-file-entry-format "%t (Posted: %d)"
+         :sitemap-date-format "%d %b %Y")
+        ("pages"
+         :base-directory "~/Blog/"
+         :base-extension "org"
+         :publishing-directory "~/Blog/pub/"
+         :recursive nil
+
+         :publishing-function org-html-publish-to-html
+         ;; :preparation-function
+         ;; :completition-function
+         :html-format-drawer-function my-blog-org-export-format-drawer
+
+         :htmlized-source t
+
+         :with-author t
+         :with-creator t
+         :with-date nil
+         :with-email t
+         :with-toc nil
+         :with-tasks done
+         :with-todo-keywords nil
+
+         :headline-level 4
+         :section-numbers nil
+         :html-validation-link nil
+
+         :html-head "<link rel='stylesheet' href='worg.css' />"
+         :html-head-include-default-style nil
+         :html-head-include-scripts t
+         :html-preamble ,my-preamble-pages)
+        ("images"
+         :base-directory "~/Blog/img/"
+         :base-extension ".*"
+         :publishing-directory "~/Blog/pub/img/"
+         :publishing-function org-publish-attachment
+         :recursive t)
+        ("css"
+         :base-directory "~/Blog/"
+         :base-extension "css"
+         :publishing-directory "~/Blog/pub/"
+         :publishing-function org-publish-attachment)
+        ))
 #+END_SRC
 
 ** Programming
@@ -2062,6 +2231,20 @@ Setup flychek with a helm.
   :ensure t
   :config
   (define-key flycheck-mode-map (kbd "C-c ! h") 'helm-flycheck))
+#+END_SRC
+
+***** Proselint
+#+BEGIN_SRC emacs-lisp
+(flycheck-define-checker proselint
+  "A linter for prose."
+  :command ("proselint" source-inplace)
+  :error-patterns
+  ((warning line-start (file-name) ":" line ":" column ": "
+        (id (one-or-more (not (any " "))))
+        (message) line-end))
+  :modes (text-mode markdown-mode gfm-mode latex-mode org-mode))
+
+(add-to-list 'flycheck-checkers 'proselint)
 #+END_SRC
 
 **** Rainbow delimiters, colors parenthesis
@@ -2126,14 +2309,15 @@ https://github.com/bbatsov/projectile.
 #+BEGIN_SRC emacs-lisp
 (use-package projectile
   :ensure t
-  :config (projectile-global-mode)
+  :init (setq projectile-use-git-grep t)
+  :config
+  (projectile-global-mode)
   (setq projectile-completion-system 'helm))
 
 (use-package helm-projectile
   :ensure t
-  :config (helm-projectile-on))
-
-(setq projectile-switch-project-action 'helm-projectile)
+  :config (helm-projectile-on)
+  (setq projectile-switch-project-action 'helm-projectile))
 #+END_SRC
 
 *** Yasnippet
