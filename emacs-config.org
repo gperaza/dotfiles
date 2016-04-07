@@ -1987,6 +1987,9 @@ https://github.com/abo-abo/org-download
           content
           "\n</div>"))
 
+(defun my-bibtex-function ()
+  (shell-command-to-string "bibtex2html -d -r -nobibsource -nokeywords -nf arxiv \"Arxiv\" --revkeys -nodoc -m ~/Blog/macros.tex -s ~/Blog/owens_web -noheader -nofooter ~/Blog/mypubs.bib; echo \"#+BEGIN_HTML\" > ~/Blog/mypubs.in; cat ~/Blog/mypubs.html >> ~/Blog/mypubs.in; echo  \"\" >> ~/Blog/mypubs.in; echo \"#+END_HTML\" >> ~/Blog/mypubs.in"))
+
 (add-to-list 'org-structure-template-alist
              '("bpost" "#+TITLE: ?
 ,#+DATE:
@@ -2075,8 +2078,8 @@ Posted:
          :recursive nil
 
          :publishing-function org-html-publish-to-html
-         ;; :preparation-function
-         ;; :completition-function
+         :preparation-function my-bibtex-function
+         ;; :completition-functiont
          :html-format-drawer-function my-blog-org-export-format-drawer
 
          :htmlized-source t
