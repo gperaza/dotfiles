@@ -1991,19 +1991,19 @@ https://github.com/abo-abo/org-download
   (shell-command-to-string "bibtex2html -d -r -nobibsource -nokeywords -nf arxiv \"Arxiv\" --revkeys -nodoc -m ~/Blog/macros.tex -s ~/Blog/owens_web -noheader -nofooter ~/Blog/mypubs.bib; echo \"#+BEGIN_HTML\" > ~/Blog/mypubs.in; cat ~/Blog/mypubs.html >> ~/Blog/mypubs.in; echo  \"\" >> ~/Blog/mypubs.in; echo \"#+END_HTML\" >> ~/Blog/mypubs.in"))
 
 (add-to-list 'org-structure-template-alist
-             '("bpost" "#+TITLE: ?
+             '("bpost" (concat "#+TITLE: ?
 ,#+DATE:
 ,#+SUBTITLE: Posted:
 # #+SUBTITLE: (/Last edited: {{{modification-time(%d %b %Y %H:%M)}}}/ )
-,#+AUTHOR: Gonzalo Peraza
-,#+EMAIL: ggperaza@gmail.com
+,#+AUTHOR: " user-full-name "
+,#+EMAIL: " user-mail-address "
 ,#+LANGUAGE: en\n\n
 ,* COMMENT local variables for this file
 # Local Variables:
 # eval: (setq system-time-locale \"es\")
 # ispell-local-dictionary: \"en\"
 # End:
-"))
+")))
 
 (add-to-list 'org-structure-template-alist
              '("bprev" "* TODO ?
