@@ -948,14 +948,6 @@ Toggles between: “all lower”, “Init Caps”, “ALL CAPS”."
 (global-set-key "\M-c" 'toggle-letter-case)
 #+END_SRC
 
-*** Define word
-#+BEGIN_SRC emacs-lisp
-(use-package define-word
-  :ensure t
-  :bind (("s-d" . define-word-at-point)
-         ("s-D" . define-word)))
-#+END_SRC
-
 *** TeX input method
 Allows typing TeX characters after toggling the input method with C-\
 #+BEGIN_SRC emacs-lisp
