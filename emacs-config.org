@@ -304,6 +304,13 @@ C-u C-u COMMAND -> Open/switch to a scratch buffer in `emacs-elisp-mode'"
 #+END_SRC
 
 ** Utilities
+*** Hydra
+#+BEGIN_SRC emacs-lisp
+(use-package hydra
+  :ensure t
+  :config (setq hydra-is-helpful t))
+#+END_SRC
+
 *** Helm
 Helm basic configuration following the official guide at
 http://tuhdo.github.io/helm-intro.html.
@@ -1218,10 +1225,6 @@ https://github.com/jkitchin/jmax/blob/master/words.el
 
 *** A hydra interface to words
 #+BEGIN_SRC emacs-lisp
-(use-package hydra
-  :ensure t
-  :config (setq hydra-is-helpful t))
-
 (key-chord-define-global
  "ww"
  (defhydra words-hydra (:color blue)
