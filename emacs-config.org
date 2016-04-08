@@ -198,7 +198,7 @@ Send all backups to /tmp/
 
 #+END_SRC
 
-*** Save desktop mode
+*** Desktop
 #+BEGIN_SRC emacs-lisp
 (desktop-save-mode 1)
 #+END_SRC
