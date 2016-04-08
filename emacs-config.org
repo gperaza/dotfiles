@@ -470,6 +470,19 @@ The app is chosen from your OS's preference."
   :config (pdf-tools-install))
 #+END_SRC
 
+*** Eyebrowse
+A window configuration manager.  We bind it to M-W instead of C-c C-w
+to avoid conflicts with org.
+#+BEGIN_SRC emacs-lisp
+(use-package eyebrowse
+  :ensure t
+  :init
+  (setq eyebrowse-keymap-prefix (kbd "M-W"))
+  :config
+  (eyebrowse-mode t)
+  (setq eyebrowse-new-workspace t)
+)
+#+END_SRC
 ** Editing configuration
 *** Autocomplete(Company)
 We use company since it is included in Elpy already.
@@ -1788,7 +1801,6 @@ http://endlessparentheses.com/embedding-youtube-videos-with-org-mode-links.html
 
 **** Latex export
 Define extra packages to be included in latex exports.
-
 #+BEGIN_SRC emacs-lisp
 (setq org-latex-packages-alist
       '(("" "lmodern" nil);; latin modern fonts
