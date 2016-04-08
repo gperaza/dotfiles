@@ -641,15 +641,15 @@ Set t for only indent, set 'complete to indent or complete at point.
 (setq tab-always-indent t)
 #+END_SRC
 
-** Highlight parenthesis
+** Parenthesis
 #+BEGIN_SRC emacs-lisp
-(show-paren-mode 1)
-(setq show-paren-style 'mixed)
-#+END_SRC
-
-** Pair parenthesis, etc.
-#+BEGIN_SRC emacs-lisp
-(electric-pair-mode 1)
+(use-package smartparens-config
+  :ensure smartparens
+  :config
+  (show-smartparens-global-mode t)
+  (smartparens-global-mode 1)
+  (define-key prog-mode-map (kbd "M-q") 'sp-indent-defun)
+  )
 #+END_SRC
 
 ** Meaningful names for buffers with the same name
