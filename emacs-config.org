@@ -471,16 +471,38 @@ The app is chosen from your OS's preference."
 #+END_SRC
 
 *** Eyebrowse
-A window configuration manager.  We bind it to M-W instead of C-c C-w
+A window configuration manager. We bind it to M-W instead of C-c C-w
 to avoid conflicts with org.
+TODO define a hydra to use eyebrowse.
 #+BEGIN_SRC emacs-lisp
 (use-package eyebrowse
   :ensure t
+  :demand
   :init
   (setq eyebrowse-keymap-prefix (kbd "M-W"))
+  (defhydra hydra-eyebrowse ()
+    "eyebrowse"
+    ("s" eyebrowse-switch-to-window-config "switch")
+    ("n" eyebrowse-next-window-config "next")
+    ("p" eyebrowse-prev-window-config "prev")
+    ("l" eyebrowse-last-window-config "last")
+    ("c" eyebrowse-close-window-config "close")
+    ("r" eyebrowse-rename-window-config "rename")
+    ("1" eyebrowse-switch-to-window-config-1)
+    ("2" eyebrowse-switch-to-window-config-2)
+    ("3" eyebrowse-switch-to-window-config-3)
+    ("4" eyebrowse-switch-to-window-config-4)
+    ("5" eyebrowse-switch-to-window-config-5)
+    ("6" eyebrowse-switch-to-window-config-6)
+    ("7" eyebrowse-switch-to-window-config-7)
+    ("8" eyebrowse-switch-to-window-config-8)
+    ("9" eyebrowse-switch-to-window-config-9)
+    ("0" eyebrowse-switch-to-window-config-0)
+    ("q" nil "quit"))
   :config
   (eyebrowse-mode t)
   (setq eyebrowse-new-workspace t)
+  (global-set-key (kbd "M-1") 'hydra-eyebrowse/body)
 )
 #+END_SRC
 ** Editing configuration
