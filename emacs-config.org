@@ -963,9 +963,9 @@ Allows typing TeX characters after toggling the input method with C-\
 #+END_SRC
 
 *** Subword mode
+Treats camel case words (camelCase) as separate words.
 #+BEGIN_SRC emacs-lisp
-                                        ; move cursor by camelCase
-(subword-mode 1)
+(global-subword-mode 1)
 #+END_SRC
 
 *** Better transpose characters
