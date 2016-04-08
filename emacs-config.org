@@ -1,6 +1,6 @@
 #+PROPERTY: header-args:emacs-lisp :tangle ~/.emacs.d/init.el
-** Setup
-*** Personal information
+* Setup
+** Personal information
 Personal information is stored in personal.el.
 This file must include personal information given as
 > (setq user-full-name "MY NAME"
@@ -9,7 +9,7 @@ This file must include personal information given as
 (load "~/.dotfiles/personal.el")
 #+END_SRC
 
-*** Setting up package manager and use-package
+** Setting up package manager and use-package
 #+begin_src emacs-lisp
 ;; Please don't load outdated byte code
 (setq load-prefer-newer t)
@@ -41,7 +41,7 @@ This file must include personal information given as
   :ensure t)
 #+end_src
 
-*** Garbage collector and large file warning.
+** Garbage collector and large file warning.
 #+BEGIN_SRC emacs-lisp
 ;; reduce the frequency of garbage collection by making it happen on
 ;; each 50MB of allocated data (the default is on every 0.76MB)
@@ -51,7 +51,7 @@ This file must include personal information given as
 (setq large-file-warning-threshold 100000000)
 #+END_SRC
 
-*** Backups
+** Backups
 Send all backups to /tmp/
 #+BEGIN_SRC emacs-lisp
 (setq backup-directory-alist
@@ -60,7 +60,7 @@ Send all backups to /tmp/
       `((".*" ,temporary-file-directory t)))
 #+END_SRC
 
-*** Custom set variables
+** Custom set variables
 #+BEGIN_SRC emacs-lisp
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
@@ -78,8 +78,8 @@ Send all backups to /tmp/
      (eval setq org-link-file-path-type 'relative)))))
 #+END_SRC
 
-** User interface
-*** Font settings
+* User interface
+** Font settings
 #+BEGIN_SRC emacs-lisp
 (defvar ha/fixed-font-family "Source Code Pro")
 
@@ -92,7 +92,7 @@ Send all backups to /tmp/
   (set-face-attribute 'default nil :height 120))
 #+END_SRC
 
-*** Color theme
+** Color theme
 #+BEGIN_SRC emacs-lisp
 (use-package monokai-theme
   :ensure t
@@ -113,12 +113,12 @@ Send all backups to /tmp/
   :config (sml/setup))
  #+END_SRC
 
-*** Set scratch message
+** Set scratch message
 #+BEGIN_SRC emacs-lisp
 (setq initial-scratch-message nil)
 #+END_SRC
 
-*** Menus and bars.
+** Menus and bars.
 #+BEGIN_SRC emacs-lisp
 (tooltip-mode 1)
 (tool-bar-mode -1)
@@ -126,7 +126,7 @@ Send all backups to /tmp/
 (scroll-bar-mode -1)
 #+END_SRC
 
-*** Disable blinking cursor and start up screen
+** Disable blinking cursor and start up screen
 #+BEGIN_SRC emacs-lisp
 ;; the blinking cursor is nothing, but an annoyance
 (blink-cursor-mode -1)
@@ -135,7 +135,7 @@ Send all backups to /tmp/
 (setq inhibit-startup-screen t)
 #+END_SRC
 
-*** Nice scrolling, not centering after scrolling.
+** Nice scrolling, not centering after scrolling.
 #+BEGIN_SRC emacs-lisp
 (setq scroll-margin 0
       scroll-conservatively 10000
@@ -156,19 +156,19 @@ Send all backups to /tmp/
         ("\\.svg\\'" . "feh --magick-timeout 1 -. %s")))
 #+END_SRC
 
-*** Display line and column number. Don't display file size.
+** Display line and column number. Don't display file size.
 #+BEGIN_SRC emacs-lisp
 (line-number-mode t)
 (column-number-mode t)
 (size-indication-mode nil)
 #+END_SRC
 
-*** Enable y/n answers
+** Enable y/n answers
 #+BEGIN_SRC emacs-lisp
 (fset 'yes-or-no-p 'y-or-n-p)
 #+END_SRC
 
-*** Better frame title
+** Better frame title
 #+BEGIN_SRC emacs-lisp
 (setq frame-title-format
       '("" invocation-name " " (:eval (if (buffer-file-name)
@@ -176,17 +176,17 @@ Send all backups to /tmp/
                                         "%b"))))
 #+END_SRC
 
-*** Diminish
+** Diminish
 #+BEGIN_SRC emacs-lisp
 (eval-after-load " hi-lock" '(diminish 'hi-lock-mode))
 #+END_SRC
 
-*** Show unfinished keystroke early
+** Show unfinished keystroke early
 #+BEGIN_SRC emacs-lisp
 (setq echo-keystrokes 0.1)
 #+END_SRC
 
-*** Olivetti mode
+** Olivetti mode
 #+BEGIN_SRC emacs-lisp
 (use-package olivetti
   :ensure t
@@ -198,12 +198,12 @@ Send all backups to /tmp/
 
 #+END_SRC
 
-*** Desktop
+** Desktop
 #+BEGIN_SRC emacs-lisp
 (desktop-save-mode 1)
 #+END_SRC
 
-** Function definitions
+* Function definitions
 #+BEGIN_SRC emacs-lisp
 (use-package dash
   :ensure t)
@@ -211,7 +211,7 @@ Send all backups to /tmp/
   :ensure t)
 #+END_SRC
 
-*** Crux - replaces prelude functions
+** Crux - replaces prelude functions
 Here I bind the functions I find useful, there are more. See:
 https://github.com/bbatsov/crux
 #+BEGIN_SRC emacs-lisp
@@ -236,7 +236,7 @@ https://github.com/bbatsov/crux
   (remove-hook 'find-file-hook #'crux-reopen-as-root))
 #+END_SRC
 
-*** Function: switch-to-scratch-and-back
+** Function: switch-to-scratch-and-back
 #+BEGIN_SRC emacs-lisp
 (defun switch-to-scratch-and-back (arg)
   "Toggle between *scratch-MODE* buffer and the current buffer.
@@ -261,7 +261,7 @@ C-u C-u COMMAND -> Open/switch to a scratch buffer in `emacs-elisp-mode'"
       (funcall (intern mode-str)))))
 #+END_SRC
 
-*** Function: get-path
+** Function: get-path
 #+BEGIN_SRC emacs-lisp
 (defun get-path()
   "Opens dired so you can navigate to a file to insert a path to it in the current buffer."
@@ -272,7 +272,7 @@ C-u C-u COMMAND -> Open/switch to a scratch buffer in `emacs-elisp-mode'"
   (dired nil))
 #+END_SRC
 
-*** Function: insert-relative-path
+** Function: insert-relative-path
 #+BEGIN_SRC emacs-lisp
 (defun insert-relative-path()
   "Inserts the relative path between the original buffer and current file selected in dired."
@@ -283,7 +283,7 @@ C-u C-u COMMAND -> Open/switch to a scratch buffer in `emacs-elisp-mode'"
     (insert (file-relative-name selected_file))))
 #+END_SRC
 
-*** Function: insert-absolute-path
+** Function: insert-absolute-path
 #+BEGIN_SRC emacs-lisp
 (defun insert-absolute-path()
   "Inserts the absolute path to the file selected in dired to the previous buffer."
@@ -294,7 +294,7 @@ C-u C-u COMMAND -> Open/switch to a scratch buffer in `emacs-elisp-mode'"
     (insert  (expand-file-name selected_file))))
 #+END_SRC
 
-*** Function: unfill-paragraph
+** Function: unfill-paragraph
 #+BEGIN_SRC emacs-lisp
 (defun unfill-paragraph ()
   "Unfill paragraph at or after point."
@@ -303,15 +303,15 @@ C-u C-u COMMAND -> Open/switch to a scratch buffer in `emacs-elisp-mode'"
     (fill-paragraph nil (region-active-p))))
 #+END_SRC
 
-** Utilities
-*** Hydra
+* Utilities
+** Hydra
 #+BEGIN_SRC emacs-lisp
 (use-package hydra
   :ensure t
   :config (setq hydra-is-helpful t))
 #+END_SRC
 
-*** Helm
+** Helm
 Helm basic configuration following the official guide at
 http://tuhdo.github.io/helm-intro.html.
 #+BEGIN_SRC emacs-lisp
@@ -351,14 +351,14 @@ http://tuhdo.github.io/helm-intro.html.
   (helm-mode 1))
 #+END_SRC
 
-*** Key-chord package
+** Key-chord package
 #+BEGIN_SRC emacs-lisp
 (use-package key-chord
   :ensure t
   :config (key-chord-mode +1))
 #+END_SRC
 
-*** Magit (C-x g)
+** Magit (C-x g)
 #+BEGIN_SRC emacs-lisp
 (use-package magit
   :ensure t
@@ -367,7 +367,7 @@ http://tuhdo.github.io/helm-intro.html.
   (setq magit-last-seen-setup-instructions "1.4.0"))
 #+END_SRC
 
-*** Undo tree
+** Undo tree
 #+BEGIN_SRC emacs-lisp
 (use-package undo-tree
   :ensure t
@@ -378,7 +378,7 @@ http://tuhdo.github.io/helm-intro.html.
   (global-set-key (kbd "C-S-z") 'undo-tree-redo))
 #+END_SRC
 
-*** Dired+
+** Dired+
 #+BEGIN_SRC emacs-lisp
 (use-package dired+
   :ensure t)
@@ -470,14 +470,14 @@ The app is chosen from your OS's preference."
 (define-key dired-mode-map (kbd "E") 'xah-open-in-external-app)
 #+END_SRC
 
-*** pdf-tools
+** pdf-tools
 #+BEGIN_SRC emacs-lisp
 (use-package pdf-tools
   :ensure t
   :config (pdf-tools-install))
 #+END_SRC
 
-*** Eyebrowse
+** Eyebrowse
 A window configuration manager. We bind it to M-W instead of C-c C-w
 to avoid conflicts with org.
 TODO define a hydra to use eyebrowse.
@@ -512,8 +512,8 @@ TODO define a hydra to use eyebrowse.
   (global-set-key (kbd "M-1") 'hydra-eyebrowse/body)
 )
 #+END_SRC
-** Editing configuration
-*** Autocomplete(Company)
+* Editing configuration
+** Autocomplete(Company)
 We use company since it is included in Elpy already.
 #+BEGIN_SRC emacs-lisp
 (use-package company
@@ -551,7 +551,7 @@ We use company since it is included in Elpy already.
 (add-hook 'after-init-hook 'global-company-mode)
 #+END_SRC
 
-*** History
+** History
 #+BEGIN_SRC emacs-lisp
 (use-package savehist
   :init
@@ -568,7 +568,7 @@ We use company since it is included in Elpy already.
   (savehist-mode +1))
 #+END_SRC
 
-*** Super-save
+** Super-save
 #+BEGIN_SRC emacs-lisp
 (use-package super-save
   :ensure t
@@ -578,7 +578,7 @@ We use company since it is included in Elpy already.
   (setq super-save-auto-save-when-idle t))
 #+END_SRC
 
-*** Zop-to-char (kills from current point to character, M-z/M-Z)
+** Zop-to-char (kills from current point to character, M-z/M-Z)
 #+BEGIN_SRC emacs-lisp
 (use-package zop-to-char
   :ensure t
@@ -587,7 +587,7 @@ We use company since it is included in Elpy already.
   (global-set-key (kbd "M-Z") 'zop-to-char))
 #+END_SRC
 
-*** Move lines or region up and down
+** Move lines or region up and down
 To imitate move lines outside org mode.
 #+BEGIN_SRC emacs-lisp
 (use-package move-text
@@ -597,29 +597,29 @@ To imitate move lines outside org mode.
   (global-set-key (kbd "M-S-<down>") 'move-text-down))
 #+END_SRC
 
-*** Eliminate tabs but maintain tab length
+** Eliminate tabs but maintain tab length
 #+BEGIN_SRC emacs-lisp
 (setq-default indent-tabs-mode nil)   ;; don't use tabs to indent
 (setq-default tab-width 8)            ;; but maintain correct appearance
 #+END_SRC
 
-*** Require new line at the end of a file
+** Require new line at the end of a file
 #+BEGIN_SRC emacs-lisp
 (setq require-final-newline t)
 #+END_SRC
 
-*** Delete selection when copying/writing on top
+** Delete selection when copying/writing on top
 #+BEGIN_SRC emacs-lisp
 (delete-selection-mode t)
 #+END_SRC
 
-*** Auto revert files
+** Auto revert files
 #+BEGIN_SRC emacs-lisp
 (global-auto-revert-mode t)
 (diminish 'auto-revert-mode)
 #+END_SRC
 
-*** Hippie-expand
+** Hippie-expand
 #+BEGIN_SRC emacs-lisp
 (global-set-key (kbd "M-/") 'hippie-expand)
 (setq hippie-expand-try-functions-list '(try-expand-dabbrev
@@ -634,25 +634,25 @@ To imitate move lines outside org mode.
                                          try-complete-lisp-symbol))
 #+END_SRC
 
-*** Set tab behavior, indent or complete
+** Set tab behavior, indent or complete
 Set t for only indent, set 'complete to indent or complete at point.
 #+BEGIN_SRC emacs-lisp
 ;; smart tab behavior - indent or complete
 (setq tab-always-indent t)
 #+END_SRC
 
-*** Highlight parenthesis
+** Highlight parenthesis
 #+BEGIN_SRC emacs-lisp
 (show-paren-mode 1)
 (setq show-paren-style 'mixed)
 #+END_SRC
 
-*** Pair parenthesis, etc.
+** Pair parenthesis, etc.
 #+BEGIN_SRC emacs-lisp
 (electric-pair-mode 1)
 #+END_SRC
 
-*** Meaningful names for buffers with the same name
+** Meaningful names for buffers with the same name
 #+BEGIN_SRC emacs-lisp
 (use-package uniquify
   :config
@@ -662,7 +662,7 @@ Set t for only indent, set 'complete to indent or complete at point.
   (setq uniquify-ignore-buffers-re "^\\*")) ; don't muck with special buffers
 #+END_SRC
 
-*** Remember location in a file when saving
+** Remember location in a file when saving
 #+BEGIN_SRC emacs-lisp
 (use-package saveplace
   :ensure t
@@ -672,7 +672,7 @@ Set t for only indent, set 'complete to indent or complete at point.
   (setq-default save-place t))
 #+END_SRC
 
-*** Save recent files
+** Save recent files
 #+BEGIN_SRC emacs-lisp
 (use-package recentf
   :config
@@ -697,7 +697,7 @@ Set t for only indent, set 'complete to indent or complete at point.
   (recentf-mode +1))
 #+END_SRC
 
-*** Windmove to move between visible buffers
+** Windmove to move between visible buffers
 #+BEGIN_SRC emacs-lisp
 (use-package windmove
   :bind
@@ -708,7 +708,7 @@ Set t for only indent, set 'complete to indent or complete at point.
    ))
 #+END_SRC
 
-*** Volatile highlights, highlight things like undo, copy, etc.
+** Volatile highlights, highlight things like undo, copy, etc.
 #+BEGIN_SRC emacs-lisp
 (use-package volatile-highlights
   :ensure t
@@ -716,7 +716,7 @@ Set t for only indent, set 'complete to indent or complete at point.
   :config (volatile-highlights-mode t))
 #+END_SRC
 
-*** Make kill-region (C-w) kill single line when not selection is active
+** Make kill-region (C-w) kill single line when not selection is active
 #+BEGIN_SRC emacs-lisp
 ;; note - this should be after volatile-highlights is required
 ;; add the ability to cut the current line, without marking it
@@ -728,7 +728,7 @@ Set t for only indent, set 'complete to indent or complete at point.
            (line-beginning-position 2)))))
 #+END_SRC
 
-*** Set up easy-kill, smart M-w replacement
+** Set up easy-kill, smart M-w replacement
 #+BEGIN_SRC emacs-lisp
 (use-package easy-kill
   :ensure t
@@ -737,7 +737,7 @@ Set t for only indent, set 'complete to indent or complete at point.
   (global-set-key [remap mark-sexp] 'easy-mark))
 #+END_SRC
 
-*** Tramp fos ssh
+** Tramp fos ssh
 Keep in mind known issues with zsh, see emacs wiki. Just open a file
 as usual with C-x C-f and then give the name of the remote file,
 including the host address. /user@host.server.com:/home/bjm/myfile.org
@@ -746,7 +746,7 @@ including the host address. /user@host.server.com:/home/bjm/myfile.org
   :config (setq tramp-default-method "ssh"))
 #+END_SRC
 
-*** Spell checking with Flyspell and helm-flyspell
+** Spell checking with Flyspell and helm-flyspell
 #+BEGIN_SRC emacs-lisp
 (use-package flyspell
   :diminish flyspell-mode
@@ -768,7 +768,7 @@ including the host address. /user@host.server.com:/home/bjm/myfile.org
   :config (define-key flyspell-mode-map (kbd "C-;") 'helm-flyspell-correct))
 #+END_SRC
 
-*** White space mode
+** White space mode
 #+BEGIN_SRC emacs-lisp
 (setq whitespace-line-column 80)
 (setq whitespace-style '(face tabs empty trailing lines-tail))
@@ -777,7 +777,7 @@ including the host address. /user@host.server.com:/home/bjm/myfile.org
 (add-hook 'LaTeX-mode-hook 'whitespace-mode)
 #+END_SRC
 
-*** Enable narrowing commands
+** Enable narrowing commands
 #+BEGIN_SRC emacs-lisp
 ;; C-x n w makes entire buffer accesible again
 (put 'narrow-to-region 'disabled nil) ;;C-x n n
@@ -785,19 +785,19 @@ including the host address. /user@host.server.com:/home/bjm/myfile.org
 (put 'narrow-to-defun 'disabled nil)  ;;C-x n d
 #+END_SRC
 
-*** Enable erase-buffer command
+** Enable erase-buffer command
 #+BEGIN_SRC emacs-lisp
 (put 'erase-buffer 'disabled nil)
 #+END_SRC
 
-*** Enable expand region
+** Enable expand region
 #+BEGIN_SRC emacs-lisp
 (use-package expand-region
   :ensure t
   :config (global-set-key (kbd "M-2") 'er/expand-region))
 #+END_SRC
 
-*** Anzu, displays isearch information and query replace.
+** Anzu, displays isearch information and query replace.
 #+BEGIN_SRC emacs-lisp
 (use-package anzu
   :ensure t
@@ -807,13 +807,13 @@ including the host address. /user@host.server.com:/home/bjm/myfile.org
   (global-set-key (kbd "C-M-%") 'anzu-query-replace-regexp))
 #+END_SRC
 
-*** Ediff, view file differences
+** Ediff, view file differences
 #+BEGIN_SRC emacs-lisp
 (use-package ediff
   :config (setq ediff-window-setup-function 'ediff-setup-windows-plain))
 #+END_SRC
 
-*** Make untabify and indent-region work in the whole buffer
+** Make untabify and indent-region work in the whole buffer
 #+BEGIN_SRC emacs-lisp
 (require 'tabify)
 (defmacro with-region-or-buffer (func)
@@ -828,7 +828,7 @@ including the host address. /user@host.server.com:/home/bjm/myfile.org
 (with-region-or-buffer untabify)
 #+END_SRC
 
-*** Automatically indent yanked text in programming modes
+** Automatically indent yanked text in programming modes
 #+BEGIN_SRC emacs-lisp
 (defun yank-advised-indent-function (beg end)
   "Do indentation, as long as the region isn't too large."
@@ -868,13 +868,13 @@ including the host address. /user@host.server.com:/home/bjm/myfile.org
 
 #+END_SRC
 
-*** Enable abbrev mode in text-mode
+** Enable abbrev mode in text-mode
 #+BEGIN_SRC emacs-lisp
 (add-hook 'text-mode-hook 'abbrev-mode)
 (diminish 'abbrev-mode)
 #+END_SRC
 
-*** Make shell script executable automatically on save
+** Make shell script executable automatically on save
 #+BEGIN_SRC emacs-lisp
 (add-hook 'after-save-hook
           'executable-make-buffer-file-executable-if-script-p)
@@ -883,20 +883,20 @@ including the host address. /user@host.server.com:/home/bjm/myfile.org
 (add-to-list 'auto-mode-alist '("\\.zsh\\'" . shell-script-mode))
 #+END_SRC
 
-*** Saner regexp syntax
+** Saner regexp syntax
 #+BEGIN_SRC emacs-lisp
 (require 're-builder)
 (setq reb-re-syntax 'string)
 #+END_SRC
 
-*** Winner mode, undo-redo window configuration
+** Winner mode, undo-redo window configuration
 #+BEGIN_SRC emacs-lisp
 (use-package winner
   :ensure t
   :config (winner-mode 1))
 #+END_SRC
 
-*** Compilation behavior
+** Compilation behavior
 #+BEGIN_SRC emacs-lisp
 (require 'compile)
 (setq compilation-ask-about-save nil  ; Just save before compiling
@@ -918,7 +918,7 @@ including the host address. /user@host.server.com:/home/bjm/myfile.org
 (add-hook 'compilation-filter-hook #'prelude-colorize-compilation-buffer)
 #+END_SRC
 
-*** Turn on auto-fill and visual-line-mode
+** Turn on auto-fill and visual-line-mode
 #+BEGIN_SRC emacs-lisp
 (add-hook 'text-mode-hook 'turn-on-auto-fill)
 (diminish 'auto-fill-function)
@@ -934,12 +934,12 @@ including the host address. /user@host.server.com:/home/bjm/myfile.org
 (add-hook 'visual-line-mode-hook 'my-activate-adaptive-wrap-prefix-mode)
 #+END_SRC
 
-*** Start always maximized
+** Start always maximized
 #+BEGIN_SRC emacs-lisp
 (add-to-list 'default-frame-alist '(fullscreen . maximized))
 #+END_SRC
 
-*** Change case of letters
+** Change case of letters
 #+BEGIN_SRC emacs-lisp
 (defun toggle-letter-case ()
   "Toggle the letter case of current word or text selection.
@@ -977,19 +977,19 @@ Toggles between: “all lower”, “Init Caps”, “ALL CAPS”."
 (global-set-key "\M-c" 'toggle-letter-case)
 #+END_SRC
 
-*** TeX input method
+** TeX input method
 Allows typing TeX characters after toggling the input method with C-\
 #+BEGIN_SRC emacs-lisp
 (setq default-input-method 'TeX)
 #+END_SRC
 
-*** Subword mode
+** Subword mode
 Treats camel case words (camelCase) as separate words.
 #+BEGIN_SRC emacs-lisp
 (global-subword-mode 1)
 #+END_SRC
 
-*** Better transpose characters
+** Better transpose characters
 #+BEGIN_SRC emacs-lisp
 ;; adjust transpose-chars to switch previous two characters
 (global-set-key (kbd "C-t")
@@ -998,7 +998,7 @@ Treats camel case words (camelCase) as separate words.
                   (transpose-chars 1)))
 #+END_SRC
 
-*** Writegood-mode
+** Writegood-mode
 #+BEGIN_SRC emacs-lisp
 (use-package writegood-mode
   :ensure t
@@ -1008,8 +1008,8 @@ Treats camel case words (camelCase) as separate words.
   (add-hook 'org-mode-hook 'writegood-turn-on))
 #+END_SRC
 
-** Navigation
-*** Avy
+* Navigation
+** Avy
 #+BEGIN_SRC emacs-lisp
 (use-package avy
   :ensure t
@@ -1021,7 +1021,7 @@ Treats camel case words (camelCase) as separate words.
   (key-chord-define-global "jk" 'avy-goto-char))
 #+END_SRC
 
-*** Ace-window
+** Ace-window
 Can swap and delete windows as well.
 #+BEGIN_SRC emacs-lisp
 (use-package ace-window
@@ -1031,7 +1031,7 @@ Can swap and delete windows as well.
   (global-set-key (kbd "C-c s") 'ace-swap-window))
 #+END_SRC
 
-*** Helm-swoop
+** Helm-swoop
 List match lines to another buffer, which is able to squeeze by any
 words you input. At the same time, the original buffer's cursor is
 jumping line to line according to moving up and down the line
@@ -1094,7 +1094,7 @@ list. https://github.com/ShingoFukuyama/helm-swoop
       (lambda () ""))
 #+END_SRC
 
-*** Helm-mt and multi-term
+** Helm-mt and multi-term
 #+BEGIN_SRC emacs-lisp
 (use-package helm-mt
   :ensure t
@@ -1112,7 +1112,7 @@ list. https://github.com/ShingoFukuyama/helm-swoop
              )))
 #+END_SRC
 
-*** Helm-semantic-or-imenu and imenu-anywhere
+** Helm-semantic-or-imenu and imenu-anywhere
 #+BEGIN_SRC emacs-lisp
 (global-set-key (kbd "C-c i") 'helm-semantic-or-imenu)
 (use-package imenu-anywhere
@@ -1120,7 +1120,7 @@ list. https://github.com/ShingoFukuyama/helm-swoop
   :config (global-set-key (kbd "C-c I") 'helm-imenu-anywhere))
 #+END_SRC
 
-*** Back button
+** Back button
 Navigate the mark ring, replaces binding for next/previous-buffer
 which I rarely use.
 #+BEGIN_SRC emacs-lisp
@@ -1133,10 +1133,10 @@ which I rarely use.
 (global-set-key (kbd "s-<right>") 'next-buffer)
 #+END_SRC
 
-** Words hydra
+* Words hydra
 Function to operate on words at point or region, from
 https://github.com/jkitchin/jmax/blob/master/words.el
-*** Dictionary/thesaurus/grammar
+** Dictionary/thesaurus/grammar
 #+BEGIN_SRC emacs-lisp
 (defun words-dictionary ()
   "Look up word at point in an online dictionary."
@@ -1196,7 +1196,7 @@ https://github.com/jkitchin/jmax/blob/master/words.el
       " s type desc opt-string))))))
 #+END_SRC
 
-*** Scientific search functions
+** Scientific search functions
 #+BEGIN_SRC emacs-lisp
 (defun words-google-scholar ()
   "Google scholar the word at point or selection."
@@ -1223,7 +1223,7 @@ https://github.com/jkitchin/jmax/blob/master/words.el
              (thing-at-point 'word)))))
 #+END_SRC
 
-*** A hydra interface to words
+** A hydra interface to words
 #+BEGIN_SRC emacs-lisp
 (key-chord-define-global
  "ww"
@@ -1238,7 +1238,7 @@ https://github.com/jkitchin/jmax/blob/master/words.el
    ("q" nil "cancel")))
 #+END_SRC
 
-** LaTeX
+* LaTeX
 The latex-extra package provides foldind, novigation, 1-key
 compilation and white space handling.
 #+BEGIN_SRC emacs-lisp
@@ -1310,8 +1310,8 @@ compilation and white space handling.
 (define-key LaTeX-mode-map (kbd "C-c C-x C-l") 'org-preview-latex-fragment)
 #+END_SRC
 
-** org-mode
-*** Basics
+* org-mode
+** Basics
 #+BEGIN_SRC emacs-lisp
 (use-package org
   :ensure org-plus-contrib)
@@ -1422,7 +1422,7 @@ F4 inserts HTML code"
                     sources))))
 #+END_SRC
 
-*** Org capture
+** Org capture
 #+BEGIN_SRC emacs-lisp
 (define-key global-map "\C-cc" 'org-capture)
 
@@ -1445,7 +1445,7 @@ F4 inserts HTML code"
 (advice-add 'org-refile :after #'org-save-all-org-buffers)
 #+END_SRC
 
-*** Org-id
+** Org-id
 I'm not use what this is for.
 #+BEGIN_SRC emacs-lisp
 (setq org-id-link-to-org-use-id 'create-if-interactive)
@@ -1455,7 +1455,7 @@ I'm not use what this is for.
 (require 'org-id)
 #+END_SRC
 
-*** Latex fragments
+** Latex fragments
 #+BEGIN_SRC emacs-lisp
 ;;Org-mode latex fragments size
 (plist-put org-format-latex-options :scale 1.5)
@@ -1471,7 +1471,7 @@ I'm not use what this is for.
  '(org-latex-and-related ((t (:foreground "burlywood4")))))
 #+END_SRC
 
-*** Navigation
+** Navigation
 For fast navigation, to see a list of available commands press ? with
 the cursor at the beginning of a headline.  Also define a new hydra to
 navigate when not in a heading and replace imenu with
@@ -1493,7 +1493,7 @@ helm-org-in-buffer-headings.
 (define-key org-mode-map (kbd "s-n") 'hydra-org/body)
 #+END_SRC
 
-**** Narrow or widen dwim
+*** Narrow or widen dwim
 Function that replaces the entire key map for narrow widen in org.
 #+BEGIN_SRC emacs-lisp
 (defun narrow-or-widen-dwim (p)
@@ -1529,8 +1529,8 @@ already narrowed."
   '(define-key LaTeX-mode-map "\C-xn" nil))
 #+END_SRC
 
-*** Babel settings
-**** General settings
+** Babel settings
+*** General settings
 #+BEGIN_SRC emacs-lisp
 ;; do not evaluate code on export by default
 (setq org-export-babel-evaluate nil)
@@ -1576,7 +1576,7 @@ already narrowed."
             (assq-delete-all :exports org-babel-default-header-args)))
 #+END_SRC
 
-**** Code block expansions
+*** Code block expansions
 #+BEGIN_SRC emacs-lisp
 ;; add <p for python expansion
 (add-to-list 'org-structure-template-alist
@@ -1612,7 +1612,7 @@ already narrowed."
 
 #+END_SRC
 
-**** Functions for managing sessions
+*** Functions for managing sessions
 Restart and kill sessions.
 #+BEGIN_SRC emacs-lisp
 (defun src-block-in-session-p (&optional name)
@@ -1681,8 +1681,8 @@ session as the current block. ARG has same meaning as in
     (kill-buffer)))
 #+END_SRC
 
-**** Functions for managing code blocks
-***** Remove results in buffer
+*** Functions for managing code blocks
+**** Remove results in buffer
 #+BEGIN_SRC emacs-lisp
 (defun org-babel-remove-result-buffer ()
   "Remove results from every code block in buffer."
@@ -1693,7 +1693,7 @@ session as the current block. ARG has same meaning as in
       (org-babel-remove-result))))
 #+END_SRC
 
-***** Wrap text in block
+**** Wrap text in block
 #+BEGIN_SRC emacs-lisp
 (defun org-begin-template ()
   "Make a template at point."
@@ -1738,14 +1738,14 @@ session as the current block. ARG has same meaning as in
 (define-key org-mode-map (kbd "C-<") 'org-begin-template)
 #+END_SRC
 
-***** Ipython blocks
+**** Ipython blocks
 #+BEGIN_SRC emacs-lisp
 ;;Ipython blocks in org mode.
 (use-package ob-ipython
   :ensure t)
 #+END_SRC
 
-*** Agenda setup
+** Agenda setup
 http://orgmode.org/manual/Global-TODO-list.html#Global-TODO-list
 #+BEGIN_SRC emacs-lisp
 (setq org-agenda-skip-scheduled-if-done t)
@@ -1766,7 +1766,7 @@ http://orgmode.org/manual/Global-TODO-list.html#Global-TODO-list
 (setq org-log-done 'time)
 #+END_SRC
 
-*** Org-links
+** Org-links
 Define a link to a youtube video.
 http://endlessparentheses.com/embedding-youtube-videos-with-org-mode-links.html
 #+BEGIN_SRC emacs-lisp
@@ -1793,8 +1793,8 @@ http://endlessparentheses.com/embedding-youtube-videos-with-org-mode-links.html
                     path (or desc "video"))))))
 #+END_SRC
 
-*** Export settings
-**** Export back-ends
+** Export settings
+*** Export back-ends
 #+BEGIN_SRC emacs-lisp
 (require 'ox-latex)
 (require 'ox-beamer)
@@ -1804,7 +1804,7 @@ http://endlessparentheses.com/embedding-youtube-videos-with-org-mode-links.html
 (require 'ox-rss)
 #+END_SRC
 
-**** Export behavior
+*** Export behavior
 #+BEGIN_SRC emacs-lisp
 ;; Interpret "_" and "^" for export when braces are used.
 (setq org-export-with-sub-superscripts '{})
@@ -1816,7 +1816,7 @@ http://endlessparentheses.com/embedding-youtube-videos-with-org-mode-links.html
 (setq org-export-allow-bind-keywords t)
 #+END_SRC
 
-**** Latex export
+*** Latex export
 Define extra packages to be included in latex exports.
 #+BEGIN_SRC emacs-lisp
 (setq org-latex-packages-alist
@@ -1899,7 +1899,7 @@ Define some useful Latex classes.
                ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
 #+END_SRC
 
-**** Beamer
+*** Beamer
 #+BEGIN_SRC emacs-lisp
 (add-to-list 'org-beamer-environments-extra
              '("onlyenv" "O" "\\begin{onlyenv}%a" "\\end{onlyenv}"))
@@ -1909,7 +1909,7 @@ Define some useful Latex classes.
              '("textpos1" "w" "\\begin{textblock}{%h}(3,3) \\visible %a {" "} \\end{textblock}"))
 #+END_SRC
 
-**** Headers labels (ignore, no number)
+*** Headers labels (ignore, no number)
 Enable headers with the ignore tag to be ignored while having their
 contents exported. Also allow to create unnumbered headers.
 #+BEGIN_SRC emacs-lisp
@@ -1929,7 +1929,7 @@ contents exported. Also allow to create unnumbered headers.
 (add-to-list 'org-export-filter-headline-functions 'headline-nonumber)
 #+END_SRC
 
-*** Org ref
+** Org ref
 #+BEGIN_SRC emacs-lisp
 (use-package helm-bibtex
   :ensure t)
@@ -1963,7 +1963,7 @@ contents exported. Also allow to create unnumbered headers.
 
 #+END_SRC
 
-*** Images in org-mode
+** Images in org-mode
 I'm not displaying images in org buffers, I like to follow the links
 and open images in an external program. What I do like is the drag and
 drop functionality of org-download.
@@ -1974,7 +1974,7 @@ https://github.com/abo-abo/org-download
   :ensure t)
 #+END_SRC
 
-*** Org-journal
+** Org-journal
 #+BEGIN_SRC emacs-lisp
 (use-package org-journal
   :ensure t
@@ -1986,7 +1986,7 @@ https://github.com/abo-abo/org-download
 )
 #+END_SRC
 
-*** Org links in non org buffers
+** Org links in non org buffers
 #+BEGIN_SRC emacs-lisp
 (use-package orglink
   :ensure t
@@ -1994,7 +1994,7 @@ https://github.com/abo-abo/org-download
   :config (add-hook 'prog-mode-hook 'orglink-mode))
 #+END_SRC
 
-*** Blog using org publish
+** Blog using org publish
 #+BEGIN_SRC emacs-lisp
 (add-to-list 'org-export-filter-timestamp-functions
              #'endless/filter-timestamp)
@@ -2143,9 +2143,9 @@ Posted:
         ))
 #+END_SRC
 
-** Programming
-*** General configurations
-**** Comments
+* Programming
+** General configurations
+*** Comments
 #+BEGIN_SRC emacs-lisp
 (defun comment-auto-fill ()
   (setq-local comment-auto-fill-only-comments t)
@@ -2159,20 +2159,20 @@ Posted:
   (global-set-key (kbd "M-;") 'comment-dwim-2))
 #+END_SRC
 
-**** Display function name in the mode line
+*** Display function name in the mode line
 #+BEGIN_SRC emacs-lisp
 (require 'which-func)
 (which-function-mode 1)
 #+END_SRC
 
-**** Highlight comment annotations
+*** Highlight comment annotations
 #+BEGIN_SRC emacs-lisp
 (use-package hl-todo
   :ensure t
   :config (add-hook 'prog-mode-hook 'hl-todo-mode))
 #+END_SRC
 
-**** Flycheck
+*** Flycheck
 Setup flychek with a helm.
 #+BEGIN_SRC emacs-lisp
 (use-package flycheck
@@ -2186,7 +2186,7 @@ Setup flychek with a helm.
   (define-key flycheck-mode-map (kbd "C-c ! h") 'helm-flycheck))
 #+END_SRC
 
-***** Proselint
+**** Proselint
 #+BEGIN_SRC emacs-lisp
 (flycheck-define-checker proselint
   "A linter for prose."
@@ -2200,7 +2200,7 @@ Setup flychek with a helm.
 (add-to-list 'flycheck-checkers 'proselint)
 #+END_SRC
 
-**** Rainbow delimiters, colors parenthesis
+*** Rainbow delimiters, colors parenthesis
 #+BEGIN_SRC emacs-lisp
 (use-package rainbow-delimiters
   :ensure t
@@ -2209,7 +2209,7 @@ Setup flychek with a helm.
   (add-hook 'org-mode-hook #'rainbow-delimiters-mode))
 #+END_SRC
 
-**** Company reordering
+*** Company reordering
 #+BEGIN_SRC emacs-lisp
 (add-hook 'prog-mode-hook
           (lambda()
@@ -2221,7 +2221,7 @@ Setup flychek with a helm.
             ))
 #+END_SRC
 
-**** Line numbers
+*** Line numbers
 #+BEGIN_SRC emacs-lisp
 (use-package nlinum
   :ensure t
@@ -2229,7 +2229,7 @@ Setup flychek with a helm.
   (add-hook 'python-mode-hook 'nlinum-mode))
 #+END_SRC
 
-**** Speedbar
+*** Speedbar
 #+BEGIN_SRC emacs-lisp
 (use-package sr-speedbar
   :ensure t
@@ -2237,7 +2237,7 @@ Setup flychek with a helm.
   (global-set-key (kbd "s-s") 'sr-speedbar-toggle))
 #+END_SRC
 
-**** Hide show minor mode
+*** Hide show minor mode
 #+BEGIN_SRC emacs-lisp
 (setq hs-org/trigger-keys-block (list (kbd "<C-tab>")))
 (use-package hideshow-org
@@ -2248,7 +2248,7 @@ Setup flychek with a helm.
   (add-hook 'python-mode-hook 'hs-org/minor-mode))
 #+END_SRC
 
-**** Clean-aindent-mode
+*** Clean-aindent-mode
 #+BEGIN_SRC emacs-lisp
 (use-package clean-aindent-mode
   :ensure t
@@ -2256,7 +2256,7 @@ Setup flychek with a helm.
   (add-hook 'prog-mode-hook 'clean-aindent-mode))
 #+END_SRC
 
-*** Projectile
+** Projectile
 Project management for emacs. See
 https://github.com/bbatsov/projectile.
 #+BEGIN_SRC emacs-lisp
@@ -2273,7 +2273,7 @@ https://github.com/bbatsov/projectile.
   (setq projectile-switch-project-action 'helm-projectile))
 #+END_SRC
 
-*** Yasnippet
+** Yasnippet
 #+BEGIN_SRC emacs-lisp
 (use-package yasnippet
   :ensure t
@@ -2287,7 +2287,7 @@ https://github.com/bbatsov/projectile.
   )
 #+END_SRC
 
-*** Python
+** Python
 Install elpy package from the *elpy repository*.
 #+BEGIN_SRC emacs-lisp
 (elpy-enable)
@@ -2301,7 +2301,7 @@ Install elpy package from the *elpy repository*.
 (setq elpy-rpc-error-timeout 100000000)
 #+END_SRC
 
-*** C
+** C
 #+BEGIN_SRC emacs-lisp
 (setq-default c-basic-offset 4)
 
@@ -2324,7 +2324,7 @@ Install elpy package from the *elpy repository*.
 (add-hook 'c-mode-hook #'my-flycheck-c-setup)
 #+END_SRC
 
-*** Gnuplot
+** Gnuplot
 #+BEGIN_SRC emacs-lisp
 (use-package gnuplot
   :ensure t
@@ -2333,7 +2333,7 @@ Install elpy package from the *elpy repository*.
   )
 #+END_SRC
 
-*** Markdown
+** Markdown
 #+BEGIN_SRC emacs-lisp
 (use-package markdown-mode
   :ensure t)
@@ -2344,7 +2344,7 @@ Install elpy package from the *elpy repository*.
 (add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-mode))
 #+END_SRC
 
-*** Processing
+** Processing
 #+BEGIN_SRC emacs-lisp
 (use-package processing-mode
   :ensure t
@@ -2354,7 +2354,7 @@ Install elpy package from the *elpy repository*.
   (setq processing-sketchbook-dir "/home/gperaza/Documents/code/processing"))
 #+END_SRC
 
-*** Fish-shell
+** Fish-shell
 #+BEGIN_SRC emacs-lisp
 (use-package fish-mode
   :ensure t)
