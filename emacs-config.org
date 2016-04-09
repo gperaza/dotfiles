@@ -679,7 +679,7 @@ Set t for only indent, set 'complete to indent or complete at point.
   (show-smartparens-global-mode t)
   (smartparens-global-mode 1)
   (define-key prog-mode-map (kbd "M-q") 'sp-indent-defun)
-  )
+  (define-key c-mode-base-map (kbd "M-q") 'sp-indent-defun))
 #+END_SRC
 
 ** Remember location in a file when saving
@@ -2209,7 +2209,10 @@ Setup flychek with a helm.
 (use-package clean-aindent-mode
   :ensure t
   :config
-  (add-hook 'prog-mode-hook 'clean-aindent-mode))
+  (add-hook 'prog-mode-hook 'clean-aindent-mode)
+  (define-key prog-mode-map (kbd "RET") 'newline-and-indent)
+  (define-key c-mode-base-map (kbd "RET") 'newline-and-indent))
+
 #+END_SRC
 
 ** Projectile
