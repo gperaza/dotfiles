@@ -2104,7 +2104,6 @@ Posted:
 (defun comment-auto-fill ()
   (setq-local comment-auto-fill-only-comments t)
   (auto-fill-mode 1))
-
 (add-hook 'prog-mode-hook 'comment-auto-fill)
 
 (use-package comment-dwim-2
@@ -2191,15 +2190,18 @@ Setup flychek with a helm.
   (global-set-key (kbd "s-s") 'sr-speedbar-toggle))
 #+END_SRC
 
-*** Hide show minor mode
+*** Origami for folding
 #+BEGIN_SRC emacs-lisp
-(setq hs-org/trigger-keys-block (list (kbd "<C-tab>")))
-(use-package hideshow-org
-  :diminish hs-minor-mode
+(use-package origami
   :ensure t
   :config
-  (add-hook 'c-mode-common-hook 'hs-org/minor-mode)
-  (add-hook 'python-mode-hook 'hs-org/minor-mode))
+  (define-key origami-mode-map (kbd "C-<tab>")
+    'origami-recursively-toggle-node)
+  (define-key origami-mode-map (kbd "S-<iso-lefttab>")
+    'origami-toggle-all-nodes)
+  (add-hook 'c-mode-common-hook 'origami-mode)
+  (add-hook 'python-mode-hook 'origami-mode)
+  )
 #+END_SRC
 
 *** Clean-aindent-mode
