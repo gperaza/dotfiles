@@ -1095,7 +1095,8 @@ which I rarely use.
 * Words hydra
 Function to operate on words at point or region, from
 https://github.com/jkitchin/jmax/blob/master/words.el
-** Dictionary/thesaurus/grammar
+
+** Functions
 #+BEGIN_SRC emacs-lisp
 (defun words-dictionary ()
   "Look up word at point in an online dictionary."
@@ -1153,10 +1154,18 @@ https://github.com/jkitchin/jmax/blob/master/words.el
       Description: %s
       Suggestions: %s
       " s type desc opt-string))))))
-#+END_SRC
 
-** Scientific search functions
-#+BEGIN_SRC emacs-lisp
+(defun words-google ()
+  "Google the word at point or selection."
+  (interactive)
+  (browse-url
+   (format
+    "http://www.google.com/search?q=%s"
+    (if (region-active-p)
+	(url-hexify-string (buffer-substring (region-beginning)
+					     (region-end)))
+      (thing-at-point 'word)))))
+
 (defun words-google-scholar ()
   "Google scholar the word at point or selection."
   (interactive)
@@ -1164,37 +1173,23 @@ https://github.com/jkitchin/jmax/blob/master/words.el
    (format
     "http://scholar.google.com/scholar?q=%s"
     (if (region-active-p)
-        (url-hexify-string (buffer-substring (region-beginning)
-                                             (region-end)))
+	(url-hexify-string (buffer-substring (region-beginning)
+					     (region-end)))
       (thing-at-point 'word)))))
 
-
-(defun words-wos ()
-  "Open the word at point or selection in Web of Science."
-  ;; the url was derived from this page: http://wokinfo.com/webtools/searchbox/
-  (interactive)
-  (browse-url
-   (format "http://gateway.webofknowledge.com/gateway/Gateway.cgi?topic=%s&GWVersion=2&SrcApp=WEB&SrcAuth=HSB&DestApp=UA&DestLinkType=GeneralSearchSummary"
-           (if (region-active-p)
-               (mapconcat 'identity (split-string
-                                     (buffer-substring (region-beginning)
-                                                       (region-end))) "+")
-             (thing-at-point 'word)))))
 #+END_SRC
 
-** A hydra interface to words
+** Hydra
 #+BEGIN_SRC emacs-lisp
-(key-chord-define-global
- "ww"
- (defhydra words-hydra (:color blue)
+ (defhydra hydra-words (:color blue)
    "words"
    ("d" words-dictionary "dictionary")
    ("t" words-thesaurus "thesaurus")
-   ("S" words-atd "spell/grammar")
-   ("g" helm-google-sugest "google")
-   ("w" words-wos "Web of Science")
-   ("G" words-google-scholar "Google scholar")
-   ("q" nil "cancel")))
+   ("s" words-atd "spell/grammar")
+   ("g" words-google "spell/grammar")
+   ("G" words-google-scholar "spell/grammar")
+   ("q" nil "cancel"))
+(global-set-key (kbd "s-d") 'hydra-words/body)
 #+END_SRC
 
 * LaTeX
