@@ -678,8 +678,7 @@ Set t for only indent, set 'complete to indent or complete at point.
   :config
   (show-smartparens-global-mode t)
   (smartparens-global-mode 1)
-  (define-key prog-mode-map (kbd "M-q") 'sp-indent-defun)
-  (define-key c-mode-base-map (kbd "M-q") 'sp-indent-defun))
+  (define-key prog-mode-map (kbd "M-q") 'sp-indent-defun))
 #+END_SRC
 
 ** Remember location in a file when saving
@@ -2210,9 +2209,7 @@ Setup flychek with a helm.
   :ensure t
   :config
   (add-hook 'prog-mode-hook 'clean-aindent-mode)
-  (define-key prog-mode-map (kbd "RET") 'newline-and-indent)
-  (define-key c-mode-base-map (kbd "RET") 'newline-and-indent))
-
+  (define-key prog-mode-map (kbd "RET") 'newline-and-indent))
 #+END_SRC
 
 ** Projectile
@@ -2266,6 +2263,9 @@ Install elpy package from the *elpy repository*.
 
 (require 'cc-mode)
 (require 'semantic)
+
+(define-key c-mode-base-map (kbd "M-q") 'sp-indent-defun)
+(define-key c-mode-base-map (kbd "RET") 'newline-and-indent)
 
 (setq helm-semantic-fuzzy-match t
       helm-imenu-fuzzy-match    t)
