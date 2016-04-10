@@ -2200,6 +2200,10 @@ Semantic mode enables parsing of source code files.
 
 (global-semanticdb-minor-mode 1)
 (global-semantic-idle-scheduler-mode 1)
+(global-semantic-idle-summary-mode 1)
+(use-package stickyfunc-enhance
+  :ensure t
+  :config (global-semantic-stickyfunc-mode 1))
 
 (setq helm-semantic-fuzzy-match t
       helm-imenu-fuzzy-match    t)
@@ -2247,8 +2251,8 @@ Install elpy package from the *elpy repository*.
 (setq elpy-modules (delete 'elpy-module-flymake elpy-modules))
 (add-hook 'python-mode-hook
           (lambda () (set (make-local-variable 'comment-inline-offset) 2)))
-(set-face-background 'highlight-indentation-face "#e3e3d3")
-(set-face-background 'highlight-indentation-current-column-face "#c3b3b3")
+;; (set-face-background 'highlight-indentation-face "#e3e3d3")
+;; (set-face-background 'highlight-indentation-current-column-face "#c3b3b3")
 (setq elpy-rpc-error-timeout 100000000)
 #+END_SRC
 
