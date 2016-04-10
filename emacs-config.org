@@ -559,42 +559,38 @@ address. /user@host.server.com:/home/bjm/myfile.org
   :config (define-key flyspell-mode-map (kbd "C-;") 'helm-flyspell-correct))
 #+END_SRC
 
-** Autocomplete(Company)
+** Company
 We use company since it is included in Elpy already.
 #+BEGIN_SRC emacs-lisp
 (use-package company
+  :ensure t
+  :config
+  (global-set-key (kbd "<C-tab>") 'company-complete)
+  (add-hook 'after-init-hook 'global-company-mode))
+
+(use-package company-c-headers
+  :ensure t
+  :config
+  (add-to-list 'company-backends 'company-c-headers))
+
+(use-package company-auctex
   :ensure t)
-
-;; don't start automatically
-(setq company-idle-delay 0.5)
-
-;; cancel if input doesn't match
-(setq company-require-match nil)
-
-;; Not sure if define company complete, key is currently used by hs org
-;; (global-set-key (kbd "<C-tab>") 'company-complete)
-(define-key company-active-map (kbd "C-n") 'company-select-next)
-(define-key company-active-map (kbd "<tab>") 'company-complete-common)
-(define-key company-active-map (kbd "C-p") 'company-select-previous)
-(define-key company-active-map (kbd "<backtab>") 'company-select-previous)
 
 (use-package company-math
-  :ensure t)
+  :ensure t
+  :config
+  (add-to-list 'company-backends 'company-math-symbols-unicode))
 
-(add-to-list 'company-backends 'company-math-symbols-unicode)
-
-(defun my-latex-mode-setup ()
+(defun my-company-latex-mode-setup ()
   (setq-local company-backends
-              (append '(company-math-symbols-latex company-latex-commands)
+              (append '(company-auctex-labels
+                        company-auctex-bibs
+                        (company-math-symbols-latex
+                         company-auctex-macros
+                         company-auctex-environments)
+                        )
                       company-backends)))
-(add-hook 'TeX-mode-hook 'my-latex-mode-setup)
-
-;; put company-capf at the beginning of the list
-(require 'company-capf)
-(setq company-backends
-      (delete-dups (cons 'company-capf company-backends)))
-
-(add-hook 'after-init-hook 'global-company-mode)
+(add-hook 'LaTeX-mode-hook 'my-company-latex-mode-setup)
 #+END_SRC
 
 * Editing configuration
@@ -1220,9 +1216,6 @@ compilation and white space handling.
             (turn-on-cdlatex)
             (TeX-source-correlate-mode t)
             (imenu-add-to-menubar "Index")
-            (setq-local company-backends
-                        (delete-dups (cons 'company-files
-                                           company-backends)))
             ;; Allow paragraph filling in tables
             (setq LaTeX-indent-environment-list
                   (delq (assoc "table" LaTeX-indent-environment-list)
@@ -2161,18 +2154,6 @@ Setup flychek with a helm.
   (add-hook 'org-mode-hook #'rainbow-delimiters-mode))
 #+END_SRC
 
-*** Company reordering
-#+BEGIN_SRC emacs-lisp
-(add-hook 'prog-mode-hook
-          (lambda()
-            ;; make sure completion calls company-capf first
-            (require 'company-capf)
-            (set (make-local-variable 'company-backends)
-                 (cons 'company-capf company-backends))
-            (delete-dups company-backends)
-            ))
-#+END_SRC
-
 *** Line numbers
 #+BEGIN_SRC emacs-lisp
 (use-package nlinum
@@ -2212,7 +2193,21 @@ Setup flychek with a helm.
   (define-key prog-mode-map (kbd "RET") 'newline-and-indent))
 #+END_SRC
 
+** Semantic mode
+Semantic mode enables parsing of source code files.
+#+BEGIN_SRC emacs-lisp
+(require 'semantic)
+
+(global-semanticdb-minor-mode 1)
+(global-semantic-idle-scheduler-mode 1)
+
+(setq helm-semantic-fuzzy-match t
+      helm-imenu-fuzzy-match    t)
+(semantic-mode 1)
+#+END_SRC
+
 ** Projectile
+
 Project management for emacs. See
 https://github.com/bbatsov/projectile.
 #+BEGIN_SRC emacs-lisp
@@ -2231,16 +2226,16 @@ https://github.com/bbatsov/projectile.
 
 ** Yasnippet
 #+BEGIN_SRC emacs-lisp
-(use-package yasnippet
-  :ensure t
-  :config
-  (yas-reload-all)
-  (define-key yas-minor-mode-map (kbd "<tab>") nil)
-  (define-key yas-minor-mode-map (kbd "TAB") nil)
-  (define-key yas-minor-mode-map (kbd "<C-S-iso-lefttab>") 'yas-expand)
-  (add-hook 'c-mode-common-hook #'yas-minor-mode)
-  (add-hook 'LaTeX-mode-hook #'yas-minor-mode)
-  )
+;; (use-package yasnippet
+;;   :ensure t
+;;   :config
+;;   (yas-reload-all)
+;;   (define-key yas-minor-mode-map (kbd "<tab>") nil)
+;;   (define-key yas-minor-mode-map (kbd "TAB") nil)
+;;   (define-key yas-minor-mode-map (kbd "<C-S-iso-lefttab>") 'yas-expand)
+;;   (add-hook 'c-mode-common-hook #'yas-minor-mode)
+;;   (add-hook 'LaTeX-mode-hook #'yas-minor-mode)
+;;   )
 #+END_SRC
 
 ** Python
@@ -2260,22 +2255,17 @@ Install elpy package from the *elpy repository*.
 ** C
 #+BEGIN_SRC emacs-lisp
 (setq-default c-basic-offset 4)
-
 (require 'cc-mode)
-(require 'semantic)
 
+;; New functions
 (define-key c-mode-base-map (kbd "M-q") 'sp-indent-defun)
 (define-key c-mode-base-map (kbd "RET") 'newline-and-indent)
 
-(setq helm-semantic-fuzzy-match t
-      helm-imenu-fuzzy-match    t)
-(global-semanticdb-minor-mode 1)
-(global-semantic-idle-scheduler-mode 1)
+;; Format to display tags
 (with-eval-after-load 'helm-semantic
   (push '(c-mode . semantic-format-tag-summarize) helm-semantic-display-style)
-  (push '(c++-mode . semantic-format-tag-summarize) helm-semantic-display-style))
-
-(semantic-mode 1)
+  (push '(c++-mode . semantic-format-tag-summarize)
+        helm-semantic-display-style))
 
 ;; c99 mode
 (defun my-flycheck-c-setup ()
