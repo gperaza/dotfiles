@@ -1963,7 +1963,15 @@ https://github.com/abo-abo/org-download
           "\n</div>"))
 
 (defun my-bibtex-function ()
-  (shell-command-to-string "bibtex2html -d -r -nobibsource -nokeywords -nf arxiv \"Arxiv\" --revkeys -nodoc -m ~/Blog/macros.tex -s ~/Blog/owens_web -noheader -nofooter ~/Blog/mypubs.bib; echo \"#+BEGIN_HTML\" > ~/Blog/mypubs.in; cat ~/Blog/mypubs.html >> ~/Blog/mypubs.in; echo  \"\" >> ~/Blog/mypubs.in; echo \"#+END_HTML\" >> ~/Blog/mypubs.in"))
+  (shell-command-to-string
+   (concat "bibtex2html -d -r -nobibsource -nokeywords "
+           "-nf arxiv \"Arxiv\" --revkeys -nodoc "
+           "-m ~/Blog/macros.tex -s ~/Blog/owens_web "
+           "-noheader -nofooter ~/Blog/mypubs.bib; "
+           "echo \"#+BEGIN_HTML\" > ~/Blog/mypubs.in; "
+           "cat ~/Blog/mypubs.html >> ~/Blog/mypubs.in; "
+           "echo  \"\" >> ~/Blog/mypubs.in; "
+           "echo \"#+END_HTML\" >> ~/Blog/mypubs.in")))
 
 (add-to-list 'org-structure-template-alist
              `("bpost" ,(concat "#+TITLE: ?\n"
