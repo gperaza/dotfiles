@@ -1157,8 +1157,8 @@ https://github.com/jkitchin/jmax/blob/master/words.el
    (format
     "http://www.google.com/search?q=%s"
     (if (region-active-p)
-	(url-hexify-string (buffer-substring (region-beginning)
-					     (region-end)))
+        (url-hexify-string (buffer-substring (region-beginning)
+                                             (region-end)))
       (thing-at-point 'word)))))
 
 (defun words-google-scholar ()
@@ -1168,8 +1168,8 @@ https://github.com/jkitchin/jmax/blob/master/words.el
    (format
     "http://scholar.google.com/scholar?q=%s"
     (if (region-active-p)
-	(url-hexify-string (buffer-substring (region-beginning)
-					     (region-end)))
+        (url-hexify-string (buffer-substring (region-beginning)
+                                             (region-end)))
       (thing-at-point 'word)))))
 
 #+END_SRC
@@ -1966,19 +1966,19 @@ https://github.com/abo-abo/org-download
   (shell-command-to-string "bibtex2html -d -r -nobibsource -nokeywords -nf arxiv \"Arxiv\" --revkeys -nodoc -m ~/Blog/macros.tex -s ~/Blog/owens_web -noheader -nofooter ~/Blog/mypubs.bib; echo \"#+BEGIN_HTML\" > ~/Blog/mypubs.in; cat ~/Blog/mypubs.html >> ~/Blog/mypubs.in; echo  \"\" >> ~/Blog/mypubs.in; echo \"#+END_HTML\" >> ~/Blog/mypubs.in"))
 
 (add-to-list 'org-structure-template-alist
-             '("bpost" (concat "#+TITLE: ?
-,#+DATE:
-,#+SUBTITLE: Posted:
-# #+SUBTITLE: (/Last edited: {{{modification-time(%d %b %Y %H:%M)}}}/ )
-,#+AUTHOR: " user-full-name "
-,#+EMAIL: " user-mail-address "
-,#+LANGUAGE: en\n\n
-,* COMMENT local variables for this file
+             `("bpost" ,(concat "#+TITLE: ?\n"
+"#+DATE:\n"
+"#+SUBTITLE: Posted:\n"
+"# #+SUBTITLE: (/Last edited: {{{modification-time(%d %b %Y %H:%M)}}}/ )\n"
+"#+AUTHOR: " user-full-name "\n"
+"#+EMAIL: " user-mail-address "\n"
+"#+LANGUAGE: en\n\n\n\n"
+"* COMMENT local variables for this file
 # Local Variables:
-# eval: (setq system-time-locale \"es\")
+# eval: (setq system-time-locale \"en\")
 # ispell-local-dictionary: \"en\"
-# End:
-")))
+# End:"
+)))
 
 (add-to-list 'org-structure-template-alist
              '("bprev" "* TODO ?
@@ -2087,6 +2087,30 @@ Posted:
          :publishing-directory "~/Blog/pub/"
          :publishing-function org-publish-attachment)
         ))
+#+END_SRC
+
+** Templates
+#+BEGIN_SRC emacs-lisp
+(add-to-list 'org-structure-template-alist
+             `("paper"
+               ,(concat
+                "#+TITLE:\n"
+                "#+DATE:\n\n"
+                "* Tasks\n\n"
+                "** Writing\n\n"
+                "** Model\n\n"
+                "** Simulations\n\n"
+                "* Reading\n\n"
+                "** Actual reading\n\n"
+                "** Should read\n\n"
+                "** Not yet read\n\n"
+                "** Already read\n\n"
+                "* Notes\n"
+                "Main notes are in the [[file:notes.org][notes]] file. "
+                "Here lie some quick notes.\n\n"
+                "* Files\n"
+                "Links to relevant files to the research.\n\n"
+                "* Meetings")))
 #+END_SRC
 
 * Programming
