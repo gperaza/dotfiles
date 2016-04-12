@@ -34,7 +34,7 @@ This file must include personal information given as
 
 (eval-when-compile
   (require 'use-package))
-(require 'diminish)
+;; (require 'diminish)
 (require 'bind-key)
 
 (use-package paradox
@@ -210,6 +210,11 @@ Send all backups to /tmp/
   :config (global-anzu-mode)
   (global-set-key (kbd "M-%") 'anzu-query-replace)
   (global-set-key (kbd "C-M-%") 'anzu-query-replace-regexp))
+#+END_SRC
+
+** Rich-minority
+#+BEGIN_SRC emacs-lisp
+(setq rm-whitelist "Projectile")
 #+END_SRC
 
 * Function definitions
