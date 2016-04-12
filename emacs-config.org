@@ -181,11 +181,6 @@ Send all backups to /tmp/
                                         "%b"))))
 #+END_SRC
 
-** Diminish
-#+BEGIN_SRC emacs-lisp
-(eval-after-load " hi-lock" '(diminish 'hi-lock-mode))
-#+END_SRC
-
 ** Show unfinished keystroke early
 #+BEGIN_SRC emacs-lisp
 (setq echo-keystrokes 0.1)
@@ -212,7 +207,6 @@ Send all backups to /tmp/
 #+BEGIN_SRC emacs-lisp
 (use-package anzu
   :ensure t
-  :diminish anzu-mode
   :config (global-anzu-mode)
   (global-set-key (kbd "M-%") 'anzu-query-replace)
   (global-set-key (kbd "C-M-%") 'anzu-query-replace-regexp))
@@ -332,7 +326,6 @@ http://tuhdo.github.io/helm-intro.html.
 #+BEGIN_SRC emacs-lisp
 (use-package helm
   :ensure t
-  :diminish helm-mode
   :config
   (require 'helm-config)
   (global-set-key (kbd "C-c h") 'helm-command-prefix)
@@ -387,7 +380,6 @@ http://tuhdo.github.io/helm-intro.html.
 #+BEGIN_SRC emacs-lisp
 (use-package undo-tree
   :ensure t
-  :diminish undo-tree-mode
   :config
   (global-undo-tree-mode)
   (global-set-key (kbd "C-z") 'undo)
@@ -490,7 +482,8 @@ The app is chosen from your OS's preference."
 #+BEGIN_SRC emacs-lisp
 (use-package pdf-tools
   :ensure t
-  :config (pdf-tools-install))
+  :config (pdf-tools-install)
+  (add-hook 'pdf-view-mode-hook 'pdf-view-auto-slice-minor-mode))
 #+END_SRC
 
 ** Eyebrowse
@@ -540,7 +533,6 @@ address. /user@host.server.com:/home/bjm/myfile.org
 ** Flyspell and helm-flyspell
 #+BEGIN_SRC emacs-lisp
 (use-package flyspell
-  :diminish flyspell-mode
   :config
   (setq ispell-program-name "aspell" ; use aspell instead of ispell
         ispell-extra-args '("--sug-mode=ultra"))
@@ -596,12 +588,11 @@ We use company since it is included in Elpy already.
 * Editing configuration
 ** Super-save
 #+BEGIN_SRC emacs-lisp
-(use-package super-save
-  :ensure t
-  :diminish super-save-mode
-  :config
-  (super-save-mode +1)
-  (setq super-save-auto-save-when-idle t))
+;; (use-package super-save
+;;   :ensure t
+;;   :config
+;;   (super-save-mode +1)
+;;   (setq super-save-auto-save-when-idle t))
 #+END_SRC
 
 ** Zop-to-char (kills from current point to character, M-z/M-Z)
@@ -642,7 +633,6 @@ To imitate move lines outside org mode.
 ** Auto revert files
 #+BEGIN_SRC emacs-lisp
 (global-auto-revert-mode t)
-(diminish 'auto-revert-mode)
 #+END_SRC
 
 ** Hippie-expand
@@ -716,7 +706,6 @@ Set t for only indent, set 'complete to indent or complete at point.
 #+BEGIN_SRC emacs-lisp
 (use-package volatile-highlights
   :ensure t
-  :diminish volatile-highlights-mode
   :config (volatile-highlights-mode t))
 #+END_SRC
 
@@ -745,7 +734,6 @@ Set t for only indent, set 'complete to indent or complete at point.
 #+BEGIN_SRC emacs-lisp
 (setq whitespace-line-column 80)
 (setq whitespace-style '(face tabs empty trailing lines-tail))
-(diminish 'whitespace-mode)
 (add-hook 'prog-mode-hook 'whitespace-mode)
 (add-hook 'LaTeX-mode-hook 'whitespace-mode)
 #+END_SRC
@@ -854,7 +842,6 @@ Set t for only indent, set 'complete to indent or complete at point.
 ** Turn on auto-fill and visual-line-mode
 #+BEGIN_SRC emacs-lisp
 (add-hook 'text-mode-hook 'turn-on-auto-fill)
-(diminish 'auto-fill-function)
 
 (add-hook 'text-mode-hook 'turn-on-visual-line-mode)
 
@@ -1075,7 +1062,6 @@ which I rarely use.
 #+BEGIN_SRC emacs-lisp
 (use-package back-button
   :ensure t
-  :diminish back-button-mode
   :config (back-button-mode 1))
 #+END_SRC
 
@@ -1203,9 +1189,9 @@ compilation and white space handling.
 ;; Use pdf-tools to open PDF files
 (setq TeX-view-program-selection '((output-pdf "PDF Tools"))
       TeX-source-correlate-start-server t)
-;; Update PDF buffers after successful LaTeX runs
-(add-hook 'TeX-after-TeX-LaTeX-command-finished-hook
-           #'TeX-revert-document-buffer)
+;; Update PDF buffers after successful LaTeX runs and trim margins
+(add-hook 'TeX-after-compilation-finished-functions
+           'TeX-revert-document-buffer)
 
 (add-hook 'LaTeX-mode-hook
           (lambda ()
@@ -1265,6 +1251,11 @@ compilation and white space handling.
 (require 'org-mouse);; mouse support for org mode
 
 (setq org-ellipsis " ▼")
+(setq org-hide-emphasis-markers t)
+(font-lock-add-keywords
+ 'org-mode
+ '(("^ +\\([-*]\\) "
+    (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
 
 (use-package org-bullets
   :ensure t
@@ -1408,7 +1399,6 @@ I'm not use what this is for.
 
 ;;Org-mode cdlatex
 (add-hook 'org-mode-hook 'turn-on-org-cdlatex)
-(diminish 'org-cdlatex-mode)
 
 ;;highlight latex fragments
 (eval-after-load 'org
@@ -1936,7 +1926,6 @@ https://github.com/abo-abo/org-download
 #+BEGIN_SRC emacs-lisp
 (use-package orglink
   :ensure t
-  :diminish orglink-mode
   :config (add-hook 'prog-mode-hook 'orglink-mode))
 #+END_SRC
 
@@ -2154,7 +2143,6 @@ Setup flychek with a helm.
 #+BEGIN_SRC emacs-lisp
 (use-package flycheck
   :ensure t
-  :diminish flycheck-mode
   :config (global-flycheck-mode 1))
 
 (use-package helm-flycheck
