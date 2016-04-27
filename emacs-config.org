@@ -101,17 +101,25 @@ Send all backups to /tmp/
 
 (custom-set-faces
  '(org-block-begin-line
-   ((t (:foreground "#bec0c7" :slant normal))))
+   ((t (:foreground "#E6DB74" :slant normal))))
  '(font-lock-comment-face
-   ((t (:foreground "#9c9884"))))
+   ((t (:foreground "#E6DB74"))))
+ '(font-lock-comment-delimiter-face
+   ((t (:foreground "#E6DB74"))))
+ '(font-lock-string-face
+   ((t (:foreground "#e6a274"))))
  ;; '(org-block-end-line
  ;;   ((t (:underline "#008ED1" :foreground "#008ED1"))))
  '(writegood-weasels-face ((t (:underline (:color "gold" :style wave))))))
+ #+END_SRC
 
+** Smart mode line
+#+BEGIN_SRC emacs-lisp
 (use-package smart-mode-line
   :ensure t
-  :config (sml/setup))
- #+END_SRC
+  :config (sml/setup)
+  (setq sml/name-width 30))
+#+END_SRC
 
 ** Start always maximized
 #+BEGIN_SRC emacs-lisp
@@ -125,7 +133,6 @@ Send all backups to /tmp/
 
 ** Menus and bars.
 #+BEGIN_SRC emacs-lisp
-(tooltip-mode 1)
 (tool-bar-mode -1)
 (menu-bar-mode -1)
 (scroll-bar-mode -1)
@@ -133,10 +140,7 @@ Send all backups to /tmp/
 
 ** Disable blinking cursor and start up screen
 #+BEGIN_SRC emacs-lisp
-;; the blinking cursor is nothing, but an annoyance
 (blink-cursor-mode -1)
-
-;; disable startup screen
 (setq inhibit-startup-screen t)
 #+END_SRC
 
@@ -161,11 +165,9 @@ Send all backups to /tmp/
         ("\\.svg\\'" . "feh --magick-timeout 1 -. %s")))
 #+END_SRC
 
-** Display line and column number. Don't display file size.
+** Display column number.
 #+BEGIN_SRC emacs-lisp
-(line-number-mode t)
 (column-number-mode t)
-(size-indication-mode nil)
 #+END_SRC
 
 ** Enable y/n answers
@@ -191,16 +193,10 @@ Send all backups to /tmp/
 (use-package olivetti
   :ensure t
   :config
-  (add-hook 'text-mode-hook 'turn-on-olivetti-mode)
-  (add-hook 'prog-mode-hook 'turn-on-olivetti-mode)
+  (olivetti-set-width 85)
+  (global-set-key (kbd "s-o") 'olivetti-mode)
   (define-key olivetti-mode-map (kbd "C-c [") nil)
   (define-key olivetti-mode-map (kbd "C-c ]") nil))
-
-#+END_SRC
-
-** Desktop
-#+BEGIN_SRC emacs-lisp
-(desktop-save-mode 1)
 #+END_SRC
 
 ** Anzu, displays isearch information and query replace.
@@ -365,7 +361,6 @@ http://tuhdo.github.io/helm-intro.html.
 #+END_SRC
 
 ** Key-chord
-
 #+BEGIN_SRC emacs-lisp
 (use-package key-chord
   :ensure t
@@ -405,36 +400,6 @@ http://tuhdo.github.io/helm-intro.html.
 ;; reuse buffer
 (diredp-toggle-find-file-reuse-dir 1)
 
-;; more subdued colors
-(set-face-attribute 'diredp-ignored-file-name nil
-                    :foreground "LightGray"
-                    :background nil)
-(set-face-attribute 'diredp-read-priv nil
-                    :foreground "LightGray"
-                    :background nil)
-(set-face-attribute 'diredp-write-priv nil
-                    :foreground "LightGray"
-                    :background nil)
-(set-face-attribute 'diredp-other-priv nil
-                    :foreground "LightGray"
-                    :background nil)
-(set-face-attribute 'diredp-rare-priv nil
-                    :foreground "LightGray"
-                    :background nil)
-(set-face-attribute 'diredp-no-priv nil
-                    :foreground "LightGray"
-                    :background nil)
-(set-face-attribute 'diredp-exec-priv nil
-                    :foreground "LightGray"
-                    :background nil)
-(set-face-attribute 'diredp-file-name nil
-                    :weight 'bold
-                    :background nil)
-(set-face-attribute 'diredp-dir-priv nil
-                    :weight 'bold)
-(set-face-attribute 'diredp-file-suffix nil
-                    :foreground nil)
-
 ;; make sure dired buffers end in a slash so we can identify them easily
 (defun ensure-buffer-name-ends-in-slash ()
   "change buffer name to end with slash"
@@ -447,7 +412,7 @@ http://tuhdo.github.io/helm-intro.html.
             (setq truncate-lines 1)))
 
 ;; open files in external programs
-;; (from http://ergoemacs.org/emacs/emacs_dired_open_file_in_ext_apps.html
+;; from http://ergoemacs.org/emacs/emacs_dired_open_file_in_ext_apps.html
 (defun xah-open-in-external-app (&optional file)
   "Open the current file or dired marked files in external app.
 The app is chosen from your OS's preference."
@@ -562,7 +527,7 @@ We use company since it is included in Elpy already.
 (use-package company
   :ensure t
   :config
-  (global-set-key (kbd "<C-tab>") 'company-complete)
+  (global-set-key (kbd "s-º") 'company-complete)
   (add-hook 'after-init-hook 'global-company-mode))
 
 (use-package company-c-headers
@@ -590,16 +555,107 @@ We use company since it is included in Elpy already.
 (add-hook 'LaTeX-mode-hook 'my-company-latex-mode-setup)
 #+END_SRC
 
-* Editing configuration
-** Super-save
+** Words hydra
+Function to operate on words at point or region, from
+https://github.com/jkitchin/jmax/blob/master/words.el
+
+*** Functions
 #+BEGIN_SRC emacs-lisp
-;; (use-package super-save
-;;   :ensure t
-;;   :config
-;;   (super-save-mode +1)
-;;   (setq super-save-auto-save-when-idle t))
+(defun words-dictionary ()
+  "Look up word at point in an online dictionary."
+  (interactive)
+  (browse-url
+   (format
+    "http://dictionary.reference.com/browse/%s?s=t"
+    (thing-at-point 'word))))
+
+
+(defun words-thesaurus ()
+  "Look up word at point in an online thesaurus."
+  (interactive)
+  (browse-url
+   (format
+    "http://www.thesaurus.com/browse/%s"
+    (thing-at-point 'word))))
+
+(defun words-atd ()
+  "Send paragraph at point to After the deadline for spell and grammar checking."
+  (interactive)
+
+  (let* ((url-request-method "POST")
+         (url-request-data (format
+                            "key=some-random-text-&data=%s"
+                            (url-hexify-string
+                             (thing-at-point 'paragraph))))
+         (xml  (with-current-buffer
+                   (url-retrieve-synchronously
+                    "http://service.afterthedeadline.com/checkDocument")
+                 (xml-parse-region url-http-end-of-headers (point-max))))
+         (results (car xml))
+         (errors (xml-get-children results 'error)))
+
+    (switch-to-buffer-other-frame "*ATD*")
+    (erase-buffer)
+    (dolist (err errors)
+      (let* ((children (xml-node-children err))
+             ;; for some reason I could not get the string out, and had to do this.
+             (s (car (last (nth 1 children))))
+             ;; the last/car stuff doesn't seem right. there is probably
+             ;; a more idiomatic way to get this
+             (desc (last (car (xml-get-children children 'description))))
+             (type (last (car (xml-get-children children 'type))))
+             (suggestions (xml-get-children children 'suggestions))
+             (options (xml-get-children (xml-node-name suggestions) 'option))
+             (opt-string  (mapconcat
+                           (lambda (el)
+                             (when (listp el)
+                               (car (last el))))
+                           options
+                           " ")))
+
+        (insert (format "** %s ** %s
+      Description: %s
+      Suggestions: %s
+      " s type desc opt-string))))))
+
+(defun words-google ()
+  "Google the word at point or selection."
+  (interactive)
+  (browse-url
+   (format
+    "http://www.google.com/search?q=%s"
+    (if (region-active-p)
+        (url-hexify-string (buffer-substring (region-beginning)
+                                             (region-end)))
+      (thing-at-point 'word)))))
+
+(defun words-google-scholar ()
+  "Google scholar the word at point or selection."
+  (interactive)
+  (browse-url
+   (format
+    "http://scholar.google.com/scholar?q=%s"
+    (if (region-active-p)
+        (url-hexify-string (buffer-substring (region-beginning)
+                                             (region-end)))
+      (thing-at-point 'word)))))
+
 #+END_SRC
 
+*** Hydra
+#+BEGIN_SRC emacs-lisp
+ (defhydra hydra-words (:color blue)
+   "words"
+   ("d" words-dictionary "dictionary")
+   ("t" words-thesaurus "thesaurus")
+   ("s" words-atd "spell/grammar")
+   ("g" words-google "spell/grammar")
+   ("G" words-google-scholar "spell/grammar")
+   ("q" nil "cancel"))
+(global-set-key (kbd "s-d") 'hydra-words/body)
+#+END_SRC
+
+* Editing configuration
 ** Zop-to-char (kills from current point to character, M-z/M-Z)
 #+BEGIN_SRC emacs-lisp
 (use-package zop-to-char
@@ -822,26 +878,29 @@ Set t for only indent, set 'complete to indent or complete at point.
 (setq reb-re-syntax 'string)
 #+END_SRC
 
-** Compilation behavior
+** Compilation
+Let's customize the behavior of the compilation process. We always to
+save when compiling, no need to ask. Also, if a previous compilation
+process exists, kill it before starting a new one. Finally,
+automatically scroll to first error.
+
+We can interpret the ansi color escape codes to colorize the
+compilation buffer. For this we follow Malabarba's [[http://endlessparentheses.com/ansi-colors-in-the-compilation-buffer-output.html?source=rss][advice]].
 #+BEGIN_SRC emacs-lisp
 (require 'compile)
-(setq compilation-ask-about-save nil  ; Just save before compiling
-      compilation-always-kill t       ; Just kill old compile processes before
-                                        ; starting the new one
-      compilation-scroll-output 'first-error ; Automatically scroll to first
-                                        ; error
-      )
-
-(defun prelude-colorize-compilation-buffer ()
-  "Colorize a compilation mode buffer."
-  (interactive)
-  ;; we don't want to mess with child modes such as grep-mode, ack, ag, etc
-  (when (eq major-mode 'compilation-mode)
-    (let ((inhibit-read-only t))
-      (ansi-color-apply-on-region (point-min) (point-max)))))
+(setq compilation-ask-about-save nil
+      compilation-always-kill t
+      compilation-scroll-output 'first-error)
 
 (require 'ansi-color)
-(add-hook 'compilation-filter-hook #'prelude-colorize-compilation-buffer)
+(defun endless/colorize-compilation ()
+  "Colorize from `compilation-filter-start' to `point'."
+  (let ((inhibit-read-only t))
+    (ansi-color-apply-on-region
+     compilation-filter-start (point))))
+
+(add-hook 'compilation-filter-hook
+          #'endless/colorize-compilation)
 #+END_SRC
 
 ** Turn on auto-fill and visual-line-mode
@@ -923,16 +982,6 @@ Treats camel case words (camelCase) as separate words.
      ("p" transpose-paragraphs "paragraphs")
      ("t" org-table-transpose-table-at-point "Org mode table")
      ("q" nil "cancel" :color blue)))
-#+END_SRC
-
-** Writegood-mode
-#+BEGIN_SRC emacs-lisp
-(use-package writegood-mode
-  :ensure t
-  :config
-  (add-hook 'text-mode-hook 'writegood-turn-on)
-  (add-hook 'LaTeX-mode-hook 'writegood-turn-on)
-  (add-hook 'org-mode-hook 'writegood-turn-on))
 #+END_SRC
 
 * Navigation
@@ -1076,106 +1125,6 @@ which I rarely use.
   :config
   (setq uniquify-after-kill-buffer-p t)    ; rename after killing uniquified
   (setq uniquify-ignore-buffers-re "^\\*")) ; don't muck with special buffers
-#+END_SRC
-
-* Words hydra
-Function to operate on words at point or region, from
-https://github.com/jkitchin/jmax/blob/master/words.el
-
-** Functions
-#+BEGIN_SRC emacs-lisp
-(defun words-dictionary ()
-  "Look up word at point in an online dictionary."
-  (interactive)
-  (browse-url
-   (format
-    "http://dictionary.reference.com/browse/%s?s=t"
-    (thing-at-point 'word))))
-
-
-(defun words-thesaurus ()
-  "Look up word at point in an online thesaurus."
-  (interactive)
-  (browse-url
-   (format
-    "http://www.thesaurus.com/browse/%s"
-    (thing-at-point 'word))))
-
-(defun words-atd ()
-  "Send paragraph at point to After the deadline for spell and grammar checking."
-  (interactive)
-
-  (let* ((url-request-method "POST")
-         (url-request-data (format
-                            "key=some-random-text-&data=%s"
-                            (url-hexify-string
-                             (thing-at-point 'paragraph))))
-         (xml  (with-current-buffer
-                   (url-retrieve-synchronously
-                    "http://service.afterthedeadline.com/checkDocument")
-                 (xml-parse-region url-http-end-of-headers (point-max))))
-         (results (car xml))
-         (errors (xml-get-children results 'error)))
-
-    (switch-to-buffer-other-frame "*ATD*")
-    (erase-buffer)
-    (dolist (err errors)
-      (let* ((children (xml-node-children err))
-             ;; for some reason I could not get the string out, and had to do this.
-             (s (car (last (nth 1 children))))
-             ;; the last/car stuff doesn't seem right. there is probably
-             ;; a more idiomatic way to get this
-             (desc (last (car (xml-get-children children 'description))))
-             (type (last (car (xml-get-children children 'type))))
-             (suggestions (xml-get-children children 'suggestions))
-             (options (xml-get-children (xml-node-name suggestions) 'option))
-             (opt-string  (mapconcat
-                           (lambda (el)
-                             (when (listp el)
-                               (car (last el))))
-                           options
-                           " ")))
-
-        (insert (format "** %s ** %s
-      Description: %s
-      Suggestions: %s
-      " s type desc opt-string))))))
-
-(defun words-google ()
-  "Google the word at point or selection."
-  (interactive)
-  (browse-url
-   (format
-    "http://www.google.com/search?q=%s"
-    (if (region-active-p)
-        (url-hexify-string (buffer-substring (region-beginning)
-                                             (region-end)))
-      (thing-at-point 'word)))))
-
-(defun words-google-scholar ()
-  "Google scholar the word at point or selection."
-  (interactive)
-  (browse-url
-   (format
-    "http://scholar.google.com/scholar?q=%s"
-    (if (region-active-p)
-        (url-hexify-string (buffer-substring (region-beginning)
-                                             (region-end)))
-      (thing-at-point 'word)))))
-
-#+END_SRC
-
-** Hydra
-#+BEGIN_SRC emacs-lisp
- (defhydra hydra-words (:color blue)
-   "words"
-   ("d" words-dictionary "dictionary")
-   ("t" words-thesaurus "thesaurus")
-   ("s" words-atd "spell/grammar")
-   ("g" words-google "spell/grammar")
-   ("G" words-google-scholar "spell/grammar")
-   ("q" nil "cancel"))
-(global-set-key (kbd "s-d") 'hydra-words/body)
 #+END_SRC
 
 * LaTeX
@@ -1408,8 +1357,6 @@ I'm not use what this is for.
 ;;highlight latex fragments
 (eval-after-load 'org
   '(setf org-highlight-latex-and-related '(latex)))
-(custom-set-faces
- '(org-latex-and-related ((t (:foreground "burlywood4")))))
 #+END_SRC
 
 ** Navigation
@@ -2132,7 +2079,6 @@ Posted:
 
 *** Display function name in the mode line
 #+BEGIN_SRC emacs-lisp
-(require 'which-func)
 (which-function-mode 1)
 #+END_SRC
 
@@ -2150,6 +2096,12 @@ Setup flychek with a helm.
   :ensure t
   :config (global-flycheck-mode 1))
 
+(use-package flycheck-pos-tip
+  :ensure t
+  :config
+  (with-eval-after-load 'flycheck
+    (flycheck-pos-tip-mode)))
+
 (use-package helm-flycheck
   :ensure t
   :config
@@ -2157,6 +2109,7 @@ Setup flychek with a helm.
 #+END_SRC
 
 **** Proselint
+Makes Emacs too too slow in large buffers 
 #+BEGIN_SRC emacs-lisp
 (flycheck-define-checker proselint
   "A linter for prose."
@@ -2167,7 +2120,7 @@ Setup flychek with a helm.
         (message) line-end))
   :modes (text-mode markdown-mode gfm-mode latex-mode org-mode))
 
-(add-to-list 'flycheck-checkers 'proselint)
+;; (add-to-list 'flycheck-checkers 'proselint)
 #+END_SRC
 
 *** Rainbow delimiters, colors parenthesis
@@ -2236,7 +2189,6 @@ Semantic mode enables parsing of source code files.
 #+END_SRC
 
 ** Projectile
-
 Project management for emacs. See
 https://github.com/bbatsov/projectile.
 #+BEGIN_SRC emacs-lisp
