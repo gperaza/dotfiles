@@ -1249,156 +1249,34 @@ together.
 (setq org-adapt-indentation nil)
 #+END_SRC
 
-** Basics
+Set tag alignment to look good with the 80 character limit and big
+headers:
 #+BEGIN_SRC emacs-lisp
-(global-set-key "\C-cl" 'org-store-link)
-(global-set-key "\C-ca" 'org-agenda)
-(global-set-key "\C-cL" 'org-insert-link-global)
-(global-set-key "\C-co" 'org-open-at-point-global)
-
-;; Use the current window for C-c ' source editing
-(setq org-src-window-setup 'current-window)
-
-;; allow lists with letters in them.
-(setq org-list-allow-alphabetical t)
-
-;; setup archive location in archive directory in current folder
-(setq org-archive-location "archive/%s_archive::")
-
-;; renumber footnotes when new ones are inserted
-(setq org-footnote-auto-adjust t)
-
-;; clocking setup http://www.gnu.org/software/emacs/manual/html_node/org/Clocking-work-time.html
-(setq org-clock-persist 'history)
-(org-clock-persistence-insinuate)
-
-;; store clock entries in a drawer
-(setq org-clock-into-drawer t)
-
-;;tag aligment
 (setq org-tags-column -60)
 #+END_SRC
 
-** Org capture
+Make code blocks pretty:
 #+BEGIN_SRC emacs-lisp
-(define-key global-map "\C-cc" 'org-capture)
-
-;; Default file for notes, meant to be refiled.
-(setq org-default-notes-file "~/Documents/Notes/inbox.org")
-
-;; Templates
-;; Make several target files for notes.
-(setq org-capture-templates
-      '(
-        ("s" "Note (select file)" entry (file+headline
-          (read-file-name "File to capture to:" "~/Documents/Notes/") "Refile")
-         "** %?\n %i\n")
-        ))
-
-;; Allow new nodes when refiling
-(setq org-refile-allow-creating-parent-nodes t)
-
-;; Ugly hack to save the file after refiling.
-(advice-add 'org-refile :after #'org-save-all-org-buffers)
+(setq org-src-fontify-natively t)
 #+END_SRC
 
-** Org-id
-I'm not use what this is for.
+Increase the size of and colorize latex fragments in text:
 #+BEGIN_SRC emacs-lisp
-(setq org-id-link-to-org-use-id 'create-if-interactive)
-(setq org-link-search-must-match-exact-headline 'query-to-create)
-(setq org-id-locations-file
-      (expand-file-name "user/.org-id-locations" "~/.emacs.d/"))
-(require 'org-id)
-#+END_SRC
-
-** Latex fragments
-#+BEGIN_SRC emacs-lisp
-;;Org-mode latex fragments size
 (plist-put org-format-latex-options :scale 1.5)
 
-;;Org-mode cdlatex
-(add-hook 'org-mode-hook 'turn-on-org-cdlatex)
-
-;;highlight latex fragments
 (eval-after-load 'org
   '(setf org-highlight-latex-and-related '(latex)))
 #+END_SRC
 
-** Navigation
-For fast navigation, to see a list of available commands press ? with
-the cursor at the beginning of a headline.  Also define a new hydra to
-navigate when not in a heading and replace imenu with
-helm-org-in-buffer-headings.
+** Babel, code inside org
+Babel is Org-mode's ability to execute source code within Org-mode
+documents.
+
+*** Enable languages
+First we need to tell babel which languages we intend to use, we can
+add more later.
+
 #+BEGIN_SRC emacs-lisp
-(setq org-use-speed-commands t)
-
-(define-key org-mode-map (kbd "C-c i") 'helm-org-in-buffer-headings)
-
-(defhydra hydra-org (:color red :columns 3)
-  "Org Mode Movements"
-  ("n" outline-next-visible-heading "next heading")
-  ("p" outline-previous-visible-heading "prev heading")
-  ("N" org-forward-heading-same-level "next heading at same level")
-  ("P" org-backward-heading-same-level "prev heading at same level")
-  ("u" outline-up-heading "up heading")
-  ("g" org-goto "goto" :exit t))
-
-(define-key org-mode-map (kbd "s-n") 'hydra-org/body)
-#+END_SRC
-
-*** Narrow or widen dwim
-Function that replaces the entire key map for narrow widen in org.
-#+BEGIN_SRC emacs-lisp
-(defun narrow-or-widen-dwim (p)
-  "Widen if buffer is narrowed, narrow-dwim otherwise.
-Dwim means: region, org-src-block, org-subtree, or defun,
-whichever applies first. Narrowing to org-src-block actually
-calls `org-edit-src-code'.
-
-With prefix P, don't widen, just narrow even if buffer is
-already narrowed."
-  (interactive "P")
-  (declare (interactive-only))
-  (cond ((and (buffer-narrowed-p) (not p)) (widen))
-        ((region-active-p)
-         (narrow-to-region (region-beginning) (region-end)))
-        ((derived-mode-p 'org-mode)
-         ;; `org-edit-src-code' is not a real narrowing
-         ;; command. Remove this first conditional if you
-         ;; don't want it.
-         (cond ((ignore-errors (org-edit-src-code))
-                (delete-other-windows))
-               ((ignore-errors (org-narrow-to-block) t))
-               (t (org-narrow-to-subtree))))
-        ((derived-mode-p 'latex-mode)
-         (LaTeX-narrow-to-environment))
-        (t (narrow-to-defun))))
-
-;; This line actually replaces Emacs' entire narrowing
-;; keymap, that's how much I like this command. Only copy it
-;; if that's what you want.
-(define-key ctl-x-map "n" #'narrow-or-widen-dwim)
-(eval-after-load 'latex
-  '(define-key LaTeX-mode-map "\C-xn" nil))
-#+END_SRC
-
-** Babel settings
-*** General settings
-#+BEGIN_SRC emacs-lisp
-;; do not evaluate code on export by default
-(setq org-export-babel-evaluate nil)
-
-;; enable prompt-free code running
-(setq org-confirm-babel-evaluate nil
-      org-confirm-elisp-link-function nil
-      org-confirm-shell-link-function nil)
-
-;;Start with code blocks folded
-(setq org-hide-block-startup t)
-
-(require 'ob)
-;; register languages in org-mode
 (org-babel-do-load-languages
  'org-babel-load-languages
  '((emacs-lisp . t)
@@ -1409,65 +1287,68 @@ already narrowed."
    (latex . t)
    (awk . t)
    (gnuplot . t)))
+#+END_SRC
 
-;; no extra indentation in the source blocks
+We also include support for ipython blocks via the [[https://github.com/gregsexton/ob-ipython][ob-ipython]] package.
+
+#+BEGIN_SRC emacs-lisp
+(use-package ob-ipython
+  :ensure t)
+#+END_SRC
+
+*** Set up Babel behavior
+In frames with multiple windows is better to edit code in the same
+window:
+
+#+BEGIN_SRC emacs-lisp
+(setq org-src-window-setup 'current-window)
+#+END_SRC
+
+Don't ask for confirmation when evaluating a code block.
+
+#+BEGIN_SRC emacs-lisp
+(setq org-confirm-babel-evaluate nil
+      org-confirm-elisp-link-function nil
+      org-confirm-shell-link-function nil)
+#+END_SRC
+
+I generally have huge and slow code blocks, we don't want to evaluate
+this on export. Also, being huge better keep them folded at startup.
+
+#+BEGIN_SRC emacs-lisp
+(setq org-export-babel-evaluate nil)
+(setq org-hide-block-startup t)
+#+END_SRC
+
+Code block indentation messes up indent sensitive languages like
+Python, disable it. While we are messing with indentation let's make
+tab behave as in the native major mode inside blocks.
+
+#+BEGIN_SRC emacs-lisp
 (setq org-src-preserve-indentation t)
-
-;; use syntax highlighting in org-file code blocks
-(setq org-src-fontify-natively t)
-
-;; make tab behaves as in the native major mode
 (setq org-src-tab-acts-natively t)
+#+END_SRC
 
-;; set default :results to output
+When evaluating blocks I want them be silent, usually I only use them
+to process data. Also export only the results by default, I usually
+don't need to print the code.
+
+#+BEGIN_SRC emacs-lisp
 (setq org-babel-default-header-args
-      (cons '(:results . "output replace")
+      (cons '(:results . "silent")
             (assq-delete-all :results org-babel-default-header-args)))
 
-;; set default :export to results
 (setq org-babel-default-header-args
       (cons '(:exports . "results")
             (assq-delete-all :exports org-babel-default-header-args)))
 #+END_SRC
 
-*** Code block expansions
-#+BEGIN_SRC emacs-lisp
-;; add <p for python expansion
-(add-to-list 'org-structure-template-alist
-             '("p" "#+BEGIN_SRC python\n?\n#+END_SRC" "<src lang=\"python\">\n?\n</src>"))
+*** Killing and restarting sessions
+Here I define a pair of functions to restart and kill sessions.
+Restarting a session means kill it, the run all the blocks belonging
+to the session up to the current block. This functions were created by
+John Kitchin.
 
-;; add <por for python expansion with raw output
-(add-to-list 'org-structure-template-alist
-             '("por" "#+BEGIN_SRC python :results output raw\n?\n#+END_SRC" "<src lang=\"python\">\n?\n</src>"))
-
-;; add <pv for python expansion with value
-(add-to-list 'org-structure-template-alist
-             '("pv" "#+BEGIN_SRC python :results value\n?\n#+END_SRC" "<src lang=\"python\">\n?\n</src>"))
-
-;; add <ip for ipython expansion with session
-(add-to-list 'org-structure-template-alist
-             '("ip" "#+BEGIN_SRC ipython :session \n?\n#+END_SRC" "<src lang=\"python\">\n?\n</src>"))
-
-;; add <el for emacs-lisp expansion
-(add-to-list 'org-structure-template-alist
-             '("el" "#+BEGIN_SRC emacs-lisp\n?\n#+END_SRC" "<src lang=\"emacs-lisp\">\n?\n</src>"))
-
-;; add <sh for shell
-(add-to-list 'org-structure-template-alist
-             '("sh" "#+BEGIN_SRC sh\n?\n#+END_SRC" "<src lang=\"shell\">\n?\n</src>"))
-
-;; add <gp for gnuplot to file
-(add-to-list 'org-structure-template-alist
-             '("gp" "#+BEGIN_SRC gnuplot :file ./Fig/plot_file.png\nreset\nset term pngcairo size 640,480\n?\n#+END_SRC\n#+NAME: Plot name.\n#+CAPTION: A plot.\n#+RESULTS:\n"))
-
-;; add <l for latex
-(add-to-list 'org-structure-template-alist
-             '("l" "#+BEGIN_LATEX latex\n?\n#+END_LATEX" "<src lang=\"latex\">\n?\n</src>"))
-
-#+END_SRC
-
-*** Functions for managing sessions
-Restart and kill sessions.
 #+BEGIN_SRC emacs-lisp
 (defun src-block-in-session-p (&optional name)
   "Return if src-block is in a session of NAME.
@@ -1535,19 +1416,10 @@ session as the current block. ARG has same meaning as in
     (kill-buffer)))
 #+END_SRC
 
-*** Functions for managing code blocks
-**** Remove results in buffer
-#+BEGIN_SRC emacs-lisp
-(defun org-babel-remove-result-buffer ()
-  "Remove results from every code block in buffer."
-  (interactive)
-  (save-excursion
-    (goto-char (point-min))
-    (while (re-search-forward org-babel-src-block-regexp nil t)
-      (org-babel-remove-result))))
-#+END_SRC
+*** Wrap text in a code block
+Sometimes I need to wrap some text inside a code block, specially for
+LaTeX code. I don't remember where I find this but it is useful.
 
-**** Wrap text in block
 #+BEGIN_SRC emacs-lisp
 (defun org-begin-template ()
   "Make a template at point."
@@ -1592,37 +1464,109 @@ session as the current block. ARG has same meaning as in
 (define-key org-mode-map (kbd "C-<") 'org-begin-template)
 #+END_SRC
 
-**** Ipython blocks
+** Editing
+Configuration of some ways to write in org.
+
+*** Footnotes
+In-line and still reference-able footnote definitions. Footnotes have
+random unique id's and being inline means it is difficult to mess up
+references by deleting stuff.
+
 #+BEGIN_SRC emacs-lisp
-;;Ipython blocks in org mode.
-(use-package ob-ipython
-  :ensure t)
+(setq org-footnote-define-inline t)
+(setq org-footnote-auto-label 'random)
+(setq org-footnote-auto-adjust nil)
 #+END_SRC
 
-** Agenda setup
-http://orgmode.org/manual/Global-TODO-list.html#Global-TODO-list
+*** Lists
+Allow lists with letters in them.
+
 #+BEGIN_SRC emacs-lisp
-(setq org-agenda-skip-scheduled-if-done t)
-(setq org-agenda-skip-deadline-if-done t)
-(setq org-agenda-skip-timestamp-if-done t)
-(setq org-agenda-todo-ignore-scheduled t)
-(setq org-agenda-todo-ignore-deadlines t)
-(setq org-agenda-todo-ignore-timestamp t)
-(setq org-agenda-todo-ignore-with-date t)
-(setq org-agenda-start-on-weekday nil) ;; start on current day
-
-;; give me some warning of upcoming deadlines
-(setq org-deadline-warning-days 0)
-
-;; record time I finished a task when I change it to DONE
-(setq org-log-done 'time)
+(setq org-list-allow-alphabetical t)
 #+END_SRC
 
-** Org-links
-Define a link to a youtube video.
-http://endlessparentheses.com/embedding-youtube-videos-with-org-mode-links.html
+*** Org CDLatex
+CDLaTeX allows to insert environments easily in org using "C-{".
+
 #+BEGIN_SRC emacs-lisp
-;;Youtube links
+(add-hook 'org-mode-hook 'turn-on-org-cdlatex)
+#+END_SRC
+
+** Org mode links
+Enable storing, inserting and following links in any buffer:
+
+#+BEGIN_SRC emacs-lisp
+(global-set-key "\C-cl" 'org-store-link)
+(global-set-key "\C-cL" 'org-insert-link-global)
+(global-set-key "\C-co" 'org-open-at-point-global)
+#+END_SRC
+
+*** Minor mode to font lock links outside org
+Here we define a minor mode to font lock Org links in non org buffers.
+Derived from [[https://github.com/seanohalpin/org-link-minor-mode][here]] but without the key bindings. I find it less
+obtrusive to use the org included global functions.
+
+#+BEGIN_SRC emacs-lisp
+(defun org-link-minor-mode-unfontify-region (beg end &optional maybe_loudly)
+  "Remove fontification and activation overlays from links."
+  (font-lock-default-unfontify-region beg end)
+  (let* ((buffer-undo-list t)
+         (inhibit-read-only t) (inhibit-point-motion-hooks t)
+         (inhibit-modification-hooks t)
+         deactivate-mark buffer-file-name buffer-file-truename)
+    (org-decompose-region beg end)
+    (remove-text-properties beg end
+                            '(mouse-face t keymap t org-linked-text t
+                                         invisible t intangible t
+                                         help-echo t rear-nonsticky t
+                                         org-no-flyspell t org-emphasis t))
+    (org-remove-font-lock-display-properties beg end)))
+
+;;;###autoload
+(define-minor-mode org-link-minor-mode
+  "Toggle display of org-mode style bracket links in non-org-mode buffers."
+  :lighter " org-link"
+
+  (let ((org-link-minor-mode-keywords
+         (list
+          '(org-activate-angle-links (0 'org-link t))
+          '(org-activate-plain-links)
+          '(org-activate-bracket-links (0 'org-link t))
+          '(org-activate-dates (0 'org-date t))
+          ))
+        )
+    (if org-link-minor-mode
+        (if (derived-mode-p 'org-mode)
+            (progn
+              (message "org-mode doesn't need org-link-minor-mode")
+              (org-link-minor-mode -1)
+              )
+          (font-lock-add-keywords nil org-link-minor-mode-keywords t)
+          (org-set-local 'org-descriptive-links org-descriptive-links)
+          (if org-descriptive-links (add-to-invisibility-spec '(org-link)))
+          (org-set-local 'font-lock-unfontify-region-function
+                         'org-link-minor-mode-unfontify-region)
+          (org-restart-font-lock)
+          )
+      (unless (derived-mode-p 'org-mode)
+        (font-lock-remove-keywords nil org-link-minor-mode-keywords)
+        (org-restart-font-lock)
+        (remove-from-invisibility-spec '(org-link))
+        (kill-local-variable 'org-descriptive-links)
+        (kill-local-variable 'font-lock-unfontify-region-function)
+        )
+      )
+    )
+  )
+
+(add-hook 'prog-mode-hook 'org-link-minor-mode)
+(add-hook 'LaTeX-mode-hook 'org-link-minor-mode)
+#+END_SRC
+
+*** Custom link types
+Define a link to a YouTube video as defined [[http://endlessparentheses.com/embedding-youtube-videos-with-org-mode-links.html][here]].
+
+#+BEGIN_SRC emacs-lisp
 (defvar yt-iframe-format
   ;; You may want to change your width and height.
   (concat "<iframe width=\"440\""
@@ -1645,7 +1589,124 @@ http://endlessparentheses.com/embedding-youtube-videos-with-org-mode-links.html
                     path (or desc "video"))))))
 #+END_SRC
 
-** Export settings
+** Org capture
+#+BEGIN_SRC emacs-lisp
+(define-key global-map "\C-cc" 'org-capture)
+
+;; Default file for notes, meant to be refiled.
+(setq org-default-notes-file "~/Documents/Notes/inbox.org")
+
+;; Templates
+;; Make several target files for notes.
+(setq org-capture-templates
+      '(
+        ("s" "Note (select file)" entry (file+headline
+          (read-file-name "File to capture to:" "~/Documents/Notes/") "Refile")
+         "** %?\n %i\n")
+        ))
+
+;; Allow new nodes when refiling
+(setq org-refile-allow-creating-parent-nodes t)
+
+;; Ugly hack to save the file after refiling.
+(advice-add 'org-refile :after #'org-save-all-org-buffers)
+#+END_SRC
+
+** Navigation
+Enable fast navigation on headers. To see a list of available commands
+press ? with the cursor at the beginning of a headline.
+
+#+BEGIN_SRC emacs-lisp
+(setq org-use-speed-commands t)
+#+END_SRC
+
+A hydra to navigate when not in a heading. Useful when I don't
+remember the commands.
+
+#+BEGIN_SRC emacs-lisp
+(defhydra hydra-org (:color red :columns 3)
+  "Org Mode Movements"
+  ("n" outline-next-visible-heading "next heading")
+  ("p" outline-previous-visible-heading "prev heading")
+  ("N" org-forward-heading-same-level "next heading at same level")
+  ("P" org-backward-heading-same-level "prev heading at same level")
+  ("u" outline-up-heading "up heading")
+  ("g" org-goto "goto" :exit t))
+
+(define-key org-mode-map (kbd "s-n") 'hydra-org/body)
+#+END_SRC
+
+Replace imenu with the superior helm-org-in-buffer-headings to
+navigate an org buffer.
+
+#+BEGIN_SRC emacs-lisp
+(define-key org-mode-map (kbd "C-c i") 'helm-org-in-buffer-headings)
+#+END_SRC
+
+Function that replaces the entire key map for narrow widen in org.
+Narrowing is really useful to focus only on the relevant section we
+want to edit. Now we can narrow/widen smartly using only
+C-x n. Works globally, not only in org-mode, perhaps I should move
+this elsewhere.
+
+#+BEGIN_SRC emacs-lisp
+(defun narrow-or-widen-dwim (p)
+  "Widen if buffer is narrowed, narrow-dwim otherwise.
+Dwim means: region, org-src-block, org-subtree, or defun,
+whichever applies first. Narrowing to org-src-block actually
+calls `org-edit-src-code'.
+
+With prefix P, don't widen, just narrow even if buffer is
+already narrowed."
+  (interactive "P")
+  (declare (interactive-only))
+  (cond ((and (buffer-narrowed-p) (not p)) (widen))
+        ((region-active-p)
+         (narrow-to-region (region-beginning) (region-end)))
+        ((derived-mode-p 'org-mode)
+         ;; `org-edit-src-code' is not a real narrowing
+         ;; command. Remove this first conditional if you
+         ;; don't want it.
+         (cond ((ignore-errors (org-edit-src-code))
+                (delete-other-windows))
+               ((ignore-errors (org-narrow-to-block) t))
+               (t (org-narrow-to-subtree))))
+        ((derived-mode-p 'latex-mode)
+         (LaTeX-narrow-to-environment))
+        (t (narrow-to-defun))))
+
+;; This line actually replaces Emacs' entire narrowing
+;; keymap, that's how much I like this command. Only copy it
+;; if that's what you want.
+(define-key ctl-x-map "n" #'narrow-or-widen-dwim)
+(eval-after-load 'latex
+  '(define-key LaTeX-mode-map "\C-xn" nil))
+#+END_SRC
+
+** Agenda setup
+I don't use the agenda but it is my intention to learn how to.
+Supposedly one of the strong points in org. 
+
+#+BEGIN_SRC emacs-lisp
+(global-set-key "\C-ca" 'org-agenda)
+
+(setq org-agenda-skip-scheduled-if-done t)
+(setq org-agenda-skip-deadline-if-done t)
+(setq org-agenda-skip-timestamp-if-done t)
+(setq org-agenda-todo-ignore-scheduled t)
+(setq org-agenda-todo-ignore-deadlines t)
+(setq org-agenda-todo-ignore-timestamp t)
+(setq org-agenda-todo-ignore-with-date t)
+(setq org-agenda-start-on-weekday nil) ;; start on current day
+
+;; give me some warning of upcoming deadlines
+(setq org-deadline-warning-days 0)
+
+;; record time I finished a task when I change it to DONE
+(setq org-log-done 'time)
+#+END_SRC
+
+** Org mode exporter
 *** Export back-ends
 #+BEGIN_SRC emacs-lisp
 (require 'ox-latex)
@@ -1813,25 +1874,6 @@ contents exported. Also allow to create unnumbered headers.
 
 (setq org-ref-get-pdf-filename-function 'org-ref-get-zotero-filename)
 
-#+END_SRC
-
-** Org-journal
-#+BEGIN_SRC emacs-lisp
-(use-package org-journal
-  :ensure t
-  :config
-  (global-set-key (kbd "C-c j") 'org-journal-new-entry)
-  (add-hook 'org-journal-mode-hook (lambda () (ispell-change-dictionary "spanish")))
-  (setq org-journal-date-prefix "#+TITLE: ")
-  (setq org-journal-time-prefix "* ")
-)
-#+END_SRC
-
-** Org links in non org buffers
-#+BEGIN_SRC emacs-lisp
-(use-package orglink
-  :ensure t
-  :config (add-hook 'prog-mode-hook 'orglink-mode))
 #+END_SRC
 
 ** Blog using org publish
@@ -2013,6 +2055,41 @@ Posted:
                 "* Files\n"
                 "Links to relevant files to the research.\n\n"
                 "* Meetings")))
+#+END_SRC
+*** Code block templates
+#+BEGIN_SRC emacs-lisp
+;; add <p for python expansion
+(add-to-list 'org-structure-template-alist
+             '("p" "#+BEGIN_SRC python\n?\n#+END_SRC" "<src lang=\"python\">\n?\n</src>"))
+
+;; add <por for python expansion with raw output
+(add-to-list 'org-structure-template-alist
+             '("por" "#+BEGIN_SRC python :results output raw\n?\n#+END_SRC" "<src lang=\"python\">\n?\n</src>"))
+
+;; add <pv for python expansion with value
+(add-to-list 'org-structure-template-alist
+             '("pv" "#+BEGIN_SRC python :results value\n?\n#+END_SRC" "<src lang=\"python\">\n?\n</src>"))
+
+;; add <ip for ipython expansion with session
+(add-to-list 'org-structure-template-alist
+             '("ip" "#+BEGIN_SRC ipython :session \n?\n#+END_SRC" "<src lang=\"python\">\n?\n</src>"))
+
+;; add <el for emacs-lisp expansion
+(add-to-list 'org-structure-template-alist
+             '("el" "#+BEGIN_SRC emacs-lisp\n?\n#+END_SRC" "<src lang=\"emacs-lisp\">\n?\n</src>"))
+
+;; add <sh for shell
+(add-to-list 'org-structure-template-alist
+             '("sh" "#+BEGIN_SRC sh\n?\n#+END_SRC" "<src lang=\"shell\">\n?\n</src>"))
+
+;; add <gp for gnuplot to file
+(add-to-list 'org-structure-template-alist
+             '("gp" "#+BEGIN_SRC gnuplot :file ./Fig/plot_file.png\nreset\nset term pngcairo size 640,480\n?\n#+END_SRC\n#+NAME: Plot name.\n#+CAPTION: A plot.\n#+RESULTS:\n"))
+
+;; add <l for latex
+(add-to-list 'org-structure-template-alist
+             '("l" "#+BEGIN_LATEX latex\n?\n#+END_LATEX" "<src lang=\"latex\">\n?\n</src>"))
+
 #+END_SRC
 
 * Programming
