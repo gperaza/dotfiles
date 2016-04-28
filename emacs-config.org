@@ -491,6 +491,7 @@ TODO define a hydra to use eyebrowse.
   (global-set-key (kbd "M-1") 'hydra-eyebrowse/body)
 )
 #+END_SRC
+
 ** Tramp for ssh
 Just open a file as usual with C-x C-f and then give the name of the
 remote file, including the host
@@ -553,6 +554,13 @@ We use company since it is included in Elpy already.
                         )
                       company-backends)))
 (add-hook 'LaTeX-mode-hook 'my-company-latex-mode-setup)
+
+;; Company for org-mode. Org-mode uses pcomplete for it's own
+;; completion. We add it to the capf backend.
+(defun add-pcomplete-to-capf ()
+  (add-hook 'completion-at-point-functions 'pcomplete-completions-at-point nil t))
+
+(add-hook 'org-mode-hook #'add-pcomplete-to-capf)
 #+END_SRC
 
 ** Words hydra
@@ -649,8 +657,8 @@ https://github.com/jkitchin/jmax/blob/master/words.el
    ("d" words-dictionary "dictionary")
    ("t" words-thesaurus "thesaurus")
    ("s" words-atd "spell/grammar")
-   ("g" words-google "spell/grammar")
-   ("G" words-google-scholar "spell/grammar")
+   ("g" words-google "google")
+   ("G" words-google-scholar "google scholar")
    ("q" nil "cancel"))
 (global-set-key (kbd "s-d") 'hydra-words/body)
 #+END_SRC
@@ -906,7 +914,6 @@ compilation buffer. For this we follow Malabarba's [[http://endlessparentheses.c
 ** Turn on auto-fill and visual-line-mode
 #+BEGIN_SRC emacs-lisp
 (add-hook 'text-mode-hook 'turn-on-auto-fill)
-
 (add-hook 'text-mode-hook 'turn-on-visual-line-mode)
 
 (use-package adaptive-wrap
@@ -915,6 +922,7 @@ compilation buffer. For this we follow Malabarba's [[http://endlessparentheses.c
 (defun my-activate-adaptive-wrap-prefix-mode ()
   "Toggle `visual-line-mode' and `adaptive-wrap-prefix-mode' simultaneously."
   (adaptive-wrap-prefix-mode (if visual-line-mode 1 -1)))
+
 (add-hook 'visual-line-mode-hook 'my-activate-adaptive-wrap-prefix-mode)
 #+END_SRC
 
@@ -1197,56 +1205,59 @@ compilation and white space handling.
 #+END_SRC
 
 * org-mode
-** Basics
+Org-mode it's the main reason I use Emacs. Here we configure it to our
+liking. First we load the latest org and extras goodies from org-contrib.
+
 #+BEGIN_SRC emacs-lisp
 (use-package org
   :ensure org-plus-contrib)
-(require 'org-inlinetask);; insert todo inline
-(require 'org-mouse);; mouse support for org mode
+#+END_SRC
 
+** Appearance
+Here we make org buffers look nice. Only affects visuals.
+
+Change the ellipsis at the end of collapsed nodes and replace the
+asterisks at the beginning of headings with nicer symbols:
+
+#+BEGIN_SRC emacs-lisp
 (setq org-ellipsis " ▼")
+(require 'org-bullets)
+(add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
+#+END_SRC
+
+This hides the markup markers (* for bold. / for emphasis, etc.), they
+are still there, just hidden:
+
+#+BEGIN_SRC emacs-lisp
 (setq org-hide-emphasis-markers t)
+#+END_SRC
+
+We change the "-" in lists to nice bullets:
+
+#+BEGIN_SRC emacs-lisp
 (font-lock-add-keywords
  'org-mode
  '(("^ +\\([-*]\\) "
     (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
+#+END_SRC
 
-(use-package org-bullets
-  :ensure t
-  :config
-  (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
+I like to keep text width under 80 characters. Indentation in lower
+level headings makes things look weird so we disable indentation all
+together.
 
-(setq org-fontify-whole-heading-line t)
-
-;;disable indentation
+#+BEGIN_SRC emacs-lisp
 (setq org-adapt-indentation nil)
+#+END_SRC
 
-(add-to-list 'auto-mode-alist '("\\.org\\'" . org-mode))
+** Basics
+#+BEGIN_SRC emacs-lisp
 (global-set-key "\C-cl" 'org-store-link)
 (global-set-key "\C-ca" 'org-agenda)
-(global-set-key "\C-cb" 'org-iswitchb) ; convenient switching between
-                                        ; open org-buffers
-(global-set-key "\C-e" 'end-of-line); overwrites org-mode \C-e
-                                        ; definition
 (global-set-key "\C-cL" 'org-insert-link-global)
 (global-set-key "\C-co" 'org-open-at-point-global)
 
-;; I like to press enter to follow a link. mouse clicks also work.
-(setq org-return-follows-link t)
-;; Remap org return to avoid following links at the end/beginning of line
-(defun bss/my-org-return ()
-  "Insert newline if we at beginng or end of line"
-     (interactive)
-     (if (or (eolp) (bolp))
-      (newline-and-indent)
-    (org-return)))
-   (define-key org-mode-map (kbd "<return>") 'bss/my-org-return)
-
 ;; Use the current window for C-c ' source editing
 (setq org-src-window-setup 'current-window)
-
-;; use ido completion wherever possible
-(setq org-completion-use-ido t)
 
 ;; allow lists with letters in them.
 (setq org-list-allow-alphabetical t)
@@ -1266,51 +1277,6 @@ compilation and white space handling.
 
 ;;tag aligment
 (setq org-tags-column -60)
-
-;; org entities menu
-(defun helm-insert-org-entity ()
-  "Helm interface to insert an entity from `org-entities'.
-F1 inserts utf-8 character
-F2 inserts entity code
-F3 inserts LaTeX code (does not wrap in math-mode)
-F4 inserts HTML code"
-  (interactive)
-  (helm :sources (reverse
-                  (let ((sources '())
-                        toplevel
-                        secondlevel)
-                    (dolist (element (append
-                                      '("* User" "** User entities")
-                                      org-entities-user org-entities))
-                      (when (and (stringp element)
-                                 (s-starts-with? "* " element))
-                        (setq toplevel element))
-                      (when (and (stringp element)
-                                 (s-starts-with? "** " element))
-                        (setq secondlevel element)
-                        (add-to-list
-                         'sources
-                         `((name . ,(concat
-                                     toplevel
-                                     (replace-regexp-in-string
-                                      "\\*\\*" " - " secondlevel)))
-                           (candidates . nil)
-                           (action . (("insert utf-8 char" . (lambda (candidate)
-                                                               (insert (nth 6 candidate))))
-                                      ("insert org entity" . (lambda (candidate)
-                                                           (insert (concat "\\" (car candidate)))))
-                                      ("insert latex" . (lambda (candidate)
-                                                          (insert (nth 1 candidate))))
-                                      ("insert html" . (lambda (candidate)
-                                                         (insert (nth 3 candidate)))))))))
-                      (when (and element (listp element))
-                        (setf (cdr (assoc 'candidates (car sources)))
-                              (append
-                               (cdr (assoc 'candidates (car sources)))
-                               (list (cons
-                                      (format "%10s %s" (nth 6 element) element)
-                                      element))))))
-                    sources))))
 #+END_SRC
 
 ** Org capture
@@ -1645,8 +1611,6 @@ http://orgmode.org/manual/Global-TODO-list.html#Global-TODO-list
 (setq org-agenda-todo-ignore-with-date t)
 (setq org-agenda-start-on-weekday nil) ;; start on current day
 
-(setq org-upcoming-deadline '(:foreground "blue" :weight bold))
-
 ;; give me some warning of upcoming deadlines
 (setq org-deadline-warning-days 0)
 
@@ -1849,17 +1813,6 @@ contents exported. Also allow to create unnumbered headers.
 
 (setq org-ref-get-pdf-filename-function 'org-ref-get-zotero-filename)
 
-#+END_SRC
-
-** Images in org-mode
-I'm not displaying images in org buffers, I like to follow the links
-and open images in an external program. What I do like is the drag and
-drop functionality of org-download.
-https://github.com/abo-abo/org-download
-
-#+BEGIN_SRC emacs-lisp
-(use-package org-download
-  :ensure t)
 #+END_SRC
 
 ** Org-journal
