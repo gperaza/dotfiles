@@ -664,13 +664,13 @@ https://github.com/jkitchin/jmax/blob/master/words.el
 #+END_SRC
 
 * Editing configuration
-** Zop-to-char (kills from current point to character, M-z/M-Z)
+** Zzz-to-char (kills from current point to character, M-z/M-Z)
 #+BEGIN_SRC emacs-lisp
-(use-package zop-to-char
+(use-package zzz-to-char
   :ensure t
   :config
-  (global-set-key (kbd "M-z") 'zop-up-to-char)
-  (global-set-key (kbd "M-Z") 'zop-to-char))
+  (global-set-key (kbd "M-z") 'zzz-up-to-char)
+  (global-set-key (kbd "M-Z") 'zzz-to-char))
 #+END_SRC
 
 ** Move lines or region up and down
