@@ -1333,8 +1333,7 @@ tab behave as in the native major mode inside blocks.
 #+END_SRC
 
 When evaluating blocks I want them be silent, usually I only use them
-to process data. Also export only the results by default, I usually
-don't need to print the code.
+to process data. Also export both code and results.
 
 #+BEGIN_SRC emacs-lisp
 (setq org-babel-default-header-args
@@ -1342,7 +1341,7 @@ don't need to print the code.
             (assq-delete-all :results org-babel-default-header-args)))
 
 (setq org-babel-default-header-args
-      (cons '(:exports . "results")
+      (cons '(:exports . "both")
             (assq-delete-all :exports org-babel-default-header-args)))
 #+END_SRC
 
@@ -1601,7 +1600,8 @@ press ? with the cursor at the beginning of a headline.
 #+END_SRC
 
 A hydra to navigate when not in a heading. Useful when I don't
-remember the commands.
+remember the commands. Now includes the useful ~org-toc-show~ to show a
+table of contents.
 
 #+BEGIN_SRC emacs-lisp
 (defhydra hydra-org (:color red :columns 3)
@@ -1611,9 +1611,15 @@ remember the commands.
   ("N" org-forward-heading-same-level "next heading at same level")
   ("P" org-backward-heading-same-level "prev heading at same level")
   ("u" outline-up-heading "up heading")
-  ("g" org-goto "goto" :exit t))
+  ("g" org-goto "goto" :exit t)
+  ("t" org-toc-show "TOC" :exit t))
 
 (define-key org-mode-map (kbd "s-n") 'hydra-org/body)
+#+END_SRC
+
+Set some org-toc properties, activate follow mode:
+#+BEGIN_SRC emacs-lisp
+(setq org-toc-follow-mode t)
 #+END_SRC
 
 Replace imenu with the superior helm-org-in-buffer-headings to
@@ -1813,6 +1819,14 @@ Beamer also needs some tweaks.
              '("textpos1" "w" "\\begin{textblock}{%h}(3,3) \\visible %a {" "} \\end{textblock}"))
 #+END_SRC
 
+**** HTML back-end configuration
+First disable emacs default style and include my own:
+#+BEGIN_SRC emacs-lisp
+(setq org-html-head-include-default-style nil)
+(setq org-html-head
+ "<link rel='stylesheet' href='http://gperaza.github.io/org.css' />")
+#+END_SRC
+
 *** Export behavior
 I want to interpret "_" and "^" as sub and super indices only when
 braces are used.
@@ -1844,7 +1858,7 @@ Org-ref is a fantastic package from John Kitchin to manage citations
 and references in org-mode. It is worth it to read the whole
 documentation (use command (org-ref-help) ).
 
-Org-ref enables interactive cite links (cite:), label links (label:),
+Org-ref enables interactive cite links (cite), label links (label),
 
 I use helm-bibtex for completion, so I load this first. We then load
 org-ref.
@@ -1870,7 +1884,7 @@ to access functions that act on a link.
 
 Org-ref already locate PDF files stored by Mendeley, but not for
 Zotero, which I use. So I modified the function to seek for Mendeley
-PDF files to work for Zotero (under a default configuration).  
+PDF files to work for Zotero (under a default configuration).
 
 #+BEGIN_SRC emacs-lisp
 (defun org-ref-get-zotero-filename (key)
@@ -1891,39 +1905,118 @@ PDF files to work for Zotero (under a default configuration).
 (setq org-ref-get-pdf-filename-function 'org-ref-get-zotero-filename)
 #+END_SRC
 
-** Blog using org publish
+Org-ref gives an error on HTML export. I don't understand why, but It
+is related to the function ~org-ref-make-org-link-cite-key-visible~ that
+makes cites inside descriptive links correctly colored (I think). So
+we remove the advice (This fix is ugly, let's hope it's fixed upstream.):
+
 #+BEGIN_SRC emacs-lisp
-(add-to-list 'org-export-filter-timestamp-functions
-             #'endless/filter-timestamp)
-(defun endless/filter-timestamp (trans back _comm)
-  "Remove <> around time-stamps."
-  (pcase back
-    ((or `jekyll `html)
-     (replace-regexp-in-string "&[lg]t;" "" trans))
-    (`latex
-     (replace-regexp-in-string "[<>]" "" trans))))
+(advice-remove 'org-activate-bracket-links
+               #'org-ref-make-org-link-cite-key-visible)
+#+END_SRC
 
-(setq-default org-display-custom-times t)
-;;; Before you ask: No, removing the <> here doesn't work.
-(setq org-time-stamp-custom-formats
-      '("<%d %b %Y>" . "<%d/%m/%y %a %H:%M>"))
+** Templates
+*** General purpose
+This is a template for a research/project aid document. The purpose of
+this document is to hold task, reading list, and some quick
+notes. It's available using the "<paper" expansion.
 
-(defun my-blog-org-export-format-drawer (name content)
-  (concat "<div class=\"drawer " (downcase name) "\">\n"
-          content
-          "\n</div>"))
+#+BEGIN_SRC emacs-lisp
+(add-to-list 'org-structure-template-alist
+             `("paper"
+               ,(concat
+                "#+TITLE:\n"
+                "#+DATE:\n\n"
+                "* Tasks\n\n"
+                "** Writing\n\n"
+                "** Model\n\n"
+                "** Simulations\n\n"
+                "* Reading\n\n"
+                "** Actual reading\n\n"
+                "** Should read\n\n"
+                "** Not yet read\n\n"
+                "** Already read\n\n"
+                "* Notes\n"
+                "Main notes are in the [[file:notes.org][notes]] file. "
+                "Here lie some quick notes.\n\n"
+                "* Files\n"
+                "Links to relevant files to the research.\n\n"
+                "* Meetings\n\n"
+                "bibliography:")))
+#+END_SRC
 
-(defun my-bibtex-function ()
-  (shell-command-to-string
-   (concat "bibtex2html -d -r -nobibsource -nokeywords "
-           "-nf arxiv \"Arxiv\" --revkeys -nodoc "
-           "-m ~/Blog/macros.tex -s ~/Blog/owens_web "
-           "-noheader -nofooter ~/Blog/mypubs.bib; "
-           "echo \"#+BEGIN_HTML\" > ~/Blog/mypubs.in; "
-           "cat ~/Blog/mypubs.html >> ~/Blog/mypubs.in; "
-           "echo  \"\" >> ~/Blog/mypubs.in; "
-           "echo \"#+END_HTML\" >> ~/Blog/mypubs.in")))
+*** Code block templates
+Templates for fast insertion of code blocks in org.
+ - ~<p~ for python
+ - ~<po~ for python with :results output
+ - ~<pv~ for python with :results value output
+ - ~<ip~ for ipython
+ - ~<el~ for emacs-lisp
+ - ~<sh~ for shell
+ - ~<gp~ for gnuplot
+ - ~<l~ for LaTeX
 
+#+BEGIN_SRC emacs-lisp
+;; add <p for python expansion
+(add-to-list 'org-structure-template-alist
+             '("p"
+               "#+BEGIN_SRC python\n?\n#+END_SRC"
+               "<src lang=\"python\">\n?\n</src>"))
+
+;; add <por for python expansion with raw output
+(add-to-list 'org-structure-template-alist
+             '("po"
+               "#+BEGIN_SRC python :results output raw\n?\n#+END_SRC"
+               "<src lang=\"python\">\n?\n</src>"))
+
+;; add <pv for python expansion with value
+(add-to-list 'org-structure-template-alist
+             '("pv"
+               "#+BEGIN_SRC python :results value\n?\n#+END_SRC"
+               "<src lang=\"python\">\n?\n</src>"))
+
+;; add <ip for ipython expansion with session
+(add-to-list 'org-structure-template-alist
+             '("ip"
+               "#+BEGIN_SRC ipython :session \n?\n#+END_SRC"
+               "<src lang=\"python\">\n?\n</src>"))
+
+;; add <el for emacs-lisp expansion
+(add-to-list 'org-structure-template-alist
+             '("el"
+               "#+BEGIN_SRC emacs-lisp\n?\n#+END_SRC"
+               "<src lang=\"emacs-lisp\">\n?\n</src>"))
+
+;; add <sh for shell
+(add-to-list 'org-structure-template-alist
+             '("sh"
+               "#+BEGIN_SRC sh\n?\n#+END_SRC"
+               "<src lang=\"shell\">\n?\n</src>"))
+
+;; add <gp for gnuplot to file
+(add-to-list 'org-structure-template-alist
+             `("gp"
+               ,(concat "#+BEGIN_SRC gnuplot :file ./Fig/plot_file.png\n"
+                       "reset\n"
+                       "set term pngcairo size 640,480\n"
+                       "?\n"
+                       "#+END_SRC\n"
+                       "#+NAME: Plot name.\n"
+                       "#+CAPTION: A plot.\n"
+                       "#+RESULTS:\n")))
+
+;; add <l for latex
+(add-to-list 'org-structure-template-alist
+             '("l"
+               "#+BEGIN_LATEX latex\n?\n#+END_LATEX"
+               "<src lang=\"latex\">\n?\n</src>"))
+#+END_SRC
+
+*** Blogging
+This is post template. To create a blog post in it's own org file.
+Accesses by ~<bpost~.
+
+#+BEGIN_SRC emacs-lisp
 (add-to-list 'org-structure-template-alist
              `("bpost" ,(concat "#+TITLE: ?\n"
 "#+DATE:\n"
@@ -1938,14 +2031,84 @@ PDF files to work for Zotero (under a default configuration).
 # ispell-local-dictionary: \"en\"
 # End:"
 )))
+#+END_SRC
 
+This template creates a post preview. It's meant to be inserted in the
+blog main page as a to-do heading. When the post is done mark is as
+DONE to be published. Contains a summary of the post. Accessed by
+~<bprev~.
+
+#+BEGIN_SRC emacs-lisp
 (add-to-list 'org-structure-template-alist
              '("bprev" "* TODO ?
 :DATES:
 Posted:
 # (/Edited: /)
 :END:"))
+#+END_SRC
 
+** Blog using org publish
+I publish my personal site using org-publish to create a static web
+page that I then upload to Github.
+
+*** Formatting functions and variables
+This function removes brackets for time stamps.
+
+#+BEGIN_SRC emacs-lisp
+(add-to-list 'org-export-filter-timestamp-functions
+             #'endless/filter-timestamp)
+
+(defun endless/filter-timestamp (trans back _comm)
+  "Remove <> around time-stamps."
+  (pcase back
+    ((or `jekyll `html)
+     (replace-regexp-in-string "&[lg]t;" "" trans))
+    (`latex
+     (replace-regexp-in-string "[<>]" "" trans))))
+#+END_SRC
+
+Here I define the format for displaying time stamps.
+
+#+BEGIN_SRC emacs-lisp
+(setq-default org-display-custom-times t)
+
+;;; Before you ask: No, removing the <> here doesn't work.
+(setq org-time-stamp-custom-formats
+      '("<%d %b %Y>" . "<%d/%m/%y %a %H:%M>"))
+#+END_SRC
+
+This function creates the bibliography HTML file that is included in
+the Research page.
+
+#+BEGIN_SRC emacs-lisp
+(defun my-bibtex-function ()
+  (shell-command-to-string
+   (concat "bibtex2html -d -r -nobibsource -nokeywords "
+           "-nf arxiv \"Arxiv\" --revkeys -nodoc "
+           "-m ~/Blog/macros.tex -s ~/Blog/owens_web "
+           "-noheader -nofooter ~/Blog/mypubs.bib; "
+           "echo \"#+BEGIN_HTML\" > ~/Blog/mypubs.in; "
+           "cat ~/Blog/mypubs.html >> ~/Blog/mypubs.in; "
+           "echo  \"\" >> ~/Blog/mypubs.in; "
+           "echo \"#+END_HTML\" >> ~/Blog/mypubs.in")))
+#+END_SRC
+
+This function is used to format a drawer in HTML export. It adds the
+drawer name as a class.
+
+#+BEGIN_SRC emacs-lisp
+(defun my-blog-org-export-format-drawer (name content)
+  (concat "<div class=\"drawer " (downcase name) "\">\n"
+          content
+          "\n</div>"))
+#+END_SRC
+
+*** Preamble and postamble
+The preamble contains the navigation bar mainly.
+
+The preamble for posts:
+
+#+BEGIN_SRC emacs-lisp
 (setq my-preamble-posts
       (concat
        "<a href=\"../index.html\"> HOME </a>\n|\n"
@@ -1955,7 +2118,11 @@ Posted:
        "<a href=\"../about.html\"> ABOUT ME </a>\n|\n"
        "<a href=\"archive.html\"> ARCHIVE </a>\n"
        ))
+#+END_SRC
 
+The preamble for pages:
+
+#+BEGIN_SRC emacs-lisp
 (setq my-preamble-pages
       (concat
        "<a href=\"index.html\"> HOME </a>\n|\n"
@@ -1965,7 +2132,21 @@ Posted:
        "<a href=\"about.html\"> ABOUT ME </a>\n|\n"
        "<a href=\"posts/archive.html\"> ARCHIVE </a>\n"
        ))
+#+END_SRC
 
+The postamble contains author information and modification date, this
+applies also for HTML export:
+
+#+BEGIN_SRC emacs-lisp
+(setq org-html-postamble t
+        org-html-postamble-format
+        '(("en" "<a class=\"author\"
+           href=\"http://gperaza.github.org\">%a</a> / <span
+           class=\"date\">%T</span><span class=\"creator\">%c</span>")))
+#+END_SRC
+
+*** Project configuration
+#+BEGIN_SRC emacs-lisp
 (use-package htmlize
   :ensure t)
 (setq org-html-htmlize-output-type 'css)
@@ -1994,7 +2175,7 @@ Posted:
          :section-numbers nil
          :html-validation-link nil
 
-         :html-head "<link rel='stylesheet' href='../worg.css' />"
+         :html-head "<link rel='stylesheet' href='../org.css' />"
          :html-head-include-default-style nil
          :html-head-include-scripts t
          :html-preamble ,my-preamble-posts
@@ -2030,7 +2211,7 @@ Posted:
          :section-numbers nil
          :html-validation-link nil
 
-         :html-head "<link rel='stylesheet' href='worg.css' />"
+         :html-head "<link rel='stylesheet' href='org.css' />"
          :html-head-include-default-style nil
          :html-head-include-scripts t
          :html-preamble ,my-preamble-pages)
@@ -2041,70 +2222,11 @@ Posted:
          :publishing-function org-publish-attachment
          :recursive t)
         ("css"
-         :base-directory "~/Blog/"
+         :base-directory "~/.dotfiles/css/"
          :base-extension "css"
          :publishing-directory "~/Blog/pub/"
          :publishing-function org-publish-attachment)
         ))
-#+END_SRC
-
-** Templates
-#+BEGIN_SRC emacs-lisp
-(add-to-list 'org-structure-template-alist
-             `("paper"
-               ,(concat
-                "#+TITLE:\n"
-                "#+DATE:\n\n"
-                "* Tasks\n\n"
-                "** Writing\n\n"
-                "** Model\n\n"
-                "** Simulations\n\n"
-                "* Reading\n\n"
-                "** Actual reading\n\n"
-                "** Should read\n\n"
-                "** Not yet read\n\n"
-                "** Already read\n\n"
-                "* Notes\n"
-                "Main notes are in the [[file:notes.org][notes]] file. "
-                "Here lie some quick notes.\n\n"
-                "* Files\n"
-                "Links to relevant files to the research.\n\n"
-                "* Meetings")))
-#+END_SRC
-*** Code block templates
-#+BEGIN_SRC emacs-lisp
-;; add <p for python expansion
-(add-to-list 'org-structure-template-alist
-             '("p" "#+BEGIN_SRC python\n?\n#+END_SRC" "<src lang=\"python\">\n?\n</src>"))
-
-;; add <por for python expansion with raw output
-(add-to-list 'org-structure-template-alist
-             '("por" "#+BEGIN_SRC python :results output raw\n?\n#+END_SRC" "<src lang=\"python\">\n?\n</src>"))
-
-;; add <pv for python expansion with value
-(add-to-list 'org-structure-template-alist
-             '("pv" "#+BEGIN_SRC python :results value\n?\n#+END_SRC" "<src lang=\"python\">\n?\n</src>"))
-
-;; add <ip for ipython expansion with session
-(add-to-list 'org-structure-template-alist
-             '("ip" "#+BEGIN_SRC ipython :session \n?\n#+END_SRC" "<src lang=\"python\">\n?\n</src>"))
-
-;; add <el for emacs-lisp expansion
-(add-to-list 'org-structure-template-alist
-             '("el" "#+BEGIN_SRC emacs-lisp\n?\n#+END_SRC" "<src lang=\"emacs-lisp\">\n?\n</src>"))
-
-;; add <sh for shell
-(add-to-list 'org-structure-template-alist
-             '("sh" "#+BEGIN_SRC sh\n?\n#+END_SRC" "<src lang=\"shell\">\n?\n</src>"))
-
-;; add <gp for gnuplot to file
-(add-to-list 'org-structure-template-alist
-             '("gp" "#+BEGIN_SRC gnuplot :file ./Fig/plot_file.png\nreset\nset term pngcairo size 640,480\n?\n#+END_SRC\n#+NAME: Plot name.\n#+CAPTION: A plot.\n#+RESULTS:\n"))
-
-;; add <l for latex
-(add-to-list 'org-structure-template-alist
-             '("l" "#+BEGIN_LATEX latex\n?\n#+END_LATEX" "<src lang=\"latex\">\n?\n</src>"))
-
 #+END_SRC
 
 * Programming
