@@ -1251,16 +1251,19 @@ together.
 
 Set tag alignment to look good with the 80 character limit and big
 headers:
+
 #+BEGIN_SRC emacs-lisp
 (setq org-tags-column -60)
 #+END_SRC
 
 Make code blocks pretty:
+
 #+BEGIN_SRC emacs-lisp
 (setq org-src-fontify-natively t)
 #+END_SRC
 
 Increase the size of and colorize latex fragments in text:
+
 #+BEGIN_SRC emacs-lisp
 (plist-put org-format-latex-options :scale 1.5)
 
@@ -1589,29 +1592,6 @@ Define a link to a YouTube video as defined [[http://endlessparentheses.com/embe
                     path (or desc "video"))))))
 #+END_SRC
 
-** Org capture
-#+BEGIN_SRC emacs-lisp
-(define-key global-map "\C-cc" 'org-capture)
-
-;; Default file for notes, meant to be refiled.
-(setq org-default-notes-file "~/Documents/Notes/inbox.org")
-
-;; Templates
-;; Make several target files for notes.
-(setq org-capture-templates
-      '(
-        ("s" "Note (select file)" entry (file+headline
-          (read-file-name "File to capture to:" "~/Documents/Notes/") "Refile")
-         "** %?\n %i\n")
-        ))
-
-;; Allow new nodes when refiling
-(setq org-refile-allow-creating-parent-nodes t)
-
-;; Ugly hack to save the file after refiling.
-(advice-add 'org-refile :after #'org-save-all-org-buffers)
-#+END_SRC
-
 ** Navigation
 Enable fast navigation on headers. To see a list of available commands
 press ? with the cursor at the beginning of a headline.
@@ -1683,9 +1663,55 @@ already narrowed."
   '(define-key LaTeX-mode-map "\C-xn" nil))
 #+END_SRC
 
+** Org capture
+Org capture allows to quickly write to do's and notes without leaving
+what we are currently doing. We start to capture with "C-c c".
+
+#+BEGIN_SRC emacs-lisp
+(define-key global-map "\C-cc" 'org-capture)
+#+END_SRC
+
+For templates that do not define a target, I want notes stored in
+Notes/inbox.org.
+
+#+BEGIN_SRC emacs-lisp
+(setq org-default-notes-file "~/Documents/Notes/inbox.org")
+#+END_SRC
+
+The default behavior is to add the note at a header specified by the
+template. We can also choose a header by choosing "refiling" when
+exiting org-capture. Here I allow for new headings to be created when
+refiling. For some reason the org buffer is not saved when refiling,
+so I advice org refile to save all buffers when done. This is an ugly
+hack, there should be a better way of doing this.
+
+#+BEGIN_SRC emacs-lisp
+(setq org-refile-allow-creating-parent-nodes t)
+
+;; Ugly hack to save the file after refiling.
+(advice-add 'org-refile :after #'org-save-all-org-buffers)
+#+END_SRC
+
+*** Templates
+One the best things about org-capture is that you can define your own
+templates for capturing.
+
+Here I define a template to store notes in files inside my Notes directory.
+Using "s" prompts for the file to store the note, if the file does not
+exists it creates it. I still need a template for a global to-do list.
+
+#+BEGIN_SRC emacs-lisp
+(setq org-capture-templates
+      '(
+        ("s" "Note (select file)" entry (file+headline
+          (read-file-name "File to capture to:" "~/Documents/Notes/") "Refile")
+         "** %?\n %i\n")
+        ))
+#+END_SRC
+
 ** Agenda setup
 I don't use the agenda but it is my intention to learn how to.
-Supposedly one of the strong points in org. 
+Supposedly one of the strong points in org.
 
 #+BEGIN_SRC emacs-lisp
 (global-set-key "\C-ca" 'org-agenda)
@@ -1707,30 +1733,31 @@ Supposedly one of the strong points in org.
 #+END_SRC
 
 ** Org mode exporter
+Org-mode allow us to export our document to different formats. The two
+I use the most are LaTeX and HTML.
+
 *** Export back-ends
+Enable back-ends for export formats. Aside from LaTeX and HTML, beamer
+is to make presentations, koma-letter is a LaTeX class for letters and
+ox-bibtex handles citations in HTML exports, for LaTeX citations I use
+[[*Org-ref][org-ref]].
+
 #+BEGIN_SRC emacs-lisp
 (require 'ox-latex)
-(require 'ox-beamer)
 (require 'ox-html)
-(require 'ox-bibtex)
+(require 'ox-beamer)
 (require 'ox-koma-letter)
-(require 'ox-rss)
+(require 'ox-bibtex)
 #+END_SRC
 
-*** Export behavior
-#+BEGIN_SRC emacs-lisp
-;; Interpret "_" and "^" for export when braces are used.
-(setq org-export-with-sub-superscripts '{})
+**** TODO Tufte-org-mode
+An Org mode environment for producing Tufte-LaTeX books and handouts.
 
-;; avoid getting \maketitle right after begin{document}
-;; (setq org-latex-title-command "")
+**** LaTeX back-end configuration
+The LaTeX back-end needs some extra configuration.
 
-;;enable bind in org files
-(setq org-export-allow-bind-keywords t)
-#+END_SRC
-
-*** Latex export
 Define extra packages to be included in latex exports.
+
 #+BEGIN_SRC emacs-lisp
 (setq org-latex-packages-alist
       '(("" "lmodern" nil);; latin modern fonts
@@ -1745,17 +1772,23 @@ Define extra packages to be included in latex exports.
         ))
 #+END_SRC
 
-Enable syntax highlighting, need pygmentize installed.
+To enable syntax highlighting for source code in LaTeX export we need
+pygmentize installed. Currently it's disabled because it breaks
+portability with standard LaTeX work flows, particularly my
+collaborators don't know how to compile a tex file with this enabled.
+It can be enables in each buffer by manually including the minted
+package via "#+LATEX_HEADER: /usepackage{minted}"
 
 #+BEGIN_SRC emacs-lisp
 ;; Add minted to the defaults packages to include when exporting.
 ;;(add-to-list 'org-latex-packages-alist '("" "minted" nil))
-;; Tell the latex export to use the minted package for source
-;; code coloration.
+
+;; Tell the latex export to use the minted package for source code
+;; coloration.
 (setq org-latex-listings 'minted)
-;; Let the exporter use the -shell-escape option to let latex
-;; execute external programs.
-;; This obviously and can be dangerous to activate!
+
+;; Let the exporter use the -shell-escape option to let latex execute
+;; external programs. This obviously and can be dangerous to activate!
 (setq org-latex-minted-options
       '(("mathescape" "true")
         ("linenos" "true")
@@ -1766,97 +1799,80 @@ Enable syntax highlighting, need pygmentize installed.
       '("latexmk -pdflatex='pdflatex --shell-escape' -pdf %f"))
 #+END_SRC
 
-Define some useful Latex classes.
+**** Beamer back-end configuration
+Beamer also needs some tweaks.
 
 #+BEGIN_SRC emacs-lisp
-;; customized article. better margins
-(add-to-list 'org-latex-classes
-             '("cmu-article"                          ;class-name
-               "\\documentclass{article}
-\\usepackage[top=1in, bottom=1.in, left=1in, right=1in]{geometry}
- [PACKAGES]
- [EXTRA]" ;;header-string
-               ("\\section{%s}" . "\\section*{%s}")
-               ("\\subsection{%s}" . "\\subsection*{%s}")
-               ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
-               ("\\paragraph{%s}" . "\\paragraph*{%s}")
-               ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+(add-to-list  'org-beamer-environments-extra
+              '("onlyenv" "O" "\\begin{onlyenv}%a" "\\end{onlyenv}"))
 
-
-(add-to-list 'org-latex-classes
-             '("koma-article"                          ;class-name
-               "\\documentclass{scrartcl}
- [PACKAGES]
- [EXTRA]" ;;header-string
-               ("\\section{%s}" . "\\section*{%s}")
-               ("\\subsection{%s}" . "\\subsection*{%s}")
-               ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
-               ("\\paragraph{%s}" . "\\paragraph*{%s}")
-               ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
-
-
-(add-to-list 'org-latex-classes
-             '("tuftebook"
-               "\\documentclass{tufte-book}\n"
-               ("\\section{%s}" . "\\section*{%s}")
-               ("\\subsection{%s}" . "\\subsection*{%s}")
-               ("\\paragraph{%s}" . "\\paragraph*{%s}")
-               ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
-
-(add-to-list 'org-latex-classes
-             '("tuftehandout"
-               "\\documentclass{tufte-handout}"
-               ("\\section{%s}" . "\\section*{%s}")
-               ("\\subsection{%s}" . "\\subsection*{%s}")
-               ("\\paragraph{%s}" . "\\paragraph*{%s}")
-               ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
-#+END_SRC
-
-*** Beamer
-#+BEGIN_SRC emacs-lisp
-(add-to-list 'org-beamer-environments-extra
-             '("onlyenv" "O" "\\begin{onlyenv}%a" "\\end{onlyenv}"))
 (add-to-list 'org-beamer-environments-extra
              '("textpos" "X" "\\begin{textblock}{10}(3,3) \\visible %a {" "} \\end{textblock}"))
+
 (add-to-list 'org-beamer-environments-extra
              '("textpos1" "w" "\\begin{textblock}{%h}(3,3) \\visible %a {" "} \\end{textblock}"))
 #+END_SRC
 
-*** Headers labels (ignore, no number)
-Enable headers with the ignore tag to be ignored while having their
-contents exported. Also allow to create unnumbered headers.
+*** Export behavior
+I want to interpret "_" and "^" as sub and super indices only when
+braces are used.
+
+#+BEGIN_SRC emacs-lisp
+(setq org-export-with-sub-superscripts '{})
+#+END_SRC
+
+If org-export-allow-bind-keywords is non-nil, Emacs variables can
+become buffer-local during export by using the BIND keyword. Its
+syntax is ‘#+BIND: variable value’. This is particularly useful for
+in-buffer settings that cannot be changed using specific keywords.
+
+#+BEGIN_SRC emacs-lisp
+(setq org-export-allow-bind-keywords t)
+#+END_SRC
+
+Sometimes I want a header to be ignored but the content to be
+exported, for this we activate ignore-headlines from ox-extra.
+Now the tag "ignore" does just this.
+
 #+BEGIN_SRC emacs-lisp
 (require 'ox-extra)
 (ox-extras-activate '(ignore-headlines))
-
-(defun headline-nonumber (contents backend info)
-  "Make headlines with nonumber."
-  (when (and (org-export-derived-backend-p backend 'latex 'html 'ascii)
-             (string-match "\\`.*nonumber.*\n"
-                           (downcase contents)))
-    (let ((output contents))
-      (setq output (replace-regexp-in-string "section{" "section*{" contents))
-      (setq output (replace-regexp-in-string "\\\\hfill{}\\\\textsc{nonumber}" "" output))
-      output)))
-
-(add-to-list 'org-export-filter-headline-functions 'headline-nonumber)
 #+END_SRC
 
-** Org ref
+** Org-ref
+Org-ref is a fantastic package from John Kitchin to manage citations
+and references in org-mode. It is worth it to read the whole
+documentation (use command (org-ref-help) ).
+
+Org-ref enables interactive cite links (cite:), label links (label:),
+
+I use helm-bibtex for completion, so I load this first. We then load
+org-ref.
+
 #+BEGIN_SRC emacs-lisp
 (use-package helm-bibtex
   :ensure t)
 
 (use-package org-ref
   :ensure t)
+#+END_SRC
 
-(setq org-ref-bibliography-notes "~/Documents/SortedResources/notes.org"
-      org-ref-default-bibliography '("~/Documents/SortedResources/references.bib"))
+Now some basic configuration that involves defining the location of
+some files and key bindings. Insert cite link is "C-c ]" (default),
+label link "C-c (", and ref link "C-c )". We define a key-chord "kk"
+to access functions that act on a link.
 
-(global-set-key (kbd "\e\eR") 'org-ref-insert-ref-link)
-(global-set-key (kbd "\e\eC") 'org-ref-insert-cite-link)
-(global-set-key (kbd "\e\ef") 'org-footnote-action)
+#+BEGIN_SRC emacs-lisp
+(define-key org-mode-map (kbd "C-c (") 'org-ref-helm-insert-label-link)
+(define-key org-mode-map (kbd "C-c )") 'org-ref-helm-insert-ref-link)
+(key-chord-define-global "kk" 'org-ref-bibtex-hydra/body)
+#+END_SRC
 
+Org-ref already locate PDF files stored by Mendeley, but not for
+Zotero, which I use. So I modified the function to seek for Mendeley
+PDF files to work for Zotero (under a default configuration).  
+
+#+BEGIN_SRC emacs-lisp
 (defun org-ref-get-zotero-filename (key)
   (let* ((results (org-ref-get-bibtex-key-and-file key))
          (bibfile (cdr results))
@@ -1873,7 +1889,6 @@ contents exported. Also allow to create unnumbered headers.
                 (format "%s" second-file))))))))
 
 (setq org-ref-get-pdf-filename-function 'org-ref-get-zotero-filename)
-
 #+END_SRC
 
 ** Blog using org publish
@@ -2139,7 +2154,7 @@ Setup flychek with a helm.
 #+END_SRC
 
 **** Proselint
-Makes Emacs too too slow in large buffers 
+Makes Emacs too too slow in large buffers
 #+BEGIN_SRC emacs-lisp
 (flycheck-define-checker proselint
   "A linter for prose."
