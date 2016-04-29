@@ -1019,10 +1019,10 @@ Can swap and delete windows as well.
 #+BEGIN_SRC emacs-lisp
 (use-package windmove
   :bind
-  (("<f2> <right>" . windmove-right)
-   ("<f2> <left>" . windmove-left)
-   ("<f2> <up>" . windmove-up)
-   ("<f2> <down>" . windmove-down)
+  (("s-<right>" . windmove-right)
+   ("s-<left>" . windmove-left)
+   ("s-<up>" . windmove-up)
+   ("s-<down>" . windmove-down)
    ))
 #+END_SRC
 
