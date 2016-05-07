@@ -241,9 +241,7 @@ https://github.com/bbatsov/crux
   (global-set-key [remap move-beginning-of-line] #'crux-move-beginning-of-line)
   (global-set-key (kbd "s-k") 'crux-kill-line-backwards)
   (global-set-key (kbd "C-M-z") 'crux-indent-defun)
-  (global-set-key (kbd "C-`") 'crux-switch-to-previous-buffer)
-
-  (remove-hook 'find-file-hook #'crux-reopen-as-root))
+  (global-set-key (kbd "C-`") 'crux-switch-to-previous-buffer))
 #+END_SRC
 
 ** Function: switch-to-scratch-and-back
@@ -663,6 +661,43 @@ https://github.com/jkitchin/jmax/blob/master/words.el
 (global-set-key (kbd "s-d") 'hydra-words/body)
 #+END_SRC
 
+** Refile and copy
+When reviewing the captured data, you may want to refile or to copy
+some of the entries into a different list, for example into a
+project. Cutting, finding the right location, and then pasting the
+note is cumbersome. To simplify this process, you can use the
+refile command ~C-c C-w~. But first we need to configure it to target
+down to level 3 headings and use path like selection:
+
+#+BEGIN_SRC emacs-lisp
+(setq org-refile-targets '((nil . (:maxlevel . 3))))
+(setq org-refile-use-outline-path t)
+#+END_SRC
+
+** Deft
+[[https://github.com/jrblevin/deft][Deft]] is an Emacs mode for quickly browsing, filtering, and editing
+directories of plain text notes, inspired by Notational Velocity. It
+was designed for increased productivity when writing and taking notes
+by making it fast and simple to find the right file at the right time
+and by automating many of the usual tasks such as creating new files
+and saving files.
+
+#+BEGIN_SRC emacs-lisp
+(use-package deft
+  :ensure t
+  :bind ("<f8>" . deft)
+  :commands (deft)
+  :config
+  (setq deft-directory "~/Documents/Notes"
+        deft-extensions '("org" "tex"))
+  (setq deft-default-extension "org")
+  (setq deft-use-filter-string-for-filename t)
+  (setq deft-file-naming-rules
+        '((noslash . "-")
+          (nospace . "-")
+          (case-fn . downcase))))
+#+END_SRC
+
 * Editing configuration
 ** Zzz-to-char (kills from current point to character, M-z/M-Z)
 #+BEGIN_SRC emacs-lisp
@@ -731,6 +766,7 @@ Set t for only indent, set 'complete to indent or complete at point.
 (use-package smartparens-config
   :ensure smartparens
   :config
+  ;(add-to-list 'sp-ignore-modes-list 'org-mode)
   (show-smartparens-global-mode t)
   (smartparens-global-mode 1)
   (define-key prog-mode-map (kbd "M-q") 'sp-indent-defun))
@@ -767,6 +803,11 @@ Set t for only indent, set 'complete to indent or complete at point.
   (add-to-list 'recentf-exclude 'prelude-recentf-exclude-p)
   ;; ignore magit's commit message files
   (add-to-list 'recentf-exclude "COMMIT_EDITMSG\\'")
+  (add-to-list 'recentf-exclude "\\.png\\'")
+  (add-to-list 'recentf-exclude "\\org-clock-save.el\\'")
+  (add-to-list 'recentf-exclude "\\.gz\\'")
+  (add-to-list 'recentf-exclude "\\.log\\'")
+
 
   (recentf-mode +1))
 #+END_SRC
@@ -1111,6 +1152,10 @@ Can swap and delete windows as well.
 #+END_SRC
 
 ** Helm-semantic-or-imenu and imenu-anywhere
+There is a bug with helm semantic that makes it only show the function
+prototypes under narrowing. We need to patch helm-semantic.el
+according to [[https://github.com/emacs-helm/helm/commit/f69c14b39b0bb1a396baf0fecdb3192a6842a47d][this]] after each update.
+
 #+BEGIN_SRC emacs-lisp
 (global-set-key (kbd "C-c i") 'helm-semantic-or-imenu)
 (use-package imenu-anywhere
@@ -1269,6 +1314,12 @@ Increase the size of and colorize latex fragments in text:
 
 (eval-after-load 'org
   '(setf org-highlight-latex-and-related '(latex)))
+#+END_SRC
+
+Enable display of pretty entities by default. This makes text like
+~\ mu~ as \mu.
+#+BEGIN_SRC emacs-lisp
+(setq org-pretty-entities t)
 #+END_SRC
 
 ** Babel, code inside org
@@ -1492,6 +1543,21 @@ CDLaTeX allows to insert environments easily in org using "C-{".
 
 #+BEGIN_SRC emacs-lisp
 (add-hook 'org-mode-hook 'turn-on-org-cdlatex)
+#+END_SRC
+
+** Structure editing
+*** Refile and copy
+When reviewing the captured data, you may want to refile or to copy
+some of the entries into a different list, for example into a
+project. Cutting, finding the right location, and then pasting the
+note is cumbersome. To simplify this process, you can use the
+refile command ~C-c C-w~. But first we need to configure it to target
+down to level 3 headings and use path like selection:
+
+#+BEGIN_SRC emacs-lisp
+(setq org-refile-targets '((nil . (:maxlevel . 3))))
+(setq org-refile-use-outline-path t)
+(setq org-outline-path-complete-in-steps nil)
 #+END_SRC
 
 ** Org mode links
@@ -1856,63 +1922,115 @@ Now the tag "ignore" does just this.
 ** Org-ref
 Org-ref is a fantastic package from John Kitchin to manage citations
 and references in org-mode. It is worth it to read the whole
-documentation (use command (org-ref-help) ).
+documentation (use command ~(org-ref-help)~ ).
 
-Org-ref enables interactive cite links (cite), label links (label),
-
-I use helm-bibtex for completion, so I load this first. We then load
-org-ref.
-
-#+BEGIN_SRC emacs-lisp
-(use-package helm-bibtex
-  :ensure t)
-
-(use-package org-ref
-  :ensure t)
-#+END_SRC
-
-Now some basic configuration that involves defining the location of
-some files and key bindings. Insert cite link is "C-c ]" (default),
-label link "C-c (", and ref link "C-c )". We define a key-chord "kk"
-to access functions that act on a link.
-
-#+BEGIN_SRC emacs-lisp
-(define-key org-mode-map (kbd "C-c (") 'org-ref-helm-insert-label-link)
-(define-key org-mode-map (kbd "C-c )") 'org-ref-helm-insert-ref-link)
-(key-chord-define-global "kk" 'org-ref-bibtex-hydra/body)
-#+END_SRC
-
-Org-ref already locate PDF files stored by Mendeley, but not for
-Zotero, which I use. So I modified the function to seek for Mendeley
-PDF files to work for Zotero (under a default configuration).
-
-#+BEGIN_SRC emacs-lisp
-(defun org-ref-get-zotero-filename (key)
-  (let* ((results (org-ref-get-bibtex-key-and-file key))
-         (bibfile (cdr results))
-         entry)
-    (with-temp-buffer
-      (insert-file-contents bibfile)
-      (bibtex-set-dialect (parsebib-find-bibtex-dialect) t)
-      (bibtex-search-entry key nil 0)
-      (setq entry (bibtex-parse-entry))
-      (let ((e (org-ref-reftex-get-bib-field "file" entry)))
-        (if (> (length e) 4)
-            (let ((clean-field (replace-regexp-in-string "{\\|}\\|\\\\" "" e)))
-              (let ((second-file (nth 1 (split-string clean-field ":" t))))
-                (format "%s" second-file))))))))
-
-(setq org-ref-get-pdf-filename-function 'org-ref-get-zotero-filename)
-#+END_SRC
+Org-ref enables interactive cite links (~cite~), label links (~label~),
 
 Org-ref gives an error on HTML export. I don't understand why, but It
 is related to the function ~org-ref-make-org-link-cite-key-visible~ that
 makes cites inside descriptive links correctly colored (I think). So
-we remove the advice (This fix is ugly, let's hope it's fixed upstream.):
+we set org-ref-colorize-links to never load the advice (This fix is
+ugly, let's hope it's fixed upstream.):
 
 #+BEGIN_SRC emacs-lisp
-(advice-remove 'org-activate-bracket-links
-               #'org-ref-make-org-link-cite-key-visible)
+(setq org-ref-colorize-links nil)
+#+END_SRC
+
+I use helm-bibtex for completion, so I load this first. We then load
+org-ref. Helm-bibtex is configured to locate the pdf file using the
+field "file" which Zotero uses. We also define the directory where
+notes are stored. We setup some org-ref key bindings. Insert cite link
+is ~C-c ]~ (default), label link ~C-c (~, and ref link ~C-c )~.
+
+#+BEGIN_SRC emacs-lisp
+(use-package helm-bibtex
+  :ensure t
+  :config
+  (setq bibtex-completion-pdf-field "file")
+  (setq bibtex-completion-notes-path "~/Documents/SortedResources/PaperNotes"))
+
+(use-package org-ref
+  :ensure t
+  :config
+  (define-key org-mode-map (kbd "C-c (") 'org-ref-helm-insert-label-link)
+  (define-key org-mode-map (kbd "C-c )") 'org-ref-helm-insert-ref-link))
+#+END_SRC
+
+I need to configure org-ref to suite my workflow. I don't like having
+a huge bibliography file. Instead I like each project to have it's
+own, but helm-bibtex uses the variable ~bibtex-completion-bibliography~
+to define a global bibliography. We define a function to change this
+variable as needed and advice org-ref to use it every time we open a
+cite link.
+
+#+BEGIN_SRC emacs-lisp
+(defun my/helm-bibtex-setup ()
+  (interactive)
+    (let* ((results (org-ref-get-bibtex-key-and-file)))
+    (setq bibtex-completion-bibliography (list (file-truename (cdr results)))))
+  )
+
+(advice-add 'org-ref-cite-candidates :before 'my/helm-bibtex-setup)
+#+END_SRC
+
+We also need to change the function org-ref uses to open PDF's at
+point. We make this function open the PDF inside Emacs and use
+helm-bibtex to find the file.
+
+#+BEGIN_SRC emacs-lisp
+(defun my/org-ref-open-pdf-at-point ()
+  "Open the pdf for bibtex key under point if it exists."
+  (interactive)
+  (let* ((results (org-ref-get-bibtex-key-and-file))
+         (key (car results))
+         (bibtex-completion-bibliography (list (file-truename (cdr results))))
+         (pdf-file (bibtex-completion-find-pdf key)))
+    (if (file-exists-p pdf-file)
+        (org-open-file-with-emacs pdf-file)
+      (message "No PDF found for %s" key))))
+
+(setq org-ref-open-pdf-function 'my/org-ref-open-pdf-at-point)
+#+END_SRC
+
+Finally we define how to store and open notes. We change the template
+to setup things for the Interleave package. When a new note is created
+the location of the PDF is inserted. We then modify the org-ref
+function to open notes to use helm-bibtex.
+
+#+BEGIN_SRC emacs-lisp
+(setq bibtex-completion-notes-template-multiple-files
+      "#+TITLE: Notes on: ${author} (${year}): ${title}
+,#+INTERLEAVE_PDF: ${file}
+
+")
+
+(defun org-ref-open-notes-at-point ()
+(interactive)
+  (let* ((results (org-ref-get-bibtex-key-and-file))
+         (key (car results))
+         (bibtex-completion-bibliography (list (file-truename (cdr results))))
+         (pdf-file (bibtex-completion-find-pdf key)))
+    (bibtex-completion-edit-notes key)))
+#+END_SRC
+
+Here I load the Interleave package to takes notes while reading a PDF
+inside emacs. Notes are displayed side by side with the
+PDF. Furthermore, only notes relevant to the current page are
+displayed. The package also makes it easy to add new notes pressing ~i~.
+We also fix a minor quirk that made notes be hidden when scrolling the
+PDF.
+
+#+BEGIN_SRC emacs-lisp
+(use-package interleave
+  :ensure t
+  :config
+  (advice-add 'interleave--go-to-page-note :after #'my/interleave-recenter)
+
+  (defun my/interleave-recenter (page)
+    (interactive "i")
+    (with-selected-window (get-buffer-window *interleave--org-buffer*)
+      (recenter)))
+  )
 #+END_SRC
 
 ** Templates
@@ -2295,8 +2413,7 @@ Makes Emacs too too slow in large buffers
 (use-package rainbow-delimiters
   :ensure t
   :config
-  (add-hook 'prog-mode-hook #'rainbow-delimiters-mode)
-  (add-hook 'org-mode-hook #'rainbow-delimiters-mode))
+  (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))
 #+END_SRC
 
 *** Line numbers
