@@ -94,24 +94,33 @@ Send all backups to /tmp/
 
 ** Color theme
 #+BEGIN_SRC emacs-lisp
-(use-package monokai-theme
-  :ensure t
-  :config
-  (load-theme 'monokai t))
+;; (use-package monokai-theme
+;;   :ensure t
+;;   :config
+;;   (load-theme 'monokai t)
+;;   (custom-set-faces
+;;    '(org-block-begin-line
+;;      ((t (:foreground "#a8ac9e" :slant normal :background nil))))
+;;    '(org-block-end-line
+;;      ((t (:foreground "#a8ac9e" :slant normal :background nil))))
+;;    '(font-lock-comment-face
+;;      ((t (:foreground "#aca99e"))))
+;;    '(org-meta-line
+;;      ((t (:foreground "#a8ac9e"))))
+;;    '(org-block
+;;      ((t (:background nil))))
+;;    '(writegood-weasels-face ((t (:underline (:color "gold" :style wave)))))))
 
-(custom-set-faces
- '(org-block-begin-line
-   ((t (:foreground "#E6DB74" :slant normal))))
- '(font-lock-comment-face
-   ((t (:foreground "#E6DB74"))))
- '(font-lock-comment-delimiter-face
-   ((t (:foreground "#E6DB74"))))
- '(font-lock-string-face
-   ((t (:foreground "#e6a274"))))
- ;; '(org-block-end-line
- ;;   ((t (:underline "#008ED1" :foreground "#008ED1"))))
- '(writegood-weasels-face ((t (:underline (:color "gold" :style wave))))))
- #+END_SRC
+(use-package gruvbox-theme
+:ensure t
+:config (load-theme 'gruvbox t))
+;; (require 'moe-theme)
+;; (moe-dark)
+
+;; (use-package spacemacs-theme
+;; :ensure t
+;; :config (load-theme 'spacemacs-dark t))
+#+END_SRC
 
 ** Smart mode line
 #+BEGIN_SRC emacs-lisp
@@ -221,7 +230,7 @@ Send all backups to /tmp/
   :ensure t)
 #+END_SRC
 
-** Crux - replaces prelude functions
+** Crux
 Here I bind the functions I find useful, there are more. See:
 https://github.com/bbatsov/crux
 #+BEGIN_SRC emacs-lisp
@@ -302,13 +311,20 @@ C-u C-u COMMAND -> Open/switch to a scratch buffer in `emacs-elisp-mode'"
     (insert  (expand-file-name selected_file))))
 #+END_SRC
 
-** Function: unfill-paragraph
+** Function: fill-unfill-paragraph
 #+BEGIN_SRC emacs-lisp
-(defun unfill-paragraph ()
-  "Unfill paragraph at or after point."
-  (interactive "*")
-  (let ((fill-column most-positive-fixnum))
-    (fill-paragraph nil (region-active-p))))
+(defun endless/fill-or-unfill ()
+  "Like `fill-paragraph', but unfill if used twice."
+  (interactive)
+  (let ((fill-column
+         (if (eq last-command 'endless/fill-or-unfill)
+             (progn (setq this-command nil)
+                    (point-max))
+           fill-column)))
+    (call-interactively #'fill-paragraph)))
+
+(global-set-key [remap fill-paragraph]
+                #'endless/fill-or-unfill)
 #+END_SRC
 
 * Utilities
@@ -457,7 +473,6 @@ The app is chosen from your OS's preference."
 ** Eyebrowse
 A window configuration manager. We bind it to M-W instead of C-c C-w
 to avoid conflicts with org.
-TODO define a hydra to use eyebrowse.
 #+BEGIN_SRC emacs-lisp
 (use-package eyebrowse
   :ensure t
@@ -505,8 +520,7 @@ address. /user@host.server.com:/home/bjm/myfile.org
   :config
   (setq ispell-program-name "aspell" ; use aspell instead of ispell
         ispell-extra-args '("--sug-mode=ultra"))
-  (add-hook 'text-mode-hook 'turn-on-flyspell)
-  (add-hook 'prog-mode-hook 'flyspell-prog-mode))
+  (add-hook 'text-mode-hook 'turn-on-flyspell))
 
 ;; ispell should not check code blocks in org mode
 (add-to-list 'ispell-skip-region-alist '(":\\(PROPERTIES\\|LOGBOOK\\):" . ":END:"))
@@ -661,19 +675,6 @@ https://github.com/jkitchin/jmax/blob/master/words.el
 (global-set-key (kbd "s-d") 'hydra-words/body)
 #+END_SRC
 
-** Refile and copy
-When reviewing the captured data, you may want to refile or to copy
-some of the entries into a different list, for example into a
-project. Cutting, finding the right location, and then pasting the
-note is cumbersome. To simplify this process, you can use the
-refile command ~C-c C-w~. But first we need to configure it to target
-down to level 3 headings and use path like selection:
-
-#+BEGIN_SRC emacs-lisp
-(setq org-refile-targets '((nil . (:maxlevel . 3))))
-(setq org-refile-use-outline-path t)
-#+END_SRC
-
 ** Deft
 [[https://github.com/jrblevin/deft][Deft]] is an Emacs mode for quickly browsing, filtering, and editing
 directories of plain text notes, inspired by Notational Velocity. It
@@ -759,17 +760,6 @@ Set t for only indent, set 'complete to indent or complete at point.
 #+BEGIN_SRC emacs-lisp
 ;; smart tab behavior - indent or complete
 (setq tab-always-indent t)
-#+END_SRC
-
-** Parenthesis
-#+BEGIN_SRC emacs-lisp
-(use-package smartparens-config
-  :ensure smartparens
-  :config
-  ;(add-to-list 'sp-ignore-modes-list 'org-mode)
-  (show-smartparens-global-mode t)
-  (smartparens-global-mode 1)
-  (define-key prog-mode-map (kbd "M-q") 'sp-indent-defun))
 #+END_SRC
 
 ** Remember location in a file when saving
@@ -1202,6 +1192,7 @@ compilation and white space handling.
 
 (add-hook 'LaTeX-mode-hook
           (lambda ()
+            (outline-minor-mode t)
             (flyspell-mode t)
             (TeX-PDF-mode t)
             (TeX-fold-mode t)
@@ -1221,8 +1212,6 @@ compilation and white space handling.
 (setq reftex-enable-partial-scans t)
 (setq reftex-use-multiple-selection-buffers t)
 (setq reftex-plug-into-AUCTeX t)
-
-
 
 ;; Provides foldind, novigation, 1-key compilation and whitespace handling.
 (use-package latex-extra
@@ -1244,9 +1233,6 @@ compilation and white space handling.
              (any "_^")))
     0 'endless/unimportant-latex-face prepend))
  'end)
-
-;; This is a jack to preview fragments in org mode
-(define-key LaTeX-mode-map (kbd "C-c C-x C-l") 'org-preview-latex-fragment)
 #+END_SRC
 
 * org-mode
@@ -1387,9 +1373,10 @@ When evaluating blocks I want them be silent, usually I only use them
 to process data. Also export both code and results.
 
 #+BEGIN_SRC emacs-lisp
-(setq org-babel-default-header-args
-      (cons '(:results . "silent")
-            (assq-delete-all :results org-babel-default-header-args)))
+;; Messes things up
+;; (setq org-babel-default-header-args
+;;       (cons '(:results . "silent")
+;;             (assq-delete-all :results org-babel-default-header-args)))
 
 (setq org-babel-default-header-args
       (cons '(:exports . "both")
@@ -2114,13 +2101,13 @@ Templates for fast insertion of code blocks in org.
 ;; add <gp for gnuplot to file
 (add-to-list 'org-structure-template-alist
              `("gp"
-               ,(concat "#+BEGIN_SRC gnuplot :file ./Fig/plot_file.png\n"
+               ,(concat "#+BEGIN_SRC gnuplot :file ./Fig/plot_file.pdf\n"
                        "reset\n"
-                       "set term pngcairo size 640,480\n"
+                       "set term pdfcairo\n"
                        "?\n"
                        "#+END_SRC\n"
-                       "#+NAME: Plot name.\n"
-                       "#+CAPTION: A plot.\n"
+                       "\n"
+                       "#+CAPTION:\n"
                        "#+RESULTS:\n")))
 
 ;; add <l for latex
@@ -2348,6 +2335,28 @@ applies also for HTML export:
 #+END_SRC
 
 * Programming
+** Parenthesis
+#+BEGIN_SRC emacs-lisp
+(show-paren-mode 1)
+(electric-pair-mode 1)
+
+(defvar match-paren--idle-timer nil)
+(defvar match-paren--delay 0.5)
+(setq match-paren--idle-timer
+      (run-with-idle-timer match-paren--delay t #'blink-matching-open))
+
+(use-package rainbow-delimiters
+  :ensure t
+  :config
+  (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))
+
+(use-package wrap-region
+  :ensure t
+  :config
+  (wrap-region-add-wrapper "$" "$" nil 'LaTeX-mode)
+  (wrap-region-global-mode t))
+#+END_SRC
+
 ** General configurations
 *** Comments
 #+BEGIN_SRC emacs-lisp
@@ -2408,28 +2417,12 @@ Makes Emacs too too slow in large buffers
 ;; (add-to-list 'flycheck-checkers 'proselint)
 #+END_SRC
 
-*** Rainbow delimiters, colors parenthesis
-#+BEGIN_SRC emacs-lisp
-(use-package rainbow-delimiters
-  :ensure t
-  :config
-  (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))
-#+END_SRC
-
 *** Line numbers
 #+BEGIN_SRC emacs-lisp
 (use-package nlinum
   :ensure t
   :config
   (add-hook 'python-mode-hook 'nlinum-mode))
-#+END_SRC
-
-*** Speedbar
-#+BEGIN_SRC emacs-lisp
-(use-package sr-speedbar
-  :ensure t
-  :config
-  (global-set-key (kbd "s-s") 'sr-speedbar-toggle))
 #+END_SRC
 
 *** Origami for folding
@@ -2523,7 +2516,6 @@ Install elpy package from the *elpy repository*.
 (require 'cc-mode)
 
 ;; New functions
-(define-key c-mode-base-map (kbd "M-q") 'sp-indent-defun)
 (define-key c-mode-base-map (kbd "RET") 'newline-and-indent)
 
 ;; Format to display tags
@@ -2563,9 +2555,30 @@ Install elpy package from the *elpy repository*.
 (use-package processing-mode
   :ensure t
   :config
-  (setq processing-location "/home/gperaza/processing/processing-java")
-  (setq processing-application-dir "/home/gperaza/processing")
-  (setq processing-sketchbook-dir "/home/gperaza/Documents/code/processing"))
+  (setq processing-location "/opt/processing-3.1.1/processing-java")
+  (setq processing-application-dir "/opt/processing-3.1.1/")
+  (setq processing-sketchbook-dir "/home/gperaza/Documents/code/processing/"))
+#+END_SRC
+
+Define a hydra with the basic processing commands.
+
+#+BEGIN_SRC emacs-lisp
+(defhydra hydra-processing ()
+    "Processing"
+    ("r" processing-sketch-run "Run sketch.")
+    ("b" processing-sketch-build "Compile sketch.")
+    ("p" processing-sketch-present "Run sketch full screen.")
+    ("e" processing-export-application "Export sketch.")
+    ("d" processing-find-in-reference "Find in reference.")
+    ("f" processing-find-sketch "Find or create sketch.")
+    ("s" processing-search-forums "Search forum.")
+    ("l" processing-open-examples "Open examples.")
+    ("h" processing-open-reference "Open examples.")
+    ("o" processing-open-sketchbook "Open sketchbook.")
+    ("q" nil "quit"))
+
+(define-key processing-mode-map (kbd "s-h") 'hydra-processing/body)
+
 #+END_SRC
 
 ** Fish-shell
