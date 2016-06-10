@@ -885,18 +885,6 @@ Set t for only indent, set 'complete to indent or complete at point.
 
 #+END_SRC
 
-** Make shell script executable automatically on save
-#+BEGIN_SRC emacs-lisp
-(add-hook 'after-save-hook
-          'executable-make-buffer-file-executable-if-script-p)
-#+END_SRC
-
-** Saner regexp syntax
-#+BEGIN_SRC emacs-lisp
-(require 're-builder)
-(setq reb-re-syntax 'string)
-#+END_SRC
-
 ** Compilation
 Let's customize the behavior of the compilation process. We always to
 save when compiling, no need to ask. Also, if a previous compilation
