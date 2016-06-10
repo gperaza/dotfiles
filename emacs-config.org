@@ -197,17 +197,6 @@ Send all backups to /tmp/
 (setq echo-keystrokes 0.1)
 #+END_SRC
 
-** Olivetti mode
-#+BEGIN_SRC emacs-lisp
-(use-package olivetti
-  :ensure t
-  :config
-  (olivetti-set-width 85)
-  (global-set-key (kbd "s-o") 'olivetti-mode)
-  (define-key olivetti-mode-map (kbd "C-c [") nil)
-  (define-key olivetti-mode-map (kbd "C-c ]") nil))
-#+END_SRC
-
 ** Anzu, displays isearch information and query replace.
 #+BEGIN_SRC emacs-lisp
 (use-package anzu
