@@ -2375,20 +2375,10 @@ Makes Emacs too too slow in large buffers
   ((warning line-start (file-name) ":" line ":" column ": "
         (id (one-or-more (not (any " "))))
         (message) line-end))
-  :modes (text-mode markdown-mode gfm-mode latex-mode org-mode))
-
-;; (add-to-list 'flycheck-checkers 'proselint)
+  :modes (text-mode gfm-mode LaTeX-mode org-mode))
 #+END_SRC
 
-*** Line numbers
-#+BEGIN_SRC emacs-lisp
-(use-package nlinum
-  :ensure t
-  :config
-  (add-hook 'python-mode-hook 'nlinum-mode))
-#+END_SRC
-
-*** Origami for folding
+** Origami for folding
 #+BEGIN_SRC emacs-lisp
 (use-package origami
   :ensure t
@@ -2445,31 +2435,15 @@ https://github.com/bbatsov/projectile.
   (setq projectile-switch-project-action 'helm-projectile))
 #+END_SRC
 
-** Yasnippet
-#+BEGIN_SRC emacs-lisp
-;; (use-package yasnippet
-;;   :ensure t
-;;   :config
-;;   (yas-reload-all)
-;;   (define-key yas-minor-mode-map (kbd "<tab>") nil)
-;;   (define-key yas-minor-mode-map (kbd "TAB") nil)
-;;   (define-key yas-minor-mode-map (kbd "<C-S-iso-lefttab>") 'yas-expand)
-;;   (add-hook 'c-mode-common-hook #'yas-minor-mode)
-;;   (add-hook 'LaTeX-mode-hook #'yas-minor-mode)
-;;   )
-#+END_SRC
-
 ** Python
 Install elpy package from the *elpy repository*.
 #+BEGIN_SRC emacs-lisp
 (elpy-enable)
 (setq elpy-rpc-backend "jedi")
 (elpy-use-ipython)
-(setq elpy-modules (delete 'elpy-module-flymake elpy-modules))
+(remove-hook 'elpy-modules 'elpy-module-flymake)
 (add-hook 'python-mode-hook
           (lambda () (set (make-local-variable 'comment-inline-offset) 2)))
-;; (set-face-background 'highlight-indentation-face "#e3e3d3")
-;; (set-face-background 'highlight-indentation-current-column-face "#c3b3b3")
 (setq elpy-rpc-error-timeout 100000000)
 #+END_SRC
 
@@ -2498,19 +2472,7 @@ Install elpy package from the *elpy repository*.
 (use-package gnuplot
   :ensure t
   :config
-  (add-to-list 'auto-mode-alist '("\\.gp\\'" . gnuplot-mode))
-  )
-#+END_SRC
-
-** Markdown
-#+BEGIN_SRC emacs-lisp
-(use-package markdown-mode
-  :ensure t)
-(autoload 'markdown-mode "markdown-mode"
-  "Major mode for editing Markdown files" t)
-(add-to-list 'auto-mode-alist '("\\.text\\'" . markdown-mode))
-(add-to-list 'auto-mode-alist '("\\.markdown\\'" . markdown-mode))
-(add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-mode))
+  (add-to-list 'auto-mode-alist '("\\.gp\\'" . gnuplot-mode)))
 #+END_SRC
 
 ** Processing
