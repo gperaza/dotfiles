@@ -360,7 +360,9 @@ http://tuhdo.github.io/helm-intro.html.
         helm-buffers-fuzzy-matching           t
         helm-recentf-fuzzy-match              t)
 
-  (helm-mode 1))
+  (helm-mode 1)
+
+  (add-to-list 'helm-boring-buffer-regexp-list "\\*.+\\*"))
 #+END_SRC
 
 ** Key-chord
