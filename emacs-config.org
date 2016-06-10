@@ -691,6 +691,11 @@ and saving files.
 #+END_SRC
 
 * Editing configuration
+** Follow symlinks under version control
+#+BEGIN_SRC emacs-lisp
+(setq vc-follow-symlinks t)
+#+END_SRC
+
 ** Zzz-to-char (kills from current point to character, M-z/M-Z)
 #+BEGIN_SRC emacs-lisp
 (use-package zzz-to-char
@@ -731,25 +736,9 @@ To imitate move lines outside org mode.
 (global-auto-revert-mode t)
 #+END_SRC
 
-** Hippie-expand
-#+BEGIN_SRC emacs-lisp
-(global-set-key (kbd "M-/") 'hippie-expand)
-(setq hippie-expand-try-functions-list '(try-expand-dabbrev
-                                         try-expand-dabbrev-all-buffers
-                                         try-expand-dabbrev-from-kill
-                                         try-complete-file-name-partially
-                                         try-complete-file-name
-                                         try-expand-all-abbrevs
-                                         try-expand-list
-                                         try-expand-line
-                                         try-complete-lisp-symbol-partially
-                                         try-complete-lisp-symbol))
-#+END_SRC
-
 ** Set tab behavior, indent or complete
 Set t for only indent, set 'complete to indent or complete at point.
 #+BEGIN_SRC emacs-lisp
-;; smart tab behavior - indent or complete
 (setq tab-always-indent t)
 #+END_SRC
 
