@@ -965,6 +965,7 @@ Toggles between: “all lower”, “Init Caps”, “ALL CAPS”."
 
 ** TeX input method
 Allows typing TeX characters after toggling the input method with C-\
+
 #+BEGIN_SRC emacs-lisp
 (setq default-input-method 'TeX)
 #+END_SRC
@@ -985,7 +986,7 @@ Treats camel case words (camelCase) as separate words.
      ("o" org-transpose-words "Org mode words")
      ("l" transpose-lines "lines")
      ("s" transpose-sentences "sentences")
-     ("e" org-transpose-elements "Org mode elements")
+     ("e" org-transpose-element "Org mode elements")
      ("p" transpose-paragraphs "paragraphs")
      ("t" org-table-transpose-table-at-point "Org mode table")
      ("q" nil "cancel" :color blue)))
@@ -2325,8 +2326,7 @@ applies also for HTML export:
   (wrap-region-global-mode t))
 #+END_SRC
 
-** General configurations
-*** Comments
+** Comments
 #+BEGIN_SRC emacs-lisp
 (defun comment-auto-fill ()
   (setq-local comment-auto-fill-only-comments t)
@@ -2339,19 +2339,14 @@ applies also for HTML export:
   (global-set-key (kbd "M-;") 'comment-dwim-2))
 #+END_SRC
 
-*** Display function name in the mode line
-#+BEGIN_SRC emacs-lisp
-(which-function-mode 1)
-#+END_SRC
-
-*** Highlight comment annotations
+** Highlight comment annotations
 #+BEGIN_SRC emacs-lisp
 (use-package hl-todo
   :ensure t
   :config (add-hook 'prog-mode-hook 'hl-todo-mode))
 #+END_SRC
 
-*** Flycheck
+** Flycheck
 Setup flychek with a helm.
 #+BEGIN_SRC emacs-lisp
 (use-package flycheck
@@ -2407,7 +2402,7 @@ Makes Emacs too too slow in large buffers
   )
 #+END_SRC
 
-*** Clean-aindent-mode
+** Clean-aindent-mode
 #+BEGIN_SRC emacs-lisp
 (use-package clean-aindent-mode
   :ensure t
