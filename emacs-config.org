@@ -111,9 +111,9 @@ Send all backups to /tmp/
 ;;      ((t (:background nil))))
 ;;    '(writegood-weasels-face ((t (:underline (:color "gold" :style wave)))))))
 
-(use-package gruvbox-theme
+(use-package material-theme
 :ensure t
-:config (load-theme 'gruvbox t))
+:config (load-theme 'material t))
 ;; (require 'moe-theme)
 ;; (moe-dark)
 
@@ -2488,3 +2488,5 @@ Define a hydra with the basic processing commands.
 (use-package fish-mode
   :ensure t)
 #+END_SRC
+
+The end.
