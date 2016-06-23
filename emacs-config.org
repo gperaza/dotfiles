@@ -34,7 +34,6 @@ This file must include personal information given as
 
 (eval-when-compile
   (require 'use-package))
-;; (require 'diminish)
 (require 'bind-key)
 
 (use-package paradox
@@ -232,7 +231,8 @@ https://github.com/bbatsov/crux
   (global-set-key [remap move-beginning-of-line] #'crux-move-beginning-of-line)
   (global-set-key (kbd "s-k") 'crux-kill-line-backwards)
   (global-set-key (kbd "C-M-z") 'crux-indent-defun)
-  (global-set-key (kbd "C-`") 'crux-switch-to-previous-buffer))
+  (global-set-key (kbd "C-`") 'crux-switch-to-previous-buffer)
+  (global-set-key (kbd "C-c s") 'crux-swap-windows))
 #+END_SRC
 
 ** Function: switch-to-scratch-and-back
@@ -332,7 +332,8 @@ http://tuhdo.github.io/helm-intro.html.
 
   (setq helm-boring-buffer-regexp-list
         '("\\` " "\\*helm" "\\*helm-mode" "\\*Echo Area" "\\*Minibuf"
-          "\\*magit" "\\*Compile-log\\*" "\\*Messages\\*" "\\*Help\\*"))
+          "\\*magit" "\\*Compile-log\\*" "\\*Messages\\*" "\\*Help\\*"
+          "\\*compilation\\*"))
 )
 #+END_SRC
 
@@ -974,16 +975,6 @@ Treats camel case words (camelCase) as separate words.
   (key-chord-define-global "jj" 'avy-goto-word-or-subword-1)
   (key-chord-define-global "jl" 'avy-goto-line)
   (key-chord-define-global "jk" 'avy-goto-char))
-#+END_SRC
-
-** Ace-window
-Can swap and delete windows as well.
-#+BEGIN_SRC emacs-lisp
-(use-package ace-window
-  :ensure t
-  :config
-  (global-set-key (kbd "C-x o") 'ace-window)
-  (global-set-key (kbd "C-c s") 'ace-swap-window))
 #+END_SRC
 
 ** Windmove to move between visible buffers
