@@ -312,13 +312,6 @@ http://tuhdo.github.io/helm-intro.html.
 )
 #+END_SRC
 
-** Key-chord
-#+BEGIN_SRC emacs-lisp
-(use-package key-chord
-  :ensure t
-  :config (key-chord-mode +1))
-#+END_SRC
-
 ** Magit (C-x g)
 #+BEGIN_SRC emacs-lisp
 (use-package magit
@@ -945,11 +938,8 @@ Treats camel case words (camelCase) as separate words.
 (use-package avy
   :ensure t
   :config
-  (setq avy-background t)
-  (setq avy-style 'at-full)
-  (key-chord-define-global "jj" 'avy-goto-word-or-subword-1)
-  (key-chord-define-global "jl" 'avy-goto-line)
-  (key-chord-define-global "jk" 'avy-goto-char))
+  (global-set-key (kbd "M-g g") 'avy-goto-line)
+  (global-set-key (kbd "M-s") 'avy-goto-word-or-subword-1))
 #+END_SRC
 
 ** Windmove to move between visible buffers
