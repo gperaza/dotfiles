@@ -252,6 +252,30 @@ https://github.com/bbatsov/crux
 #+END_SRC
 
 * Utilities
+** Ido + smex
+Ido and smex are completion engines for emacs. Helm is more powerful
+than ido, but also slower and more intrusive. I like ido better, but
+will still use some helm dependent packages that are just too good to
+let go. Also helm is an org-ref dependency.
+
+#+BEGIN_SRC emacs-lisp
+(use-package flx-ido
+  :ensure t
+  :config
+  (ido-mode 1)
+  (ido-everywhere 1)
+  (flx-ido-mode 1)
+  (setq ido-use-virtual-buffers t))
+(use-package ido-ubiquitous
+  :ensure t
+  :config (ido-ubiquitous-mode 1))
+(use-package smex
+  :ensure t
+  :config
+  (global-set-key (kbd "M-x") 'smex)
+  (global-set-key (kbd "M-X") 'smex-major-mode-commands))
+#+END_SRC
+
 ** Hydra
 #+BEGIN_SRC emacs-lisp
 (use-package hydra
@@ -260,8 +284,6 @@ https://github.com/bbatsov/crux
 #+END_SRC
 
 ** Helm
-Helm basic configuration following the official guide at
-http://tuhdo.github.io/helm-intro.html.
 #+BEGIN_SRC emacs-lisp
 (use-package helm
   :ensure t
@@ -279,68 +301,8 @@ http://tuhdo.github.io/helm-intro.html.
   ;; list actions using C-z
   (define-key helm-map (kbd "C-z")  'helm-select-action)
 
-  (define-key helm-command-map (kbd "o")     'helm-occur)
-  (define-key helm-command-map (kbd "SPC")   'helm-all-mark-rings)
-
-  (global-set-key (kbd "M-x") 'helm-M-x)
   (global-set-key (kbd "M-y") 'helm-show-kill-ring)
-  (global-set-key (kbd "C-x b") 'helm-mini)
-  (global-set-key (kbd "C-x C-b") 'helm-buffers-list)
-  (global-set-key (kbd "C-x C-f") 'helm-find-files)
-  (global-set-key (kbd "C-c f")  'helm-recentf)
-
-  (setq helm-google-suggest-use-curl-p t)
-
-  (setq
-   ;; open helm buffer inside current window, not occupy whole other window
-   helm-split-window-in-side-p           t
-   ;; move to end or beginning of source when reaching top or bottom of source.
-   helm-move-to-line-cycle-in-source     t
-   ;; search for library in `require' and `declare-function' sexp.
-   helm-ff-search-library-in-sexp        t
-   ;; scroll 8 lines other window using M-<next>/M-<prior>
-   helm-scroll-amount                    8
-   helm-ff-file-name-history-use-recentf t
-   helm-M-x-fuzzy-match                  t
-   helm-buffers-fuzzy-matching           t
-   helm-recentf-fuzzy-match              t)
-
-  (helm-mode 1)
-
-  (setq helm-boring-buffer-regexp-list
-        '("\\` " "\\*helm" "\\*helm-mode" "\\*Echo Area" "\\*Minibuf"
-          "\\*magit" "\\*Compile-log\\*" "\\*Messages\\*" "\\*Help\\*"
-          "\\*compilation\\*"))
-)
-#+END_SRC
-
-** Ivy
-Ivy replaces helm for many things at seems faster.
-#+BEGIN_SRC emacs-lisp
-;; (use-package counsel
-;;   :ensure t
-;;   :config
-;;   (ivy-mode 1)
-
-;;   ;; Add recentf mode and bookmarks to ivy-switch-buffer
-;;   (setq ivy-use-virtual-buffers t)
-;;   (setq ivy-count-format "(%d/%d) ")
-
-;;   (global-set-key (kbd "C-s") 'swiper)
-;;   (global-set-key (kbd "M-x") 'counsel-M-x)
-
-;;   (global-set-key (kbd "C-x C-f") 'counsel-find-file)
-;;   (global-set-key (kbd "<f1> f") 'counsel-describe-function)
-;;   (global-set-key (kbd "<f1> v") 'counsel-describe-variable)
-;;   (global-set-key (kbd "<f1> l") 'counsel-load-library)
-;;   (global-set-key (kbd "<f2> i") 'counsel-info-lookup-symbol)
-;;   (global-set-key (kbd "<f2> u") 'counsel-unicode-char)
-
-;;   (global-set-key (kbd "C-c g") 'counsel-git)
-;;   (global-set-key (kbd "C-c k") 'counsel-ag)
-;;   (global-set-key (kbd "C-c C-r") 'ivy-resume)
-
-;; )
+  (global-set-key (kbd "C-x C-b") 'helm-mini))
 #+END_SRC
 
 ** Magit (C-x g)
@@ -728,8 +690,7 @@ Set t for only indent, set 'complete to indent or complete at point.
 (use-package recentf
   :config
   (setq recentf-save-file (expand-file-name "recentf" "~/.emacs.d/savefile/")
-        recentf-max-saved-items 10
-        recentf-max-menu-items 10
+        recentf-max-saved-items 50
         ;; disable recentf-cleanup on Emacs start, because it can cause
         ;; problems with remote files
         recentf-auto-cleanup 'never)
@@ -748,7 +709,6 @@ Set t for only indent, set 'complete to indent or complete at point.
   (add-to-list 'recentf-exclude "\\org-clock-save.el\\'")
   (add-to-list 'recentf-exclude "\\.gz\\'")
   (add-to-list 'recentf-exclude "\\.log\\'")
-
 
   (recentf-mode +1))
 #+END_SRC
@@ -2398,9 +2358,7 @@ Install elpy package from the *elpy repository*.
   (remove-hook 'elpy-modules 'elpy-module-flymake)
   (add-hook 'python-mode-hook
             (lambda () (set (make-local-variable 'comment-inline-offset) 2)))
-  (setq elpy-rpc-error-timeout 100000000)
-)
-
+  (setq elpy-rpc-error-timeout 100000000))
 #+END_SRC
 
 ** C
