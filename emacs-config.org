@@ -210,7 +210,7 @@ Send all backups to /tmp/
 (setq rm-whitelist "Projectile")
 #+END_SRC
 
-* Function definitions
+* Utilities
 ** Crux
 Here I bind the functions I find useful, there are more. See:
 https://github.com/bbatsov/crux
@@ -251,7 +251,6 @@ https://github.com/bbatsov/crux
                 #'endless/fill-or-unfill)
 #+END_SRC
 
-* Utilities
 ** Ido + smex
 Ido and smex are completion engines for emacs. Helm is more powerful
 than ido, but also slower and more intrusive. I like ido better, but
@@ -298,7 +297,6 @@ according to [[https://github.com/emacs-helm/helm/commit/f69c14b39b0bb1a396baf0f
 (use-package helm
   :ensure t
   :config
-
   ;; rebind tab to run persistent action
   (define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action)
   ;; make TAB works in terminal
@@ -315,8 +313,7 @@ according to [[https://github.com/emacs-helm/helm/commit/f69c14b39b0bb1a396baf0f
 (use-package magit
   :ensure t
   :config
-  (global-set-key (kbd "C-x g") 'magit-status)
-  (setq magit-last-seen-setup-instructions "1.4.0"))
+  (global-set-key (kbd "C-x g") 'magit-status))
 #+END_SRC
 
 ** Undo tree
@@ -504,106 +501,6 @@ We use company since it is included in Elpy already.
 (add-hook 'org-mode-hook #'add-pcomplete-to-capf)
 #+END_SRC
 
-** Words hydra
-Function to operate on words at point or region, from
-https://github.com/jkitchin/jmax/blob/master/words.el
-
-*** Functions
-#+BEGIN_SRC emacs-lisp
-(defun words-dictionary ()
-  "Look up word at point in an online dictionary."
-  (interactive)
-  (browse-url
-   (format
-    "http://dictionary.reference.com/browse/%s?s=t"
-    (thing-at-point 'word))))
-
-
-(defun words-thesaurus ()
-  "Look up word at point in an online thesaurus."
-  (interactive)
-  (browse-url
-   (format
-    "http://www.thesaurus.com/browse/%s"
-    (thing-at-point 'word))))
-
-(defun words-atd ()
-  "Send paragraph at point to After the deadline for spell and grammar checking."
-  (interactive)
-
-  (let* ((url-request-method "POST")
-         (url-request-data (format
-                            "key=some-random-text-&data=%s"
-                            (url-hexify-string
-                             (thing-at-point 'paragraph))))
-         (xml  (with-current-buffer
-                   (url-retrieve-synchronously
-                    "http://service.afterthedeadline.com/checkDocument")
-                 (xml-parse-region url-http-end-of-headers (point-max))))
-         (results (car xml))
-         (errors (xml-get-children results 'error)))
-
-    (switch-to-buffer-other-frame "*ATD*")
-    (erase-buffer)
-    (dolist (err errors)
-      (let* ((children (xml-node-children err))
-             ;; for some reason I could not get the string out, and had to do this.
-             (s (car (last (nth 1 children))))
-             ;; the last/car stuff doesn't seem right. there is probably
-             ;; a more idiomatic way to get this
-             (desc (last (car (xml-get-children children 'description))))
-             (type (last (car (xml-get-children children 'type))))
-             (suggestions (xml-get-children children 'suggestions))
-             (options (xml-get-children (xml-node-name suggestions) 'option))
-             (opt-string  (mapconcat
-                           (lambda (el)
-                             (when (listp el)
-                               (car (last el))))
-                           options
-                           " ")))
-
-        (insert (format "** %s ** %s
-      Description: %s
-      Suggestions: %s
-      " s type desc opt-string))))))
-
-(defun words-google ()
-  "Google the word at point or selection."
-  (interactive)
-  (browse-url
-   (format
-    "http://www.google.com/search?q=%s"
-    (if (region-active-p)
-        (url-hexify-string (buffer-substring (region-beginning)
-                                             (region-end)))
-      (thing-at-point 'word)))))
-
-(defun words-google-scholar ()
-  "Google scholar the word at point or selection."
-  (interactive)
-  (browse-url
-   (format
-    "http://scholar.google.com/scholar?q=%s"
-    (if (region-active-p)
-        (url-hexify-string (buffer-substring (region-beginning)
-                                             (region-end)))
-      (thing-at-point 'word)))))
-
-#+END_SRC
-
-*** Hydra
-#+BEGIN_SRC emacs-lisp
- (defhydra hydra-words (:color blue)
-   "words"
-   ("d" words-dictionary "dictionary")
-   ("t" words-thesaurus "thesaurus")
-   ("s" words-atd "spell/grammar")
-   ("g" words-google "google")
-   ("G" words-google-scholar "google scholar")
-   ("q" nil "cancel"))
-(global-set-key (kbd "s-d") 'hydra-words/body)
-#+END_SRC
-
 ** Deft
 [[https://github.com/jrblevin/deft][Deft]] is an Emacs mode for quickly browsing, filtering, and editing
 directories of plain text notes, inspired by Notational Velocity. It
@@ -628,7 +525,7 @@ and saving files.
           (case-fn . downcase))))
 #+END_SRC
 
-** Open terminal here
+** Function: open-term-here
 A function for opening an external terminal emulator in the current
 path.
 
