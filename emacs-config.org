@@ -624,6 +624,19 @@ and saving files.
           (case-fn . downcase))))
 #+END_SRC
 
+** Open terminal here
+A function for opening an external terminal emulator in the current
+path.
+
+#+BEGIN_SRC emacs-lisp
+(defun open-term-here ()
+  (interactive)
+  (shell-command (concat "xfce4-terminal --default-working-directory="
+            (file-name-directory (or load-file-name buffer-file-name))
+              " 2>&1 > /dev/null & disown") nil nil))
+(global-set-key (kbd "C-c t") 'open-term-here)
+#+END_SRC
+
 * Editing configuration
 ** Follow symlinks under version control
 #+BEGIN_SRC emacs-lisp
@@ -958,17 +971,6 @@ Treats camel case words (camelCase) as separate words.
   :ensure t
   :config
   (global-set-key (kbd "C-s") 'counsel-grep-or-swiper))
-#+END_SRC
-
-** Helm-mt and multi-term
-#+BEGIN_SRC emacs-lisp
-(use-package helm-mt
-  :ensure t
-  :config
-  (global-set-key (kbd "C-c t") 'helm-mt)
-  (add-hook 'term-mode-hook
-          (lambda ()
-            (toggle-truncate-lines))))
 #+END_SRC
 
 ** Helm-semantic-or-imenu and imenu-anywhere
