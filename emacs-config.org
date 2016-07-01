@@ -220,10 +220,7 @@ https://github.com/bbatsov/crux
 #+END_SRC
 
 ** Ido + smex
-Ido and smex are completion engines for emacs. Helm is more powerful
-than ido, but also slower and more intrusive. I like ido better, but
-will still use some helm dependent packages that are just too good to
-let go. Also helm is an org-ref dependency.
+Ido and smex are completion engines for emacs.
 
 #+BEGIN_SRC emacs-lisp
 (use-package flx-ido
@@ -273,7 +270,16 @@ according to [[https://github.com/emacs-helm/helm/commit/f69c14b39b0bb1a396baf0f
   (define-key helm-map (kbd "C-z")  'helm-select-action)
 
   (global-set-key (kbd "M-y") 'helm-show-kill-ring)
-  (global-set-key (kbd "C-c i") 'helm-semantic-or-imenu))
+  (global-set-key (kbd "C-c i") 'helm-semantic-or-imenu)
+
+  (setq helm-semantic-fuzzy-match t
+        helm-imenu-fuzzy-match    t)
+
+  ;; Format to display tags
+  (with-eval-after-load 'helm-semantic
+    (push '(c-mode . semantic-format-tag-summarize) helm-semantic-display-style)
+    (push '(c++-mode . semantic-format-tag-summarize)
+          helm-semantic-display-style)))
 #+END_SRC
 
 ** Magit
@@ -386,24 +392,25 @@ address. /user@host.server.com:/home/bjm/myfile.org
   :config (setq tramp-default-method "ssh"))
 #+END_SRC
 
-** Flyspell and helm-flyspell
+** Flyspell
 #+BEGIN_SRC emacs-lisp
 (use-package flyspell
   :config
   (setq ispell-program-name "aspell" ; use aspell instead of ispell
         ispell-extra-args '("--sug-mode=ultra"))
-  (add-hook 'text-mode-hook 'turn-on-flyspell))
+  (add-hook 'text-mode-hook 'turn-on-flyspell)
+  ;; ispell should not check code blocks in org mode
+  (add-to-list 'ispell-skip-region-alist '(":\\(PROPERTIES\\|LOGBOOK\\):" . ":END:"))
+  (add-to-list 'ispell-skip-region-alist '("#\\+BEGIN_SRC" . "#\\+END_SRC"))
+  (add-to-list 'ispell-skip-region-alist '("#\\+begin_src" . "#\\+end_src"))
+  (add-to-list 'ispell-skip-region-alist '("^#\\+begin_example " . "#\\+end_example$"))
+  (add-to-list 'ispell-skip-region-alist '("^#\\+BEGIN_EXAMPLE " . "#\\+END_EXAMPLE$")))
 
-;; ispell should not check code blocks in org mode
-(add-to-list 'ispell-skip-region-alist '(":\\(PROPERTIES\\|LOGBOOK\\):" . ":END:"))
-(add-to-list 'ispell-skip-region-alist '("#\\+BEGIN_SRC" . "#\\+END_SRC"))
-(add-to-list 'ispell-skip-region-alist '("#\\+begin_src" . "#\\+end_src"))
-(add-to-list 'ispell-skip-region-alist '("^#\\+begin_example " . "#\\+end_example$"))
-(add-to-list 'ispell-skip-region-alist '("^#\\+BEGIN_EXAMPLE " . "#\\+END_EXAMPLE$"))
-
-(use-package helm-flyspell
+(use-package flyspell-correct-popup
   :ensure t
-  :config (define-key flyspell-mode-map (kbd "C-;") 'helm-flyspell-correct))
+  :config
+  (define-key
+    flyspell-mode-map (kbd "C-;") #'flyspell-correct-previous-word-generic))
 #+END_SRC
 
 ** Company
@@ -421,6 +428,7 @@ We use company since it is included in Elpy already.
   (add-to-list 'company-backends 'company-c-headers))
 
 (use-package company-auctex
+  :defer t
   :ensure t)
 
 (use-package company-math
@@ -443,7 +451,6 @@ We use company since it is included in Elpy already.
 ;; completion. We add it to the capf backend.
 (defun add-pcomplete-to-capf ()
   (add-hook 'completion-at-point-functions 'pcomplete-completions-at-point nil t))
-
 (add-hook 'org-mode-hook #'add-pcomplete-to-capf)
 #+END_SRC
 
@@ -485,9 +492,54 @@ path.
 #+END_SRC
 
 * Editing configuration
-** Follow symlinks under version control
+** Some general editing configurations
 #+BEGIN_SRC emacs-lisp
+;; always follow symlinks of vc files
 (setq vc-follow-symlinks t)
+
+;; don't use tabs to indent
+(setq-default indent-tabs-mode nil)
+
+;; Require new line at the end of a file
+(setq require-final-newline t)
+
+;;Delete selection when copying/writing on top
+(delete-selection-mode t)
+
+;;Auto revert files
+(global-auto-revert-mode t)
+
+;;Enable narrowing commands
+(put 'narrow-to-region 'disabled nil)
+(put 'narrow-to-defun 'disabled nil)
+
+;;Enable erase-buffer command
+(put 'erase-buffer 'disabled nil)
+
+;; Make ediff use one frame
+(setq ediff-window-setup-function 'ediff-setup-windows-plain)
+
+;;Treat camel case words (camelCase) as separate words.
+(global-subword-mode 1)
+
+;;Allow typing TeX characters after toggling the input method with C-\
+(setq default-input-method 'TeX)
+
+;;Remember location in a file when saving
+(require 'saveplace)
+(setq-default save-place t)
+;; For emacs 25 do (save-place-mode 1)
+
+;; Turn on auto fill
+(add-hook 'text-mode-hook 'turn-on-auto-fill)
+#+END_SRC
+
+** White space mode
+#+BEGIN_SRC emacs-lisp
+(setq whitespace-line-column 80)
+(setq whitespace-style '(face tabs empty trailing lines-tail))
+(add-hook 'prog-mode-hook 'whitespace-mode)
+(add-hook 'LaTeX-mode-hook 'whitespace-mode)
 #+END_SRC
 
 ** Zzz-to-char (kills from current point to character, M-z/M-Z)
@@ -507,43 +559,6 @@ To imitate move lines outside org mode.
   :config
   (global-set-key (kbd "M-S-<up>")  'move-text-up)
   (global-set-key (kbd "M-S-<down>") 'move-text-down))
-#+END_SRC
-
-** Eliminate tabs but maintain tab length
-#+BEGIN_SRC emacs-lisp
-(setq-default indent-tabs-mode nil)   ;; don't use tabs to indent
-(setq-default tab-width 8)            ;; but maintain correct appearance
-#+END_SRC
-
-** Require new line at the end of a file
-#+BEGIN_SRC emacs-lisp
-(setq require-final-newline t)
-#+END_SRC
-
-** Delete selection when copying/writing on top
-#+BEGIN_SRC emacs-lisp
-(delete-selection-mode t)
-#+END_SRC
-
-** Auto revert files
-#+BEGIN_SRC emacs-lisp
-(global-auto-revert-mode t)
-#+END_SRC
-
-** Set tab behavior, indent or complete
-Set t for only indent, set 'complete to indent or complete at point.
-#+BEGIN_SRC emacs-lisp
-(setq tab-always-indent t)
-#+END_SRC
-
-** Remember location in a file when saving
-#+BEGIN_SRC emacs-lisp
-(use-package saveplace
-  :ensure t
-  :config
-  (setq save-place-file (expand-file-name "saveplace" "~/.emacs.d/savefile/"))
-  ;; activate it for all buffers
-  (setq-default save-place t))
 #+END_SRC
 
 ** Save recent files
@@ -581,46 +596,22 @@ Set t for only indent, set 'complete to indent or complete at point.
   :config (volatile-highlights-mode t))
 #+END_SRC
 
-** Make kill-region (C-w) kill single line when not selection is active
+** Make C-w/M-w kill/copy single line when not selection is active
 #+BEGIN_SRC emacs-lisp
 ;; note - this should be after volatile-highlights is required
-;; add the ability to cut the current line, without marking it
 (defadvice kill-region (before smart-cut activate compile)
   "When called interactively with no active region, kill a single line instead."
   (interactive
    (if mark-active (list (region-beginning) (region-end))
      (list (line-beginning-position)
            (line-beginning-position 2)))))
-#+END_SRC
 
-** Set up easy-kill, smart M-w replacement
-#+BEGIN_SRC emacs-lisp
-(use-package easy-kill
-  :ensure t
-  :config
-  (global-set-key [remap kill-ring-save] 'easy-kill)
-  (global-set-key [remap mark-sexp] 'easy-mark))
-#+END_SRC
-
-** White space mode
-#+BEGIN_SRC emacs-lisp
-(setq whitespace-line-column 80)
-(setq whitespace-style '(face tabs empty trailing lines-tail))
-(add-hook 'prog-mode-hook 'whitespace-mode)
-(add-hook 'LaTeX-mode-hook 'whitespace-mode)
-#+END_SRC
-
-** Enable narrowing commands
-#+BEGIN_SRC emacs-lisp
-;; C-x n w makes entire buffer accesible again
-(put 'narrow-to-region 'disabled nil) ;;C-x n n
-(put 'narrow-to-page 'disabled nil)   ;;C-x n p
-(put 'narrow-to-defun 'disabled nil)  ;;C-x n d
-#+END_SRC
-
-** Enable erase-buffer command
-#+BEGIN_SRC emacs-lisp
-(put 'erase-buffer 'disabled nil)
+(defadvice kill-ring-save (before smart-cut activate compile)
+  "When called interactively with no active region, save a single line instead."
+  (interactive
+   (if mark-active (list (region-beginning) (region-end))
+     (list (line-beginning-position)
+           (line-beginning-position 2)))))
 #+END_SRC
 
 ** Expand region
@@ -628,19 +619,6 @@ Set t for only indent, set 'complete to indent or complete at point.
 (use-package expand-region
   :ensure t
   :config (global-set-key (kbd "M-2") 'er/expand-region))
-#+END_SRC
-
-** Ediff, view file differences
-#+BEGIN_SRC emacs-lisp
-(use-package ediff
-  :config (setq ediff-window-setup-function 'ediff-setup-windows-plain))
-#+END_SRC
-
-** Make untabify and indent-region work in the whole buffer
-#+BEGIN_SRC emacs-lisp
-(require 'tabify)
-(crux-with-region-or-buffer indent-region)
-(crux-with-region-or-buffer untabify)
 #+END_SRC
 
 ** Automatically indent yanked text in programming modes
@@ -674,7 +652,6 @@ Set t for only indent, set 'complete to indent or complete at point.
                               (member major-mode prelude-yank-indent-modes)))
                      (let ((transient-mark-mode nil))
                        (yank-advised-indent-function (region-beginning) (region-end)))))
-
 #+END_SRC
 
 ** Compilation
@@ -685,6 +662,10 @@ automatically scroll to first error.
 
 We can interpret the ansi color escape codes to colorize the
 compilation buffer. For this we follow Malabarba's [[http://endlessparentheses.com/ansi-colors-in-the-compilation-buffer-output.html?source=rss][advice]].
+
+Also, automatically close the compilation buffer when compilation
+succeeds without error.
+
 #+BEGIN_SRC emacs-lisp
 (require 'compile)
 (setq compilation-ask-about-save nil
@@ -700,88 +681,18 @@ compilation buffer. For this we follow Malabarba's [[http://endlessparentheses.c
 
 (add-hook 'compilation-filter-hook
           #'endless/colorize-compilation)
-#+END_SRC
 
-** Turn on auto-fill and visual-line-mode
-#+BEGIN_SRC emacs-lisp
-(add-hook 'text-mode-hook 'turn-on-auto-fill)
-(add-hook 'text-mode-hook 'turn-on-visual-line-mode)
-
-(use-package adaptive-wrap
-  :ensure t)
-
-(defun my-activate-adaptive-wrap-prefix-mode ()
-  "Toggle `visual-line-mode' and `adaptive-wrap-prefix-mode' simultaneously."
-  (adaptive-wrap-prefix-mode (if visual-line-mode 1 -1)))
-
-(add-hook 'visual-line-mode-hook 'my-activate-adaptive-wrap-prefix-mode)
-#+END_SRC
-
-** Change case of letters
-#+BEGIN_SRC emacs-lisp
-(defun toggle-letter-case ()
-  "Toggle the letter case of current word or text selection.
-Toggles between: “all lower”, “Init Caps”, “ALL CAPS”."
-  (interactive)
-  (let (p1 p2 (deactivate-mark nil) (case-fold-search nil))
-    (if (region-active-p)
-        (setq p1 (region-beginning) p2 (region-end))
-      (let ((bds (bounds-of-thing-at-point 'word) ) )
-        (setq p1 (car bds) p2 (cdr bds)) ) )
-
-    (when (not (eq last-command this-command))
-      (save-excursion
-        (goto-char p1)
-        (cond
-         ((looking-at "[[:lower:]][[:lower:]]") (put this-command 'state "all lower"))
-         ((looking-at "[[:upper:]][[:upper:]]") (put this-command 'state "all caps") )
-         ((looking-at "[[:upper:]][[:lower:]]") (put this-command 'state "init caps") )
-         ((looking-at "[[:lower:]]") (put this-command 'state "all lower"))
-         ((looking-at "[[:upper:]]") (put this-command 'state "all caps") )
-         (t (put this-command 'state "all lower") ) ) )
-      )
-
-    (cond
-     ((string= "all lower" (get this-command 'state))
-      (upcase-initials-region p1 p2) (put this-command 'state "init caps"))
-     ((string= "init caps" (get this-command 'state))
-      (upcase-region p1 p2) (put this-command 'state "all caps"))
-     ((string= "all caps" (get this-command 'state))
-      (downcase-region p1 p2) (put this-command 'state "all lower")) )
-    )
-  )
-
-;;set this to M-c
-(global-set-key "\M-c" 'toggle-letter-case)
-#+END_SRC
-
-** TeX input method
-Allows typing TeX characters after toggling the input method with C-\
-
-#+BEGIN_SRC emacs-lisp
-(setq default-input-method 'TeX)
-#+END_SRC
-
-** Subword mode
-Treats camel case words (camelCase) as separate words.
-#+BEGIN_SRC emacs-lisp
-(global-subword-mode 1)
-#+END_SRC
-
-** A transpose hydra
-#+BEGIN_SRC emacs-lisp
-(global-set-key (kbd "C-t")
-    (defhydra hydra-transpose (:color red)
-    "Transpose"
-     ("c" transpose-chars "characters")
-     ("w" transpose-words "words")
-     ("o" org-transpose-words "Org mode words")
-     ("l" transpose-lines "lines")
-     ("s" transpose-sentences "sentences")
-     ("e" org-transpose-element "Org mode elements")
-     ("p" transpose-paragraphs "paragraphs")
-     ("t" org-table-transpose-table-at-point "Org mode table")
-     ("q" nil "cancel" :color blue)))
+(defun bury-compile-buffer-if-successful (buffer string)
+  "Bury a compilation buffer if succeeded without warnings "
+  (if (and
+       (string-match "compilation" (buffer-name buffer))
+       (string-match "finished" string)
+       (not
+        (with-current-buffer buffer
+          (goto-char (point-min))
+          (search-forward "warning" nil t))))
+      (run-with-timer 1 nil 'winner-undo)))
+(add-hook 'compilation-finish-functions 'bury-compile-buffer-if-successful)
 #+END_SRC
 
 * Navigation
@@ -1342,11 +1253,11 @@ Set some org-toc properties, activate follow mode:
 (setq org-toc-follow-mode t)
 #+END_SRC
 
-Replace imenu with the superior helm-org-in-buffer-headings to
+Replace imenu with the superior counsel-imenu to
 navigate an org buffer.
 
 #+BEGIN_SRC emacs-lisp
-(define-key org-mode-map (kbd "C-c i") 'helm-org-in-buffer-headings)
+(define-key org-mode-map (kbd "C-c i") 'counsel-imenu)
 #+END_SRC
 
 Function that replaces the entire key map for narrow widen in org.
@@ -2038,7 +1949,6 @@ applies also for HTML export:
 #+END_SRC
 
 ** Flycheck
-Setup flychek with a helm.
 #+BEGIN_SRC emacs-lisp
 (use-package flycheck
   :ensure t
@@ -2049,24 +1959,6 @@ Setup flychek with a helm.
   :config
   (with-eval-after-load 'flycheck
     (flycheck-pos-tip-mode)))
-
-(use-package helm-flycheck
-  :ensure t
-  :config
-  (define-key flycheck-mode-map (kbd "C-c ! h") 'helm-flycheck))
-#+END_SRC
-
-**** Proselint
-Makes Emacs too too slow in large buffers
-#+BEGIN_SRC emacs-lisp
-(flycheck-define-checker proselint
-  "A linter for prose."
-  :command ("proselint" source-inplace)
-  :error-patterns
-  ((warning line-start (file-name) ":" line ":" column ": "
-        (id (one-or-more (not (any " "))))
-        (message) line-end))
-  :modes (text-mode gfm-mode LaTeX-mode org-mode))
 #+END_SRC
 
 ** Origami for folding
@@ -2079,8 +1971,7 @@ Makes Emacs too too slow in large buffers
   (define-key origami-mode-map (kbd "S-<iso-lefttab>")
     'origami-toggle-all-nodes)
   (add-hook 'c-mode-common-hook 'origami-mode)
-  (add-hook 'python-mode-hook 'origami-mode)
-  )
+  (add-hook 'python-mode-hook 'origami-mode))
 #+END_SRC
 
 ** Clean-aindent-mode
@@ -2103,15 +1994,10 @@ Semantic mode enables parsing of source code files.
 (use-package stickyfunc-enhance
   :ensure t
   :config (global-semantic-stickyfunc-mode 1))
-
-(setq helm-semantic-fuzzy-match t
-      helm-imenu-fuzzy-match    t)
 (semantic-mode 1)
 #+END_SRC
 
 ** Projectile
-Project management for emacs. See
-https://github.com/bbatsov/projectile.
 #+BEGIN_SRC emacs-lisp
 (use-package projectile
   :ensure t
@@ -2147,24 +2033,6 @@ Install elpy package from the *elpy repository*.
   (interactive)
   (compile "make -k"))
 (define-key c-mode-base-map (kbd "<f5>") 'my/c-compile)
-
-(defun bury-compile-buffer-if-successful (buffer string)
-  "Bury a compilation buffer if succeeded without warnings "
-  (if (and
-       (string-match "compilation" (buffer-name buffer))
-       (string-match "finished" string)
-       (not
-        (with-current-buffer buffer
-          (goto-char (point-min))
-          (search-forward "warning" nil t))))
-      (run-with-timer 1 nil 'winner-undo)))
-(add-hook 'compilation-finish-functions 'bury-compile-buffer-if-successful)
-
-;; Format to display tags
-(with-eval-after-load 'helm-semantic
-  (push '(c-mode . semantic-format-tag-summarize) helm-semantic-display-style)
-  (push '(c++-mode . semantic-format-tag-summarize)
-        helm-semantic-display-style))
 
 ;; c99 mode
 (defun my-flycheck-c-setup ()
