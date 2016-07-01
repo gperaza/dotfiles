@@ -260,20 +260,27 @@ let go. Also helm is an org-ref dependency.
 
 #+BEGIN_SRC emacs-lisp
 (use-package flx-ido
-  :ensure t
-  :config
-  (ido-mode 1)
-  (ido-everywhere 1)
-  (flx-ido-mode 1)
-  (setq ido-use-virtual-buffers t))
+  :ensure t)
 (use-package ido-ubiquitous
-  :ensure t
-  :config (ido-ubiquitous-mode 1))
+  :ensure t)
 (use-package smex
-  :ensure t
-  :config
-  (global-set-key (kbd "M-x") 'smex)
-  (global-set-key (kbd "M-X") 'smex-major-mode-commands))
+  :ensure t)
+
+(setq ido-enable-flex-matching t
+      ido-use-filename-at-point 'guess)
+;;      ido-auto-merge-work-directories-length -1)
+
+;; disable ido faces to see flx highlights
+(setq ido-use-faces nil)
+
+(ido-mode 1)
+(ido-everywhere 1)
+(ido-ubiquitous-mode 1)
+(flx-ido-mode 1)
+(setq ido-use-virtual-buffers t)
+(global-set-key (kbd "M-x") 'smex)
+(global-set-key (kbd "M-X") 'smex-major-mode-commands)
+(global-set-key (kbd "C-x C-b") 'ibuffer-other-window)
 #+END_SRC
 
 ** Hydra
@@ -288,11 +295,6 @@ let go. Also helm is an org-ref dependency.
 (use-package helm
   :ensure t
   :config
-  (require 'helm-config)
-  (global-set-key (kbd "C-c h") 'helm-command-prefix)
-  (global-unset-key (kbd "C-x c"))
-
-  (helm-autoresize-mode 1)
 
   ;; rebind tab to run persistent action
   (define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action)
@@ -301,8 +303,7 @@ let go. Also helm is an org-ref dependency.
   ;; list actions using C-z
   (define-key helm-map (kbd "C-z")  'helm-select-action)
 
-  (global-set-key (kbd "M-y") 'helm-show-kill-ring)
-  (global-set-key (kbd "C-x C-b") 'helm-mini))
+  (global-set-key (kbd "M-y") 'helm-show-kill-ring))
 #+END_SRC
 
 ** Magit (C-x g)
@@ -951,63 +952,12 @@ Treats camel case words (camelCase) as separate words.
   :config (winner-mode 1))
 #+END_SRC
 
-** Helm-swoop
+** Swiper
 #+BEGIN_SRC emacs-lisp
-(use-package helm-swoop
-  :ensure t)
-
-(global-set-key (kbd "C-s") 'helm-swoop)
-(global-set-key (kbd "C-r") 'helm-swoop-back-to-last-point)
-(global-set-key (kbd "C-M-s") 'helm-multi-swoop)
-
-;; From helm-swoop to other
-(define-key helm-swoop-map (kbd "M-i") 'helm-multi-swoop-all-from-helm-swoop)
-(define-key helm-swoop-map (kbd "M-c") 'helm-multi-swoop-current-mode-from-helm-swoop)
-
-;; Move up and down like isearch
-(define-key helm-swoop-map (kbd "C-r") 'helm-previous-line)
-(define-key helm-swoop-map (kbd "C-s") 'helm-next-line)
-(define-key helm-multi-swoop-map (kbd "C-r") 'helm-previous-line)
-(define-key helm-multi-swoop-map (kbd "C-s") 'helm-next-line)
-
-;; Save buffer when helm-multi-swoop-edit complete
-(setq helm-multi-swoop-edit-save t)
-
-;; If this value is t, split window inside the current window
-(setq helm-swoop-split-with-multiple-windows nil)
-
-;; Split direcion. 'split-window-vertically or 'split-window-horizontally
-(setq helm-swoop-split-direction 'split-window-vertically)
-
-;; If nil, you can slightly boost invoke speed in exchange for text color
-(setq helm-swoop-speed-or-color t)
-
-;; ;; Go to the opposite side of line from the end or beginning of line
-(setq helm-swoop-move-to-line-cycle t)
-
-;; Optional face for line numbers
-;; Face name is `helm-swoop-line-number-face`
-(setq helm-swoop-use-line-number-face t)
-
-;; Match/Search methods (Fuzzy matching, Migemo)
-;; If you do not preferr fuzzy, remove it from the list below
-(defvar helm-c-source-swoop-match-functions
-  '(helm-mm-exact-match
-    helm-mm-match
-    ;;    helm-fuzzy-match
-    ;;    helm-mm-3-migemo-match
-    ))
-(setq helm-c-source-swoop-search-functions
-      '(helm-mm-exact-search
-        helm-mm-search
-        helm-candidates-in-buffer-search-default-fn
-        ;;        helm-fuzzy-search
-        ;;        helm-mm-3-migemo-search
-        ))
-
-;; disable pre-input
-(setq helm-swoop-pre-input-function
-      (lambda () ""))
+(use-package counsel
+  :ensure t
+  :config
+  (global-set-key (kbd "C-s") 'counsel-grep-or-swiper))
 #+END_SRC
 
 ** Helm-mt and multi-term
@@ -1018,14 +968,7 @@ Treats camel case words (camelCase) as separate words.
   (global-set-key (kbd "C-c t") 'helm-mt)
   (add-hook 'term-mode-hook
           (lambda ()
-            (toggle-truncate-lines)
-            ;(setq term-prompt-regexp "^.*❯❯❯ ")
-            ;(make-local-variable 'mouse-yank-at-point)
-            ;(setq mouse-yank-at-point t)
-            ;(make-local-variable 'transient-mark-mode)
-            ;(setq transient-mark-mode nil)
-            ;(setq yas-dont-activate t)
-             )))
+            (toggle-truncate-lines))))
 #+END_SRC
 
 ** Helm-semantic-or-imenu and imenu-anywhere
@@ -2337,13 +2280,7 @@ https://github.com/bbatsov/projectile.
   :ensure t
   :init (setq projectile-use-git-grep t)
   :config
-  (projectile-global-mode)
-  (setq projectile-completion-system 'helm))
-
-(use-package helm-projectile
-  :ensure t
-  :config (helm-projectile-on)
-  (setq projectile-switch-project-action 'helm-projectile))
+  (projectile-global-mode))
 #+END_SRC
 
 ** Python
