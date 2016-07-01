@@ -286,11 +286,14 @@ let go. Also helm is an org-ref dependency.
 ** Hydra
 #+BEGIN_SRC emacs-lisp
 (use-package hydra
-  :ensure t
-  :config (setq hydra-is-helpful t))
+  :ensure t)
 #+END_SRC
 
 ** Helm
+There is a bug with helm semantic that makes it only show the function
+prototypes under narrowing. We need to patch helm-semantic.el
+according to [[https://github.com/emacs-helm/helm/commit/f69c14b39b0bb1a396baf0fecdb3192a6842a47d][this]] after each update.
+
 #+BEGIN_SRC emacs-lisp
 (use-package helm
   :ensure t
@@ -303,7 +306,8 @@ let go. Also helm is an org-ref dependency.
   ;; list actions using C-z
   (define-key helm-map (kbd "C-z")  'helm-select-action)
 
-  (global-set-key (kbd "M-y") 'helm-show-kill-ring))
+  (global-set-key (kbd "M-y") 'helm-show-kill-ring)
+  (global-set-key (kbd "C-c i") 'helm-semantic-or-imenu))
 #+END_SRC
 
 ** Magit (C-x g)
@@ -971,18 +975,6 @@ Treats camel case words (camelCase) as separate words.
   :ensure t
   :config
   (global-set-key (kbd "C-s") 'counsel-grep-or-swiper))
-#+END_SRC
-
-** Helm-semantic-or-imenu and imenu-anywhere
-There is a bug with helm semantic that makes it only show the function
-prototypes under narrowing. We need to patch helm-semantic.el
-according to [[https://github.com/emacs-helm/helm/commit/f69c14b39b0bb1a396baf0fecdb3192a6842a47d][this]] after each update.
-
-#+BEGIN_SRC emacs-lisp
-(global-set-key (kbd "C-c i") 'helm-semantic-or-imenu)
-(use-package imenu-anywhere
-  :ensure t
-  :config (global-set-key (kbd "C-c I") 'helm-imenu-anywhere))
 #+END_SRC
 
 ** Back button
