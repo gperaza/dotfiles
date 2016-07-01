@@ -93,32 +93,9 @@ Send all backups to /tmp/
 
 ** Color theme
 #+BEGIN_SRC emacs-lisp
-;; (use-package monokai-theme
-;;   :ensure t
-;;   :config
-;;   (load-theme 'monokai t)
-;;   (custom-set-faces
-;;    '(org-block-begin-line
-;;      ((t (:foreground "#a8ac9e" :slant normal :background nil))))
-;;    '(org-block-end-line
-;;      ((t (:foreground "#a8ac9e" :slant normal :background nil))))
-;;    '(font-lock-comment-face
-;;      ((t (:foreground "#aca99e"))))
-;;    '(org-meta-line
-;;      ((t (:foreground "#a8ac9e"))))
-;;    '(org-block
-;;      ((t (:background nil))))
-;;    '(writegood-weasels-face ((t (:underline (:color "gold" :style wave)))))))
-
 (use-package material-theme
 :ensure t
 :config (load-theme 'material t))
-;; (require 'moe-theme)
-;; (moe-dark)
-
-;; (use-package spacemacs-theme
-;; :ensure t
-;; :config (load-theme 'spacemacs-dark t))
 #+END_SRC
 
 ** Smart mode line
@@ -299,12 +276,11 @@ according to [[https://github.com/emacs-helm/helm/commit/f69c14b39b0bb1a396baf0f
   (global-set-key (kbd "C-c i") 'helm-semantic-or-imenu))
 #+END_SRC
 
-** Magit (C-x g)
+** Magit
 #+BEGIN_SRC emacs-lisp
 (use-package magit
   :ensure t
-  :config
-  (global-set-key (kbd "C-x g") 'magit-status))
+  :bind ("C-x g" . magit-status))
 #+END_SRC
 
 ** Undo tree
