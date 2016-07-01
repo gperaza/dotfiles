@@ -196,15 +196,6 @@ Send all backups to /tmp/
 (setq echo-keystrokes 0.1)
 #+END_SRC
 
-** Anzu, displays isearch information and query replace.
-#+BEGIN_SRC emacs-lisp
-(use-package anzu
-  :ensure t
-  :config (global-anzu-mode)
-  (global-set-key (kbd "M-%") 'anzu-query-replace)
-  (global-set-key (kbd "C-M-%") 'anzu-query-replace-regexp))
-#+END_SRC
-
 ** Rich-minority
 #+BEGIN_SRC emacs-lisp
 (setq rm-whitelist "Projectile")
@@ -391,8 +382,10 @@ The app is chosen from your OS's preference."
 ** pdf-tools
 #+BEGIN_SRC emacs-lisp
 (use-package pdf-tools
+  :defer t
   :ensure t
-  :config (pdf-tools-install)
+  :config
+  (pdf-tools-install)
   (add-hook 'pdf-view-mode-hook 'pdf-view-auto-slice-minor-mode))
 #+END_SRC
 
