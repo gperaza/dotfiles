@@ -66,9 +66,6 @@ Send all backups to /tmp/
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(custom-safe-themes
-   (quote
-    ("3c83b3676d796422704082049fc38b6966bcad960f896669dfc21a7a37a748fa" default)))
  '(paradox-github-token t)
  '(safe-local-variable-values
    (quote
@@ -396,15 +393,21 @@ address. /user@host.server.com:/home/bjm/myfile.org
 #+BEGIN_SRC emacs-lisp
 (use-package flyspell
   :config
-  (setq ispell-program-name "aspell" ; use aspell instead of ispell
+  ;; use aspell instead of ispell
+  (setq ispell-program-name "aspell"
         ispell-extra-args '("--sug-mode=ultra"))
   (add-hook 'text-mode-hook 'turn-on-flyspell)
   ;; ispell should not check code blocks in org mode
-  (add-to-list 'ispell-skip-region-alist '(":\\(PROPERTIES\\|LOGBOOK\\):" . ":END:"))
-  (add-to-list 'ispell-skip-region-alist '("#\\+BEGIN_SRC" . "#\\+END_SRC"))
-  (add-to-list 'ispell-skip-region-alist '("#\\+begin_src" . "#\\+end_src"))
-  (add-to-list 'ispell-skip-region-alist '("^#\\+begin_example " . "#\\+end_example$"))
-  (add-to-list 'ispell-skip-region-alist '("^#\\+BEGIN_EXAMPLE " . "#\\+END_EXAMPLE$")))
+  (add-to-list 'ispell-skip-region-alist
+               '(":\\(PROPERTIES\\|LOGBOOK\\):" . ":END:"))
+  (add-to-list 'ispell-skip-region-alist
+               '("#\\+BEGIN_SRC" . "#\\+END_SRC"))
+  (add-to-list 'ispell-skip-region-alist
+               '("#\\+begin_src" . "#\\+end_src"))
+  (add-to-list 'ispell-skip-region-alist
+               '("^#\\+begin_example " . "#\\+end_example$"))
+  (add-to-list 'ispell-skip-region-alist
+               '("^#\\+BEGIN_EXAMPLE " . "#\\+END_EXAMPLE$")))
 
 (use-package flyspell-correct-popup
   :ensure t
@@ -414,7 +417,6 @@ address. /user@host.server.com:/home/bjm/myfile.org
 #+END_SRC
 
 ** Company
-We use company since it is included in Elpy already.
 #+BEGIN_SRC emacs-lisp
 (use-package company
   :ensure t
@@ -579,7 +581,6 @@ To imitate move lines outside org mode.
               (mapcar 'file-truename (list "~/.emacs.d/savefile/" "~/.emacs.d/elpa/")))))
 
   (add-to-list 'recentf-exclude 'prelude-recentf-exclude-p)
-  ;; ignore magit's commit message files
   (add-to-list 'recentf-exclude "COMMIT_EDITMSG\\'")
   (add-to-list 'recentf-exclude "\\.png\\'")
   (add-to-list 'recentf-exclude "\\org-clock-save.el\\'")
@@ -606,15 +607,16 @@ To imitate move lines outside org mode.
      (list (line-beginning-position)
            (line-beginning-position 2)))))
 
-(defadvice kill-ring-save (before smart-cut activate compile)
-  "When called interactively with no active region, save a single line instead."
-  (interactive
-   (if mark-active (list (region-beginning) (region-end))
-     (list (line-beginning-position)
-           (line-beginning-position 2)))))
+(use-package easy-kill
+  :ensure t
+  :config
+  (global-set-key [remap kill-ring-save] 'easy-kill)
+  (global-set-key [remap mark-sexp] 'easy-mark))
 #+END_SRC
 
 ** Expand region
+Watch video on emacs rocks. Perhaps easy-kill is enough and expand
+region is not needed.
 #+BEGIN_SRC emacs-lisp
 (use-package expand-region
   :ensure t
