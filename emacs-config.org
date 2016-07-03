@@ -380,15 +380,6 @@ to avoid conflicts with org.
 )
 #+END_SRC
 
-** Tramp for ssh
-Just open a file as usual with C-x C-f and then give the name of the
-remote file, including the host
-address. /user@host.server.com:/home/bjm/myfile.org
-#+BEGIN_SRC emacs-lisp
-(use-package tramp
-  :config (setq tramp-default-method "ssh"))
-#+END_SRC
-
 ** Flyspell
 #+BEGIN_SRC emacs-lisp
 (use-package flyspell
@@ -615,12 +606,10 @@ To imitate move lines outside org mode.
 #+END_SRC
 
 ** Expand region
-Watch video on emacs rocks. Perhaps easy-kill is enough and expand
-region is not needed.
 #+BEGIN_SRC emacs-lisp
 (use-package expand-region
   :ensure t
-  :config (global-set-key (kbd "M-2") 'er/expand-region))
+  :bind ("M-2" . er/expand-region))
 #+END_SRC
 
 ** Automatically indent yanked text in programming modes
