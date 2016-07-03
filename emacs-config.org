@@ -48,15 +48,10 @@ This file must include personal information given as
 
 ;; warn when opening files bigger than 100MB
 (setq large-file-warning-threshold 100000000)
-#+END_SRC
 
-** Backups
-Send all backups to /tmp/
-#+BEGIN_SRC emacs-lisp
-(setq backup-directory-alist
-      `((".*" . ,temporary-file-directory)))
-(setq auto-save-file-name-transforms
-      `((".*" ,temporary-file-directory t)))
+;; Make backups and auto saves to the same directory
+(setq backup-directory-alist '(("." . "~/.EmacsBackups")))
+(setq auto-save-file-name-transforms '((".*" "~/.EmacsSaves/" t)))
 #+END_SRC
 
 ** Custom set variables
@@ -66,6 +61,9 @@ Send all backups to /tmp/
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(custom-safe-themes
+   (quote
+    ("3c83b3676d796422704082049fc38b6966bcad960f896669dfc21a7a37a748fa" default)))
  '(paradox-github-token t)
  '(safe-local-variable-values
    (quote
@@ -75,6 +73,38 @@ Send all backups to /tmp/
 #+END_SRC
 
 * User interface
+** Some nice configurations
+#+BEGIN_SRC emacs-lisp
+;;Start always maximized
+(add-to-list 'default-frame-alist '(fullscreen . maximized))
+
+;; Set scratch message
+(setq initial-scratch-message nil)
+
+;; Menus and bars.
+(tool-bar-mode -1)
+(menu-bar-mode -1)
+(scroll-bar-mode -1)
+
+;;Disable blinking cursor and start up screen
+(blink-cursor-mode -1)
+
+;;Disable startup screen
+(setq inhibit-startup-screen t)
+
+;;Display column number.
+(column-number-mode t)
+
+;;Enable y/n answers
+(fset 'yes-or-no-p 'y-or-n-p)
+
+;;Show unfinished keystroke early
+(setq echo-keystrokes 0.1)
+
+;;Better frame title
+(setq frame-title-format "%b")
+#+END_SRC
+
 ** Font settings
 #+BEGIN_SRC emacs-lisp
 (defvar ha/fixed-font-family "Source Code Pro")
@@ -83,9 +113,11 @@ Send all backups to /tmp/
 (set-face-attribute 'default nil :font ha/fixed-font-family)
 (set-face-font 'default ha/fixed-font-family)
 
-(if (< (x-display-pixel-width) 1920)
-    (set-face-attribute 'default nil :height 100)
-  (set-face-attribute 'default nil :height 120))
+;; adjust font size to screen resolution
+(if (display-graphic-p)
+    (if (< (x-display-pixel-width) 1920)
+        (set-face-attribute 'default nil :height 100)
+      (set-face-attribute 'default nil :height 120)))
 #+END_SRC
 
 ** Color theme
@@ -99,31 +131,10 @@ Send all backups to /tmp/
 #+BEGIN_SRC emacs-lisp
 (use-package smart-mode-line
   :ensure t
-  :config (sml/setup)
+  :config
+  (setq rm-whitelist "Projectile")
+  (sml/setup)
   (setq sml/name-width 30))
-#+END_SRC
-
-** Start always maximized
-#+BEGIN_SRC emacs-lisp
-(add-to-list 'default-frame-alist '(fullscreen . maximized))
-#+END_SRC
-
-** Set scratch message
-#+BEGIN_SRC emacs-lisp
-(setq initial-scratch-message nil)
-#+END_SRC
-
-** Menus and bars.
-#+BEGIN_SRC emacs-lisp
-(tool-bar-mode -1)
-(menu-bar-mode -1)
-(scroll-bar-mode -1)
-#+END_SRC
-
-** Disable blinking cursor and start up screen
-#+BEGIN_SRC emacs-lisp
-(blink-cursor-mode -1)
-(setq inhibit-startup-screen t)
 #+END_SRC
 
 ** Nice scrolling, not centering after scrolling.
@@ -136,43 +147,6 @@ Send all backups to /tmp/
 (setq mouse-wheel-progressive-speed nil) ;; don't accelerate scrolling
 (setq mouse-wheel-follow-mouse 't) ;; scroll window under mouse
 (setq auto-window-vscroll nil)
-
-(setq org-file-apps
-      '((auto-mode . emacs)
-        ("\\.mm\\'" . default)
-        ("\\.x?html?\\'" . "google-chorme %s")
-        ("\\.pdf\\'" . default)
-        ("\\.png\\'" . "pqiv -i %s")
-        ("\\.jpg\\'" . "pqiv -i %s")
-        ("\\.svg\\'" . "feh --magick-timeout 1 -. %s")))
-#+END_SRC
-
-** Display column number.
-#+BEGIN_SRC emacs-lisp
-(column-number-mode t)
-#+END_SRC
-
-** Enable y/n answers
-#+BEGIN_SRC emacs-lisp
-(fset 'yes-or-no-p 'y-or-n-p)
-#+END_SRC
-
-** Better frame title
-#+BEGIN_SRC emacs-lisp
-(setq frame-title-format
-      '("" invocation-name " " (:eval (if (buffer-file-name)
-                                          (abbreviate-file-name (buffer-file-name))
-                                        "%b"))))
-#+END_SRC
-
-** Show unfinished keystroke early
-#+BEGIN_SRC emacs-lisp
-(setq echo-keystrokes 0.1)
-#+END_SRC
-
-** Rich-minority
-#+BEGIN_SRC emacs-lisp
-(setq rm-whitelist "Projectile")
 #+END_SRC
 
 * Utilities
@@ -731,14 +705,6 @@ which I rarely use.
   :config (back-button-mode 1))
 #+END_SRC
 
-** Meaningful names for buffers with the same name
-#+BEGIN_SRC emacs-lisp
-(use-package uniquify
-  :config
-  (setq uniquify-after-kill-buffer-p t)    ; rename after killing uniquified
-  (setq uniquify-ignore-buffers-re "^\\*")) ; don't muck with special buffers
-#+END_SRC
-
 * LaTeX
 The latex-extra package provides foldind, novigation, 1-key
 compilation and white space handling.
@@ -1123,6 +1089,15 @@ Enable storing, inserting and following links in any buffer:
 (global-set-key "\C-cl" 'org-store-link)
 (global-set-key "\C-cL" 'org-insert-link-global)
 (global-set-key "\C-co" 'org-open-at-point-global)
+
+(setq org-file-apps
+      '((auto-mode . emacs)
+        ("\\.mm\\'" . default)
+        ("\\.x?html?\\'" . "google-chorme %s")
+        ("\\.pdf\\'" . default)
+        ("\\.png\\'" . "pqiv -i %s")
+        ("\\.jpg\\'" . "pqiv -i %s")
+        ("\\.svg\\'" . "feh --magick-timeout 1 -. %s")))
 #+END_SRC
 
 *** Minor mode to font lock links outside org
