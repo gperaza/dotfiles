@@ -107,11 +107,11 @@ This file must include personal information given as
 
 ** Font settings
 #+BEGIN_SRC emacs-lisp
-(defvar ha/fixed-font-family "Source Code Pro")
+(defvar gp/fixed-font-family "Source Code Pro")
 
-(set-frame-font ha/fixed-font-family)
-(set-face-attribute 'default nil :font ha/fixed-font-family)
-(set-face-font 'default ha/fixed-font-family)
+(set-frame-font gp/fixed-font-family)
+(set-face-attribute 'default nil :font gp/fixed-font-family)
+(set-face-font 'default gp/fixed-font-family)
 
 ;; adjust font size to screen resolution
 (if (display-graphic-p)
