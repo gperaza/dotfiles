@@ -37,10 +37,11 @@ This file must include personal information given as
 (require 'bind-key)
 
 (use-package paradox
-  :ensure t)
+  :ensure t
+  :commands paradox-list-packages)
 #+end_src
 
-** Garbage collector and large file warning.
+** Some nice configurations
 #+BEGIN_SRC emacs-lisp
 ;; reduce the frequency of garbage collection by making it happen on
 ;; each 50MB of allocated data (the default is on every 0.76MB)
@@ -176,7 +177,7 @@ https://github.com/bbatsov/crux
 
 ** Function: fill-unfill-paragraph
 #+BEGIN_SRC emacs-lisp
-(defun endless/fill-or-unfill ()
+(defun fill-or-unfill ()
   "Like `fill-paragraph', but unfill if used twice."
   (interactive)
   (let ((fill-column
@@ -186,13 +187,10 @@ https://github.com/bbatsov/crux
            fill-column)))
     (call-interactively #'fill-paragraph)))
 
-(global-set-key [remap fill-paragraph]
-                #'endless/fill-or-unfill)
+(global-set-key [remap fill-paragraph] #'fill-or-unfill)
 #+END_SRC
 
 ** Ido + smex
-Ido and smex are completion engines for emacs.
-
 #+BEGIN_SRC emacs-lisp
 (use-package flx-ido
   :ensure t)
@@ -314,6 +312,7 @@ The app is chosen from your OS's preference."
 #+BEGIN_SRC emacs-lisp
 (use-package pdf-tools
   :ensure t
+  :mode (("\\.pdf$" . pdf-view-mode))
   :config
   (pdf-tools-install)
   (add-hook 'pdf-view-mode-hook 'pdf-view-auto-slice-minor-mode))
@@ -458,6 +457,33 @@ path.
 (global-set-key (kbd "C-c t") 'open-term-here)
 #+END_SRC
 
+** Save recent files
+#+BEGIN_SRC emacs-lisp
+(use-package recentf
+  :config
+  (setq recentf-save-file (expand-file-name "recentf" "~/.emacs.d/savefile/")
+        recentf-max-saved-items 50
+        ;; disable recentf-cleanup on Emacs start, because it can cause
+        ;; problems with remote files
+        recentf-auto-cleanup 'never)
+
+  (defun prelude-recentf-exclude-p (file)
+    "A predicate to decide whether to exclude FILE from recentf."
+    (let ((file-dir (file-truename (file-name-directory file))))
+      (-any-p (lambda (dir)
+                (string-prefix-p dir file-dir))
+              (mapcar 'file-truename (list "~/.emacs.d/savefile/" "~/.emacs.d/elpa/")))))
+
+  (add-to-list 'recentf-exclude 'prelude-recentf-exclude-p)
+  (add-to-list 'recentf-exclude "COMMIT_EDITMSG\\'")
+  (add-to-list 'recentf-exclude "\\.png\\'")
+  (add-to-list 'recentf-exclude "\\org-clock-save.el\\'")
+  (add-to-list 'recentf-exclude "\\.gz\\'")
+  (add-to-list 'recentf-exclude "\\.log\\'")
+
+  (recentf-mode +1))
+#+END_SRC
+
 * Editing configuration
 ** Some general editing configurations
 #+BEGIN_SRC emacs-lisp
@@ -526,33 +552,6 @@ To imitate move lines outside org mode.
   :config
   (global-set-key (kbd "M-S-<up>")  'move-text-up)
   (global-set-key (kbd "M-S-<down>") 'move-text-down))
-#+END_SRC
-
-** Save recent files
-#+BEGIN_SRC emacs-lisp
-(use-package recentf
-  :config
-  (setq recentf-save-file (expand-file-name "recentf" "~/.emacs.d/savefile/")
-        recentf-max-saved-items 50
-        ;; disable recentf-cleanup on Emacs start, because it can cause
-        ;; problems with remote files
-        recentf-auto-cleanup 'never)
-
-  (defun prelude-recentf-exclude-p (file)
-    "A predicate to decide whether to exclude FILE from recentf."
-    (let ((file-dir (file-truename (file-name-directory file))))
-      (-any-p (lambda (dir)
-                (string-prefix-p dir file-dir))
-              (mapcar 'file-truename (list "~/.emacs.d/savefile/" "~/.emacs.d/elpa/")))))
-
-  (add-to-list 'recentf-exclude 'prelude-recentf-exclude-p)
-  (add-to-list 'recentf-exclude "COMMIT_EDITMSG\\'")
-  (add-to-list 'recentf-exclude "\\.png\\'")
-  (add-to-list 'recentf-exclude "\\org-clock-save.el\\'")
-  (add-to-list 'recentf-exclude "\\.gz\\'")
-  (add-to-list 'recentf-exclude "\\.log\\'")
-
-  (recentf-mode +1))
 #+END_SRC
 
 ** Volatile highlights, highlight things like undo, copy, etc.
@@ -660,6 +659,14 @@ succeeds without error.
 (add-hook 'compilation-finish-functions 'bury-compile-buffer-if-successful)
 #+END_SRC
 
+** Hungry delete
+#+BEGIN_SRC emacs-lisp
+(use-package hungry-delete
+:ensure t
+:bind (("s-<backspace>" . hungry-delete-backward)
+       ("s-<delete>" . hungry-delete-forward)))
+#+END_SRC
+       
 * Navigation
 ** Avy
 #+BEGIN_SRC emacs-lisp
@@ -706,53 +713,124 @@ which I rarely use.
 #+END_SRC
 
 * LaTeX
-The latex-extra package provides foldind, novigation, 1-key
+The latex-extra package provides folding, navigation, 1-key
 compilation and white space handling.
 #+BEGIN_SRC emacs-lisp
 (use-package tex
-  :ensure auctex)
+  :ensure auctex
+  :config
+  ;; Fixes pdf-tools lazy loading, this pathc shuold be included in a
+  ;; new version of auctex (>11.89).
+  (defun TeX-pdf-tools-sync-view ()
+    "Focus the focused page/paragraph in `pdf-view-mode'.
+If `TeX-source-correlate-mode' is disabled, only find and pop to
+the output PDF file.  Used by default for the PDF Tools viewer
+entry in `TeX-view-program-list-builtin'."
+    ;; Make sure `pdf-tools' is at least in the `load-path', but the user must
+    ;; take care of properly loading and installing the package.  We used to test
+    ;; "(featurep 'pdf-tools)", but that doesn't play well with deferred loading.
+    (unless (fboundp 'pdf-tools-install)
+      (error "PDF Tools are not available"))
+    (unless TeX-PDF-mode
+      (error "PDF Tools only work with PDF output"))
+    (add-hook 'pdf-sync-backward-redirect-functions
+              #'TeX-source-correlate-handle-TeX-region)
+    (if (and TeX-source-correlate-mode
+             (fboundp 'pdf-sync-forward-search))
+        (with-current-buffer (or (when TeX-current-process-region-p
+                                   (get-file-buffer (TeX-region-file t)))
+                                 (current-buffer))
+          (pdf-sync-forward-search))
+      (let ((pdf (concat file "." (TeX-output-extension))))
+        (pop-to-buffer (or (find-buffer-visiting pdf)
+                           (find-file-noselect pdf))))))
+
+  (setq-default TeX-master nil)
+  (setq TeX-auto-save t)
+  (setq TeX-parse-self t)
+
+  ;; Use pdf-tools to open PDF files
+  (setq TeX-view-program-selection '((output-pdf "PDF Tools"))
+        TeX-source-correlate-start-server t)
+  ;; Update PDF buffers after successful LaTeX runs and trim margins
+  (add-hook 'TeX-after-compilation-finished-functions
+            'TeX-revert-document-buffer)
+
+  (add-hook 'LaTeX-mode-hook
+            (lambda ()
+              (outline-minor-mode t)
+              (flyspell-mode t)
+              (TeX-PDF-mode t)
+              (TeX-fold-mode t)
+              (turn-on-reftex)
+              (turn-on-cdlatex)
+              (TeX-source-correlate-mode t)
+              (imenu-add-to-menubar "Index")
+              ;; Allow paragraph filling in tables
+              (setq LaTeX-indent-environment-list
+                    (delq (assoc "table" LaTeX-indent-environment-list)
+                          LaTeX-indent-environment-list))
+              (setq LaTeX-indent-environment-list
+                    (delq (assoc "table*" LaTeX-indent-environment-list)
+                          LaTeX-indent-environment-list))))
+
+  ;; reftex settings
+  (setq reftex-enable-partial-scans t)
+  (setq reftex-use-multiple-selection-buffers t)
+  (setq reftex-plug-into-AUCTeX t))
+
 (use-package cdlatex
   :ensure t)
 
-(setq-default TeX-master nil)
-(setq TeX-auto-save t)
-(setq TeX-parse-self t)
+;;; Section Folding
+(defun latex/section-regexp ()
+  "Return a regexp matching anything in `latex/section-hierarchy'."
+  (format "^\\(%s\\)"
+          (mapconcat 'identity
+                     '("\\\\headerbox\\_>"
+                       "\\\\subparagraph\\*?\\_>"
+                       "\\\\paragraph\\*?\\_>"
+                       "\\\\subsubsection\\*?\\_>"
+                       "\\\\subsection\\*?\\_>"
+                       "\\\\section\\*?\\_>"
+                       "\\\\chapter\\*?\\_>"
+                       "\\\\part\\*?\\_>"
+                       "\\\\appendix\\_>\\|\\\\\\(begin\\|end\\){document}"
+                       "\\\\documentclass\\_>"
+                       )
+                     "\\|")))
 
-;; Use pdf-tools to open PDF files
-(setq TeX-view-program-selection '((output-pdf "PDF Tools"))
-      TeX-source-correlate-start-server t)
-;; Update PDF buffers after successful LaTeX runs and trim margins
-(add-hook 'TeX-after-compilation-finished-functions
-           'TeX-revert-document-buffer)
+(defun latex//header-at-point ()
+  "Return header under point or nil, as per `latex/section-hierarchy'."
+  (save-match-data
+    (save-excursion
+      (goto-char (line-beginning-position))
+      (when (looking-at (latex/section-regexp))
+        (match-string-no-properties 0)))))
 
-(add-hook 'LaTeX-mode-hook
-          (lambda ()
-            (outline-minor-mode t)
-            (flyspell-mode t)
-            (TeX-PDF-mode t)
-            (TeX-fold-mode t)
-            (turn-on-reftex)
-            (turn-on-cdlatex)
-            (TeX-source-correlate-mode t)
-            (imenu-add-to-menubar "Index")
-            ;; Allow paragraph filling in tables
-            (setq LaTeX-indent-environment-list
-                  (delq (assoc "table" LaTeX-indent-environment-list)
-                        LaTeX-indent-environment-list))
-            (setq LaTeX-indent-environment-list
-                  (delq (assoc "table*" LaTeX-indent-environment-list)
-                        LaTeX-indent-environment-list))))
+(defun latex/hide-show ()
+  "Hide or show current header and its contents."
+  (interactive)
+  (when (latex//header-at-point)
+    (if (not (eq last-command 'latex/hide-show))
+        (with-no-warnings (hide-leaves))
+      (with-no-warnings (show-subtree))
+      (setq this-command nil))))
 
-;; reftex settings
-(setq reftex-enable-partial-scans t)
-(setq reftex-use-multiple-selection-buffers t)
-(setq reftex-plug-into-AUCTeX t)
+(defun latex/hide-show-all ()
+  "Hide or show the contents of all headers."
+  (interactive)
+  (if (null (eq last-command 'latex/hide-show-all))
+      (save-excursion
+        (goto-char (point-min))
+        (while (outline-next-heading)
+          (with-no-warnings (hide-leaves))))
+    (with-no-warnings (show-all))
+    (setq this-command nil)))
 
-;; Provides foldind, novigation, 1-key compilation and whitespace handling.
-(use-package latex-extra
-  :ensure t
-  :config
-  (add-hook 'LaTeX-mode-hook #'latex-extra-mode))
+(define-key LaTeX-mode-map (kbd "C-<tab>") #'latex/hide-show)
+(define-key LaTeX-mode-map [backtab] #'latex/hide-show-all)
+
 
 (defface endless/unimportant-latex-face
   '((t :height 0.7
@@ -1235,22 +1313,23 @@ this elsewhere.
 #+BEGIN_SRC emacs-lisp
 (defun narrow-or-widen-dwim (p)
   "Widen if buffer is narrowed, narrow-dwim otherwise.
-Dwim means: region, org-src-block, org-subtree, or defun,
-whichever applies first. Narrowing to org-src-block actually
-calls `org-edit-src-code'.
+Dwim means: region, org-src-block, org-subtree, or
+defun, whichever applies first. Narrowing to
+org-src-block actually calls `org-edit-src-code'.
 
-With prefix P, don't widen, just narrow even if buffer is
-already narrowed."
+With prefix P, don't widen, just narrow even if buffer
+is already narrowed."
   (interactive "P")
   (declare (interactive-only))
   (cond ((and (buffer-narrowed-p) (not p)) (widen))
         ((region-active-p)
-         (narrow-to-region (region-beginning) (region-end)))
+         (narrow-to-region (region-beginning)
+                           (region-end)))
         ((derived-mode-p 'org-mode)
          ;; `org-edit-src-code' is not a real narrowing
-         ;; command. Remove this first conditional if you
-         ;; don't want it.
-         (cond ((ignore-errors (org-edit-src-code))
+         ;; command. Remove this first conditional if
+         ;; you don't want it.
+         (cond ((ignore-errors (org-edit-src-code) t)
                 (delete-other-windows))
                ((ignore-errors (org-narrow-to-block) t))
                (t (org-narrow-to-subtree))))
@@ -1259,11 +1338,13 @@ already narrowed."
         (t (narrow-to-defun))))
 
 ;; This line actually replaces Emacs' entire narrowing
-;; keymap, that's how much I like this command. Only copy it
-;; if that's what you want.
+;; keymap, that's how much I like this command. Only
+;; copy it if that's what you want.
 (define-key ctl-x-map "n" #'narrow-or-widen-dwim)
-(eval-after-load 'latex
-  '(define-key LaTeX-mode-map "\C-xn" nil))
+(add-hook 'LaTeX-mode-hook
+          (lambda ()
+            (define-key LaTeX-mode-map "\C-xn"
+              nil)))
 #+END_SRC
 
 ** Org capture
@@ -1956,11 +2037,23 @@ Semantic mode enables parsing of source code files.
 
 (global-semanticdb-minor-mode 1)
 (global-semantic-idle-scheduler-mode 1)
-(global-semantic-idle-summary-mode 1)
 (use-package stickyfunc-enhance
   :ensure t
-  :config (global-semantic-stickyfunc-mode 1))
+  :init (global-semantic-stickyfunc-mode 1))
 (semantic-mode 1)
+
+(defun my/semantic-show-summary (point)
+  "Display a summary for the symbol under POINT."
+  (interactive "P")
+  (let* ((ctxt (semantic-analyze-current-context point))
+	 (pf (when ctxt
+	       (semantic-analyze-interesting-tag ctxt)))
+	)
+    (if pf
+	(popup-tip (format "%s" (semantic-format-tag-summarize pf nil t)))
+      (popup-tip "No summary info available"))))
+(define-key semantic-mode-map (kbd "s-i") 'my/semantic-show-summary)
+(define-key semantic-mode-map (kbd "s-j") 'semantic-ia-fast-jump)
 #+END_SRC
 
 ** Projectile
@@ -2004,6 +2097,9 @@ Install elpy package from the *elpy repository*.
 (defun my-flycheck-c-setup ()
   (setq flycheck-gcc-language-standard "gnu99"))
 (add-hook 'c-mode-hook #'my-flycheck-c-setup)
+
+;; function args mode
+(fa-config-default)
 #+END_SRC
 
 ** Gnuplot
@@ -2022,11 +2118,8 @@ Install elpy package from the *elpy repository*.
   (setq processing-location "/opt/processing-3.1.1/processing-java")
   (setq processing-application-dir "/opt/processing-3.1.1/")
   (setq processing-sketchbook-dir "/home/gperaza/Documents/code/processing/"))
-#+END_SRC
 
-Define a hydra with the basic processing commands.
-
-#+BEGIN_SRC emacs-lisp
+;;Define a hydra with the basic processing commands.
 (defhydra hydra-processing ()
     "Processing"
     ("r" processing-sketch-run "Run sketch.")
