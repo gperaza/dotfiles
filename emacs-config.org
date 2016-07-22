@@ -666,7 +666,7 @@ succeeds without error.
 :bind (("s-<backspace>" . hungry-delete-backward)
        ("s-<delete>" . hungry-delete-forward)))
 #+END_SRC
-       
+
 * Navigation
 ** Avy
 #+BEGIN_SRC emacs-lisp
@@ -717,133 +717,128 @@ The latex-extra package provides folding, navigation, 1-key
 compilation and white space handling.
 #+BEGIN_SRC emacs-lisp
 (use-package tex
-    :ensure auctex
-    :config
-    ;; Fixes pdf-tools lazy loading, this pathc shuold be included in a
-    ;; new version of auctex (>11.89).
-    (defun TeX-pdf-tools-sync-view ()
-      "Focus the focused page/paragraph in `pdf-view-mode'.
+  :ensure auctex
+  :config
+  ;; Fixes pdf-tools lazy loading, this pathc shuold be included in a
+  ;; new version of auctex (>11.89).
+  (defun TeX-pdf-tools-sync-view ()
+    "Focus the focused page/paragraph in `pdf-view-mode'.
   If `TeX-source-correlate-mode' is disabled, only find and pop to
   the output PDF file.  Used by default for the PDF Tools viewer
   entry in `TeX-view-program-list-builtin'."
-      ;; Make sure `pdf-tools' is at least in the `load-path', but the user must
-      ;; take care of properly loading and installing the package.  We used to test
-      ;; "(featurep 'pdf-tools)", but that doesn't play well with deferred loading.
-      (unless (fboundp 'pdf-tools-install)
-        (error "PDF Tools are not available"))
-      (unless TeX-PDF-mode
-        (error "PDF Tools only work with PDF output"))
-      (add-hook 'pdf-sync-backward-redirect-functions
-                #'TeX-source-correlate-handle-TeX-region)
-      (if (and TeX-source-correlate-mode
-               (fboundp 'pdf-sync-forward-search))
-          (with-current-buffer (or (when TeX-current-process-region-p
-                                     (get-file-buffer (TeX-region-file t)))
-                                   (current-buffer))
-            (pdf-sync-forward-search))
-        (let ((pdf (concat file "." (TeX-output-extension))))
-          (pop-to-buffer (or (find-buffer-visiting pdf)
-                             (find-file-noselect pdf))))))
+    ;; Make sure `pdf-tools' is at least in the `load-path', but the user must
+    ;; take care of properly loading and installing the package.  We used to test
+    ;; "(featurep 'pdf-tools)", but that doesn't play well with deferred loading.
+    (unless (fboundp 'pdf-tools-install)
+      (error "PDF Tools are not available"))
+    (unless TeX-PDF-mode
+      (error "PDF Tools only work with PDF output"))
+    (add-hook 'pdf-sync-backward-redirect-functions
+              #'TeX-source-correlate-handle-TeX-region)
+    (if (and TeX-source-correlate-mode
+             (fboundp 'pdf-sync-forward-search))
+        (with-current-buffer (or (when TeX-current-process-region-p
+                                   (get-file-buffer (TeX-region-file t)))
+                                 (current-buffer))
+          (pdf-sync-forward-search))
+      (let ((pdf (concat file "." (TeX-output-extension))))
+        (pop-to-buffer (or (find-buffer-visiting pdf)
+                           (find-file-noselect pdf))))))
 
-    (setq-default TeX-master nil)
-    (setq TeX-auto-save t)
-    (setq TeX-parse-self t)
+  (setq-default TeX-master nil)
+  (setq TeX-auto-save t)
+  (setq TeX-parse-self t)
 
-    ;; Use pdf-tools to open PDF files
-    (setq TeX-view-program-selection '((output-pdf "PDF Tools"))
-          TeX-source-correlate-start-server t)
-    ;; Update PDF buffers after successful LaTeX runs and trim margins
-    (add-hook 'TeX-after-compilation-finished-functions
-              'TeX-revert-document-buffer)
+  ;;Use pdf-tools to open PDF files
+  (setq TeX-view-program-selection '((output-pdf "PDF Tools"))
+        TeX-source-correlate-start-server t)
+  ;; Update PDF buffers after successful LaTeX runs and trim margins
+  (add-hook 'TeX-after-compilation-finished-functions
+            'TeX-revert-document-buffer)
 
-    (add-hook 'LaTeX-mode-hook
-              (lambda ()
-                (outline-minor-mode t)
-                (flyspell-mode t)
-                (TeX-PDF-mode t)
-                (TeX-fold-mode t)
-                (turn-on-reftex)
-                (turn-on-cdlatex)
-                (TeX-source-correlate-mode t)
-                (imenu-add-to-menubar "Index")
-                ;; Allow paragraph filling in tables
-                (setq LaTeX-indent-environment-list
-                      (delq (assoc "table" LaTeX-indent-environment-list)
-                            LaTeX-indent-environment-list))
-                (setq LaTeX-indent-environment-list
-                      (delq (assoc "table*" LaTeX-indent-environment-list)
-                            LaTeX-indent-environment-list))
-                (define-key LaTeX-mode-map (kbd "C-<tab>") #'latex/hide-show)
-                (define-key LaTeX-mode-map [backtab] #'latex/hide-show-all)))
+  (add-hook 'LaTeX-mode-hook
+            (lambda ()
+              (outline-minor-mode t)
+              (flyspell-mode t)
+              ;;(TeX-PDF-mode -1)
+              (TeX-fold-mode t)
+              (turn-on-reftex)
+              (turn-on-cdlatex)
+              (TeX-source-correlate-mode t)
+              (imenu-add-to-menubar "Index")
+              (define-key LaTeX-mode-map (kbd "C-<tab>") #'latex/hide-show)
+              (define-key LaTeX-mode-map [backtab] #'latex/hide-show-all)
+              (setq TeX-command-extra-options "--shell-escape")
+              (LaTeX-math-mode t)))
 
-    ;; reftex settings
-    (setq reftex-enable-partial-scans t)
-    (setq reftex-use-multiple-selection-buffers t)
-    (setq reftex-plug-into-AUCTeX t))
+  ;; reftex settings
+  (setq reftex-enable-partial-scans t)
+  (setq reftex-use-multiple-selection-buffers t)
+  (setq reftex-plug-into-AUCTeX t))
 
-  (use-package cdlatex
-    :ensure t)
+(use-package cdlatex
+  :ensure t)
 
-  ;;; Section Folding
-  (defun latex/section-regexp ()
-    "Return a regexp matching anything in `latex/section-hierarchy'."
-    (format "^\\(%s\\)"
-            (mapconcat 'identity
-                       '("\\\\headerbox\\_>"
-                         "\\\\subparagraph\\*?\\_>"
-                         "\\\\paragraph\\*?\\_>"
-                         "\\\\subsubsection\\*?\\_>"
-                         "\\\\subsection\\*?\\_>"
-                         "\\\\section\\*?\\_>"
-                         "\\\\chapter\\*?\\_>"
-                         "\\\\part\\*?\\_>"
-                         "\\\\appendix\\_>\\|\\\\\\(begin\\|end\\){document}"
-                         "\\\\documentclass\\_>"
-                         )
-                       "\\|")))
+;;; Section Folding
+(defun latex/section-regexp ()
+  "Return a regexp matching anything in `latex/section-hierarchy'."
+  (format "^\\(%s\\)"
+          (mapconcat 'identity
+                     '("\\\\headerbox\\_>"
+                       "\\\\subparagraph\\*?\\_>"
+                       "\\\\paragraph\\*?\\_>"
+                       "\\\\subsubsection\\*?\\_>"
+                       "\\\\subsection\\*?\\_>"
+                       "\\\\section\\*?\\_>"
+                       "\\\\chapter\\*?\\_>"
+                       "\\\\part\\*?\\_>"
+                       "\\\\appendix\\_>\\|\\\\\\(begin\\|end\\){document}"
+                       "\\\\documentclass\\_>"
+                       )
+                     "\\|")))
 
-  (defun latex//header-at-point ()
-    "Return header under point or nil, as per `latex/section-hierarchy'."
-    (save-match-data
+(defun latex//header-at-point ()
+  "Return header under point or nil, as per `latex/section-hierarchy'."
+  (save-match-data
+    (save-excursion
+      (goto-char (line-beginning-position))
+      (when (looking-at (latex/section-regexp))
+        (match-string-no-properties 0)))))
+
+(defun latex/hide-show ()
+  "Hide or show current header and its contents."
+  (interactive)
+  (when (latex//header-at-point)
+    (if (not (eq last-command 'latex/hide-show))
+        (with-no-warnings (hide-leaves))
+      (with-no-warnings (show-subtree))
+      (setq this-command nil))))
+
+(defun latex/hide-show-all ()
+  "Hide or show the contents of all headers."
+  (interactive)
+  (if (null (eq last-command 'latex/hide-show-all))
       (save-excursion
-        (goto-char (line-beginning-position))
-        (when (looking-at (latex/section-regexp))
-          (match-string-no-properties 0)))))
+        (goto-char (point-min))
+        (while (outline-next-heading)
+          (with-no-warnings (hide-leaves))))
+    (with-no-warnings (show-all))
+    (setq this-command nil)))
 
-  (defun latex/hide-show ()
-    "Hide or show current header and its contents."
-    (interactive)
-    (when (latex//header-at-point)
-      (if (not (eq last-command 'latex/hide-show))
-          (with-no-warnings (hide-leaves))
-        (with-no-warnings (show-subtree))
-        (setq this-command nil))))
+(defface endless/unimportant-latex-face
+  '((t :height 0.7
+       :inherit font-lock-comment-face))
+  "Face used on less relevant math commands.")
 
-  (defun latex/hide-show-all ()
-    "Hide or show the contents of all headers."
-    (interactive)
-    (if (null (eq last-command 'latex/hide-show-all))
-        (save-excursion
-          (goto-char (point-min))
-          (while (outline-next-heading)
-            (with-no-warnings (hide-leaves))))
-      (with-no-warnings (show-all))
-      (setq this-command nil)))
-
-  (defface endless/unimportant-latex-face
-    '((t :height 0.7
-         :inherit font-lock-comment-face))
-    "Face used on less relevant math commands.")
-
-  (font-lock-add-keywords
-   'latex-mode
-   `((,(rx (or (and "\\" (or (any ",.!;")
-                             (and (or "left" "right"
-                                      "big" "Big")
-                                  symbol-end)))
-               (any "_^")))
-      0 'endless/unimportant-latex-face prepend))
-   'end)
+(font-lock-add-keywords
+ 'latex-mode
+ `((,(rx (or (and "\\" (or (any ",.!;")
+                           (and (or "left" "right"
+                                    "big" "Big")
+                                symbol-end)))
+             (any "_^")))
+    0 'endless/unimportant-latex-face prepend))
+ 'end)
 #+END_SRC
 
 * org-mode
@@ -2097,7 +2092,9 @@ Install elpy package from the *elpy repository*.
 (add-hook 'c-mode-hook #'my-flycheck-c-setup)
 
 ;; function args mode
-(fa-config-default)
+(use-package function-args
+  :ensure t
+  :config (fa-config-default))
 #+END_SRC
 
 ** Gnuplot
