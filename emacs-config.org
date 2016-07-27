@@ -1304,6 +1304,17 @@ C-x n. Works globally, not only in org-mode, perhaps I should move
 this elsewhere.
 
 #+BEGIN_SRC emacs-lisp
+(defun latex-narrow-to-section ()
+  "Narrow to current section"
+  (LaTeX-mark-section)
+  (call-interactively 'narrow-to-region)
+  (deactivate-mark))
+
+(defun latex-on-section-header ()
+  "Return non-nil if point is on a section header."
+  (if (string-match "\\`\\\\\\(sub\\)*section{.*}" (thing-at-point 'line t))
+       t nil))
+
 (defun narrow-or-widen-dwim (p)
   "Widen if buffer is narrowed, narrow-dwim otherwise.
 Dwim means: region, org-src-block, org-subtree, or
@@ -1327,7 +1338,9 @@ is already narrowed."
                ((ignore-errors (org-narrow-to-block) t))
                (t (org-narrow-to-subtree))))
         ((derived-mode-p 'latex-mode)
-         (LaTeX-narrow-to-environment))
+         (if (latex-on-section-header)
+             (latex-narrow-to-section)
+           (LaTeX-narrow-to-environment)))
         (t (narrow-to-defun))))
 
 ;; This line actually replaces Emacs' entire narrowing
