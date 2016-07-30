@@ -1,0 +1,31 @@
+#!/bin/bash
+set -euo pipefail
+IFS=$'\n\t'
+
+font=${1:-20}
+gp_filelist=${2:-$(ls *.gp)}
+
+for gpfile in $gp_filelist
+do
+    eps_file=${gpfile%gp}eps
+    temp_gpfile=$gpfile.temp
+
+    echo \
+        set terminal epscairo font \"Helvetica,${font}\" \
+        > /tmp/$temp_gpfile
+
+    echo \
+        set output \'$eps_file\' \
+        >> /tmp/$temp_gpfile
+
+    cat $gpfile >> /tmp/$temp_gpfile
+
+    echo set output >> /tmp/$temp_gpfile
+
+    cat /tmp/$temp_gpfile
+    gnuplot /tmp/$temp_gpfile
+
+    'rm' /tmp/$temp_gpfile
+done
+
+echo $eps_file generated with font size $font
