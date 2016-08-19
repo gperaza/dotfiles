@@ -124,8 +124,8 @@ This file must include personal information given as
 ** Color theme
 #+BEGIN_SRC emacs-lisp
 (use-package material-theme
-:ensure t
-:config (load-theme 'material t))
+  :ensure t
+  :config (load-theme 'material t))
 #+END_SRC
 
 ** Smart mode line
@@ -192,27 +192,27 @@ https://github.com/bbatsov/crux
 
 ** Ido + smex
 #+BEGIN_SRC emacs-lisp
-(use-package flx-ido
-  :ensure t)
-(use-package ido-ubiquitous
-  :ensure t)
-(use-package smex
-  :ensure t)
+;; (use-package flx-ido
+;;   :ensure t)
+;; (use-package ido-ubiquitous
+;;   :ensure t)
+;; (use-package smex
+;;   :ensure t)
 
-(setq ido-enable-flex-matching t
-      ido-use-filename-at-point 'guess)
+;; (flx-ido-mode 1)
+;; (setq ido-enable-flex-matching t
+;;       ido-use-filename-at-point 'guess)
 ;;      ido-auto-merge-work-directories-length -1)
 
 ;; disable ido faces to see flx highlights
-(setq ido-use-faces nil)
+;; (setq ido-use-faces nil)
 
-(ido-mode 1)
-(ido-everywhere 1)
-(ido-ubiquitous-mode 1)
-(flx-ido-mode 1)
-(setq ido-use-virtual-buffers t)
-(global-set-key (kbd "M-x") 'smex)
-(global-set-key (kbd "M-X") 'smex-major-mode-commands)
+;; (ido-mode 1)
+;; (ido-everywhere 1)
+;; (ido-ubiquitous-mode 1)
+;; (setq ido-use-virtual-buffers t)
+;; (global-set-key (kbd "M-x") 'smex)
+;; (global-set-key (kbd "M-X") 'smex-major-mode-commands)
 (global-set-key (kbd "C-x C-b") 'ibuffer-other-window)
 #+END_SRC
 
@@ -238,7 +238,6 @@ according to [[https://github.com/emacs-helm/helm/commit/f69c14b39b0bb1a396baf0f
   ;; list actions using C-z
   (define-key helm-map (kbd "C-z")  'helm-select-action)
 
-  (global-set-key (kbd "M-y") 'helm-show-kill-ring)
   (global-set-key (kbd "C-c i") 'helm-semantic-or-imenu)
 
   (setq helm-semantic-fuzzy-match t
@@ -249,6 +248,27 @@ according to [[https://github.com/emacs-helm/helm/commit/f69c14b39b0bb1a396baf0f
     (push '(c-mode . semantic-format-tag-summarize) helm-semantic-display-style)
     (push '(c++-mode . semantic-format-tag-summarize)
           helm-semantic-display-style)))
+#+END_SRC
+
+** Counsel
+#+BEGIN_SRC emacs-lisp
+(use-package counsel
+  :ensure t
+  :bind
+  ("M-x" . counsel-M-x)
+  ("C-s" . counsel-grep-or-swiper)
+  ("M-y" . counsel-yank-pop)
+  ("C-x C-f" . counsel-find-file)
+  ("C-x C-r" . ivy-recentf)
+  ("C-h v" . counsel-describe-variable)
+  ("C-h f" . counsel-describe-function)
+  ("<f2> u" . counsel-unicode-char)
+  ("C-c g" . counsel-ag)
+  ("C-c r" . ivy-resume)
+  :config
+  (ivy-mode 1)
+  (setq ivy-height 5)
+  (setq ivy-count-format "(%d/%d) "))
 #+END_SRC
 
 ** Magit
@@ -451,9 +471,12 @@ path.
 #+BEGIN_SRC emacs-lisp
 (defun open-term-here ()
   (interactive)
-  (shell-command (concat "xfce4-terminal --default-working-directory="
-            (file-name-directory (or load-file-name buffer-file-name))
-              " 2>&1 > /dev/null & disown") nil nil))
+  "Open a terminal in current buffer's path."
+  (call-process
+   "xfce4-terminal"
+   nil 0 nil
+   (concat "--default-working-directory="
+           (file-name-directory (or load-file-name buffer-file-name)))))
 (global-set-key (kbd "C-c t") 'open-term-here)
 #+END_SRC
 
@@ -695,14 +718,6 @@ succeeds without error.
   :config (winner-mode 1))
 #+END_SRC
 
-** Swiper
-#+BEGIN_SRC emacs-lisp
-(use-package counsel
-  :ensure t
-  :config
-  (global-set-key (kbd "C-s") 'counsel-grep-or-swiper))
-#+END_SRC
-
 ** Back button
 Navigate the mark ring, replaces binding for next/previous-buffer
 which I rarely use.
@@ -752,7 +767,7 @@ compilation and white space handling.
   ;;Use pdf-tools to open PDF files
   (setq TeX-view-program-selection '((output-pdf "PDF Tools"))
         TeX-source-correlate-start-server t)
-  ;; Update PDF buffers after successful LaTeX runs and trim margins
+  ;;Update PDF buffers after successful LaTeX runs and trim margins
   (add-hook 'TeX-after-compilation-finished-functions
             'TeX-revert-document-buffer)
 
@@ -770,7 +785,8 @@ compilation and white space handling.
               (define-key LaTeX-mode-map [backtab] #'latex/hide-show-all)
               (setq TeX-command-extra-options "--shell-escape")
               (LaTeX-math-mode t)))
-
+  (setq flyspell-tex-command-regexp
+        "\\(\\(begin\\|end\\)[ 	]*{\\|\\(cite[a-z*]*\\|label\\|ref\\|eqref\\|usepackage\\|documentclass\\|bibliographystyle\\)[ 	]*\\(\\[[^]]*\\]\\)?{[^{}]*\\)")
   ;; reftex settings
   (setq reftex-enable-partial-scans t)
   (setq reftex-use-multiple-selection-buffers t)
@@ -1257,6 +1273,34 @@ Define a link to a YouTube video as defined [[http://endlessparentheses.com/embe
                    path (or desc "")))
      (latex (format "\href{%s}{%s}"
                     path (or desc "video"))))))
+
+(org-add-link-type "dir+term" 'org-dir-term-open)
+
+(defun org-dir-term-open (path)
+  "Open PATH in a terminal."
+  (call-process "xfce4-terminal"
+                nil 0 nil
+                (concat "--default-working-directory="
+                        (expand-file-name path))))
+
+(defun org-dir+term-complete-link (&optional arg)
+  "Create a dir link using completion."
+  (let ((file (org-iread-file-name "File: "))
+	(pwd (file-name-as-directory (expand-file-name ".")))
+	(pwd1 (file-name-as-directory (abbreviate-file-name
+				       (expand-file-name ".")))))
+    (cond ((equal arg '(16))
+	   (concat "dir+term:"
+		   (abbreviate-file-name (expand-file-name file))))
+	  ((string-match
+	    (concat "^" (regexp-quote pwd1) "\\(.+\\)") file)
+	   (concat "dir+term:" (match-string 1 file)))
+	  ((string-match
+	    (concat "^" (regexp-quote pwd) "\\(.+\\)")
+	    (expand-file-name file))
+	   (concat "dir+term:"
+		   (match-string 1 (expand-file-name file))))
+	  (t (concat "dir+term:" file)))))
 #+END_SRC
 
 ** Navigation
@@ -1655,23 +1699,20 @@ notes. It's available using the "<paper" expansion.
              `("paper"
                ,(concat
                 "#+TITLE:\n"
-                "#+DATE:\n\n"
-                "* Tasks\n\n"
-                "** Writing\n\n"
-                "** Model\n\n"
-                "** Simulations\n\n"
-                "* Reading\n\n"
-                "** Actual reading\n\n"
-                "** Should read\n\n"
-                "** Not yet read\n\n"
-                "** Already read\n\n"
-                "* Notes\n"
-                "Main notes are in the [[file:notes.org][notes]] file. "
-                "Here lie some quick notes.\n\n"
+                "#+DATE:\n"
+                "#+PROPERTY: cookie_data recursive\n\n"
+                "Description:\n\n"
                 "* Files\n"
-                "Links to relevant files to the research.\n\n"
-                "* Meetings\n\n"
-                "bibliography:")))
+                "* Tasks\n"
+                "** Writing\n"
+                "** Modeling\n"
+                "** Simulations\n"
+                "* Reading\n"
+                "** Must read\n"
+                "** Should read\n"
+                "** Already read and relevant\n"
+                "** Already read and not relevant\n"
+                "* Meetings\n")))
 #+END_SRC
 
 *** Code block templates
@@ -1966,8 +2007,8 @@ applies also for HTML export:
 
 (defvar match-paren--idle-timer nil)
 (defvar match-paren--delay 0.5)
-(setq match-paren--idle-timer
-      (run-with-idle-timer match-paren--delay t #'blink-matching-open))
+;; (setq-local match-paren--idle-timer
+;;       (run-with-idle-timer match-paren--delay t #'blink-matching-open))
 
 (use-package rainbow-delimiters
   :ensure t
@@ -2014,19 +2055,6 @@ applies also for HTML export:
     (flycheck-pos-tip-mode)))
 #+END_SRC
 
-** Origami for folding
-#+BEGIN_SRC emacs-lisp
-(use-package origami
-  :ensure t
-  :config
-  (define-key origami-mode-map (kbd "C-<tab>")
-    'origami-recursively-toggle-node)
-  (define-key origami-mode-map (kbd "S-<iso-lefttab>")
-    'origami-toggle-all-nodes)
-  (add-hook 'c-mode-common-hook 'origami-mode)
-  (add-hook 'python-mode-hook 'origami-mode))
-#+END_SRC
-
 ** Clean-aindent-mode
 #+BEGIN_SRC emacs-lisp
 (use-package clean-aindent-mode
@@ -2068,6 +2096,7 @@ Semantic mode enables parsing of source code files.
   :ensure t
   :init (setq projectile-use-git-grep t)
   :config
+  (setq projectile-completion-system 'ivy)
   (projectile-global-mode))
 #+END_SRC
 
@@ -2152,4 +2181,20 @@ Install elpy package from the *elpy repository*.
   :ensure t)
 #+END_SRC
 
+** Hide-show
+#+BEGIN_SRC emacs-lisp
+(add-hook
+ 'c-mode-common-hook (lambda()
+                       (local-set-key (kbd "C-<tab>") 'hs-toggle-hiding)
+                       (local-set-key (kbd "<backtab>") 'hs/hide-show-all)
+                       (hs-minor-mode t))
+(defun hs/hide-show-all ()
+  "Hide or show the contents of all headers."
+  (interactive)
+  (if (null (eq last-command 'hs/hide-show-all))
+      (hs-hide-all)
+    (hs-show-all)
+    (setq this-command nil)))
+#+END_SRC
 The end.
+
