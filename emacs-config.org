@@ -695,9 +695,9 @@ succeeds without error.
 #+BEGIN_SRC emacs-lisp
 (use-package avy
   :ensure t
-  :config
-  (global-set-key (kbd "M-g g") 'avy-goto-line)
-  (global-set-key (kbd "M-s") 'avy-goto-word-or-subword-1))
+  :bind
+  (("M-l" . avy-goto-line)
+   ("M-s" . avy-goto-word-or-subword-1)))
 #+END_SRC
 
 ** Windmove to move between visible buffers
