@@ -1120,13 +1120,6 @@ Set some org-toc properties, activate follow mode:
 (setq org-toc-follow-mode t)
 #+END_SRC
 
-Replace imenu with the superior counsel-imenu to
-navigate an org buffer.
-
-#+BEGIN_SRC emacs-lisp
-(define-key org-mode-map (kbd "C-c i") 'counsel-imenu)
-#+END_SRC
-
 Function that replaces the entire key map for narrow widen in org.
 Narrowing is really useful to focus only on the relevant section we
 want to edit. Now we can narrow/widen smartly using only
