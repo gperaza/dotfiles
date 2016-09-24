@@ -157,22 +157,27 @@ https://github.com/bbatsov/crux
 #+BEGIN_SRC emacs-lisp
 (use-package crux
   :ensure t
-  :config
+  :init
   (setq crux-indent-sensitive-modes
         '(conf-mode coffee-mode haml-mode
                     python-mode slim-mode yaml-mode org-mode))
-  (global-set-key (kbd "C-c o") 'crux-open-with)
-  (global-set-key [(control shift return)] 'crux-smart-open-line-above)
-  (global-set-key [(shift return)] 'crux-smart-open-line)
-  (global-set-key (kbd "C-c D") 'crux-delete-file-and-buffer)
-  (global-set-key (kbd "C-c r") 'crux-rename-file-and-buffer)
-  (global-set-key (kbd "C-c k") 'crux-kill-other-buffers)
-  (global-set-key (kbd "C-c n") 'crux-cleanup-buffer-or-region)
-  (global-set-key [remap move-beginning-of-line] #'crux-move-beginning-of-line)
-  (global-set-key (kbd "s-k") 'crux-kill-line-backwards)
-  (global-set-key (kbd "C-M-z") 'crux-indent-defun)
-  (global-set-key (kbd "C-`") 'crux-switch-to-previous-buffer)
-  (global-set-key (kbd "C-c s") 'crux-swap-windows))
+  :bind
+  (("C-c o" . crux-open-with)
+  ("C-c D" . crux-delete-file-and-buffer)
+  ("C-c r" . crux-rename-file-and-buffer)
+  ("C-c k" . crux-kill-other-buffers)
+  ("C-c n" . crux-cleanup-buffer-or-region)
+  ("s-k" . crux-kill-line-backwards)
+  ("C-M-z" . crux-indent-defun)
+  ("C-`" . crux-switch-to-previous-buffer)
+  ("C-c s" . crux-swap-windows)
+  ("C-a" . crux-move-beginning-of-line)
+  ("C-S-<return>" . crux-smart-open-line-above)
+  ("S-<return>" . crux-smart-open-line))
+  :commands crux-recompile-init
+  :config
+  (crux-with-region-or-buffer indent-region)
+  (crux-with-region-or-buffer untabify))
 #+END_SRC
 
 ** Function: fill-unfill-paragraph
@@ -190,68 +195,19 @@ https://github.com/bbatsov/crux
 (global-set-key [remap fill-paragraph] #'fill-or-unfill)
 #+END_SRC
 
-** Ido + smex
-#+BEGIN_SRC emacs-lisp
-;; (use-package flx-ido
-;;   :ensure t)
-;; (use-package ido-ubiquitous
-;;   :ensure t)
-;; (use-package smex
-;;   :ensure t)
-
-;; (flx-ido-mode 1)
-;; (setq ido-enable-flex-matching t
-;;       ido-use-filename-at-point 'guess)
-;;      ido-auto-merge-work-directories-length -1)
-
-;; disable ido faces to see flx highlights
-;; (setq ido-use-faces nil)
-
-;; (ido-mode 1)
-;; (ido-everywhere 1)
-;; (ido-ubiquitous-mode 1)
-;; (setq ido-use-virtual-buffers t)
-;; (global-set-key (kbd "M-x") 'smex)
-;; (global-set-key (kbd "M-X") 'smex-major-mode-commands)
-(global-set-key (kbd "C-x C-b") 'ibuffer-other-window)
-#+END_SRC
-
 ** Hydra
 #+BEGIN_SRC emacs-lisp
 (use-package hydra
   :ensure t)
 #+END_SRC
 
-** Helm
-There is a bug with helm semantic that makes it only show the function
-prototypes under narrowing. We need to patch helm-semantic.el
-according to [[https://github.com/emacs-helm/helm/commit/f69c14b39b0bb1a396baf0fecdb3192a6842a47d][this]] after each update.
-
-#+BEGIN_SRC emacs-lisp
-(use-package helm
-  :ensure t
-  :config
-  ;; rebind tab to run persistent action
-  (define-key helm-map (kbd "<tab>") 'helm-execute-persistent-action)
-  ;; make TAB works in terminal
-  (define-key helm-map (kbd "C-i") 'helm-execute-persistent-action)
-  ;; list actions using C-z
-  (define-key helm-map (kbd "C-z")  'helm-select-action)
-
-  (global-set-key (kbd "C-c i") 'helm-semantic-or-imenu)
-
-  (setq helm-semantic-fuzzy-match t
-        helm-imenu-fuzzy-match    t)
-
-  ;; Format to display tags
-  (with-eval-after-load 'helm-semantic
-    (push '(c-mode . semantic-format-tag-summarize) helm-semantic-display-style)
-    (push '(c++-mode . semantic-format-tag-summarize)
-          helm-semantic-display-style)))
-#+END_SRC
-
 ** Counsel
 #+BEGIN_SRC emacs-lisp
+(global-set-key (kbd "C-x C-b") 'ibuffer-other-window)
+(use-package smex ;;provides history to counsel-M-x
+  :ensure t)
+;; (use-package flx ;;provides better fuzzy sorting
+;;   :ensure t)
 (use-package counsel
   :ensure t
   :bind
@@ -259,16 +215,22 @@ according to [[https://github.com/emacs-helm/helm/commit/f69c14b39b0bb1a396baf0f
   ("C-s" . counsel-grep-or-swiper)
   ("M-y" . counsel-yank-pop)
   ("C-x C-f" . counsel-find-file)
-  ("C-x C-r" . ivy-recentf)
+  ("C-x C-r" . counsel-recentf)
   ("C-h v" . counsel-describe-variable)
   ("C-h f" . counsel-describe-function)
   ("<f2> u" . counsel-unicode-char)
   ("C-c g" . counsel-ag)
   ("C-c r" . ivy-resume)
+  ("C-c i" . counsel-imenu)
   :config
   (ivy-mode 1)
   (setq ivy-height 5)
-  (setq ivy-count-format "(%d/%d) "))
+  (setq ivy-count-format "(%d/%d) ")
+  ;; remove ^ from ivy completion
+  (setq ivy-initial-inputs-alist nil)
+  ;; (setq ivy-re-builders-alist
+  ;;       '((t . ivy--regex-fuzzy)))
+  )
 #+END_SRC
 
 ** Magit
@@ -290,6 +252,7 @@ according to [[https://github.com/emacs-helm/helm/commit/f69c14b39b0bb1a396baf0f
 
 ** Dired
 #+BEGIN_SRC emacs-lisp
+(require 'dired)
 ;; set dired listing options
 (setq dired-listing-switches "-alDhp")
 
@@ -734,32 +697,6 @@ compilation and white space handling.
 (use-package tex
   :ensure auctex
   :config
-  ;; Fixes pdf-tools lazy loading, this pathc shuold be included in a
-  ;; new version of auctex (>11.89).
-  (defun TeX-pdf-tools-sync-view ()
-    "Focus the focused page/paragraph in `pdf-view-mode'.
-  If `TeX-source-correlate-mode' is disabled, only find and pop to
-  the output PDF file.  Used by default for the PDF Tools viewer
-  entry in `TeX-view-program-list-builtin'."
-    ;; Make sure `pdf-tools' is at least in the `load-path', but the user must
-    ;; take care of properly loading and installing the package.  We used to test
-    ;; "(featurep 'pdf-tools)", but that doesn't play well with deferred loading.
-    (unless (fboundp 'pdf-tools-install)
-      (error "PDF Tools are not available"))
-    (unless TeX-PDF-mode
-      (error "PDF Tools only work with PDF output"))
-    (add-hook 'pdf-sync-backward-redirect-functions
-              #'TeX-source-correlate-handle-TeX-region)
-    (if (and TeX-source-correlate-mode
-             (fboundp 'pdf-sync-forward-search))
-        (with-current-buffer (or (when TeX-current-process-region-p
-                                   (get-file-buffer (TeX-region-file t)))
-                                 (current-buffer))
-          (pdf-sync-forward-search))
-      (let ((pdf (concat file "." (TeX-output-extension))))
-        (pop-to-buffer (or (find-buffer-visiting pdf)
-                           (find-file-noselect pdf))))))
-
   (setq-default TeX-master nil)
   (setq TeX-auto-save t)
   (setq TeX-parse-self t)
@@ -786,65 +723,67 @@ compilation and white space handling.
               (setq TeX-command-extra-options "--shell-escape")
               (LaTeX-math-mode t)))
   (setq flyspell-tex-command-regexp
-        "\\(\\(begin\\|end\\)[ 	]*{\\|\\(cite[a-z*]*\\|label\\|ref\\|eqref\\|usepackage\\|documentclass\\|bibliographystyle\\)[ 	]*\\(\\[[^]]*\\]\\)?{[^{}]*\\)")
+        "\\(\\(begin\\|end\\)[  ]*{\\|\\(cite[a-z*]*\\|label\\|ref\\|eqref\\|usepackage\\|documentclass\\|bibliographystyle\\)[         ]*\\(\\[[^]]*\\]\\)?{[^{}]*\\)")
   ;; reftex settings
   (setq reftex-enable-partial-scans t)
   (setq reftex-use-multiple-selection-buffers t)
-  (setq reftex-plug-into-AUCTeX t))
+  (setq reftex-plug-into-AUCTeX t)
+
+;;; Section Folding
+  (require 'hideshow)
+  (defun latex/section-regexp ()
+    "Return a regexp matching anything in `latex/section-hierarchy'."
+    (format "^\\(%s\\)"
+            (mapconcat 'identity
+                       '("\\\\headerbox\\_>"
+                         "\\\\subparagraph\\*?\\_>"
+                         "\\\\paragraph\\*?\\_>"
+                         "\\\\subsubsection\\*?\\_>"
+                         "\\\\subsection\\*?\\_>"
+                         "\\\\section\\*?\\_>"
+                         "\\\\chapter\\*?\\_>"
+                         "\\\\part\\*?\\_>"
+                         "\\\\appendix\\_>\\|\\\\\\(begin\\|end\\){document}"
+                         "\\\\documentclass\\_>"
+                         )
+                       "\\|")))
+
+  (defun latex//header-at-point ()
+    "Return header under point or nil, as per `latex/section-hierarchy'."
+    (save-match-data
+      (save-excursion
+        (goto-char (line-beginning-position))
+        (when (looking-at (latex/section-regexp))
+          (match-string-no-properties 0)))))
+
+  (defun latex/hide-show ()
+    "Hide or show current header and its contents."
+    (interactive)
+    (when (latex//header-at-point)
+      (if (not (eq last-command 'latex/hide-show))
+          (with-no-warnings (hide-leaves))
+        (with-no-warnings (show-subtree))
+        (setq this-command nil))))
+
+  (defun latex/hide-show-all ()
+    "Hide or show the contents of all headers."
+    (interactive)
+    (if (null (eq last-command 'latex/hide-show-all))
+        (save-excursion
+          (goto-char (point-min))
+          (while (outline-next-heading)
+            (with-no-warnings (hide-leaves))))
+      (with-no-warnings (show-all))
+      (setq this-command nil))))
 
 (use-package cdlatex
   :ensure t)
 
-;;; Section Folding
-(defun latex/section-regexp ()
-  "Return a regexp matching anything in `latex/section-hierarchy'."
-  (format "^\\(%s\\)"
-          (mapconcat 'identity
-                     '("\\\\headerbox\\_>"
-                       "\\\\subparagraph\\*?\\_>"
-                       "\\\\paragraph\\*?\\_>"
-                       "\\\\subsubsection\\*?\\_>"
-                       "\\\\subsection\\*?\\_>"
-                       "\\\\section\\*?\\_>"
-                       "\\\\chapter\\*?\\_>"
-                       "\\\\part\\*?\\_>"
-                       "\\\\appendix\\_>\\|\\\\\\(begin\\|end\\){document}"
-                       "\\\\documentclass\\_>"
-                       )
-                     "\\|")))
-
-(defun latex//header-at-point ()
-  "Return header under point or nil, as per `latex/section-hierarchy'."
-  (save-match-data
-    (save-excursion
-      (goto-char (line-beginning-position))
-      (when (looking-at (latex/section-regexp))
-        (match-string-no-properties 0)))))
-
-(defun latex/hide-show ()
-  "Hide or show current header and its contents."
-  (interactive)
-  (when (latex//header-at-point)
-    (if (not (eq last-command 'latex/hide-show))
-        (with-no-warnings (hide-leaves))
-      (with-no-warnings (show-subtree))
-      (setq this-command nil))))
-
-(defun latex/hide-show-all ()
-  "Hide or show the contents of all headers."
-  (interactive)
-  (if (null (eq last-command 'latex/hide-show-all))
-      (save-excursion
-        (goto-char (point-min))
-        (while (outline-next-heading)
-          (with-no-warnings (hide-leaves))))
-    (with-no-warnings (show-all))
-    (setq this-command nil)))
-
 (defface endless/unimportant-latex-face
   '((t :height 0.7
        :inherit font-lock-comment-face))
-  "Face used on less relevant math commands.")
+  "Face used on less relevant math commands."
+  :group 'latex-faces)
 
 (font-lock-add-keywords
  'latex-mode
@@ -902,13 +841,6 @@ together.
 (setq org-adapt-indentation nil)
 #+END_SRC
 
-Set tag alignment to look good with the 80 character limit and big
-headers:
-
-#+BEGIN_SRC emacs-lisp
-(setq org-tags-column -60)
-#+END_SRC
-
 Make code blocks pretty:
 
 #+BEGIN_SRC emacs-lisp
@@ -951,13 +883,6 @@ add more later.
    (gnuplot . t)))
 #+END_SRC
 
-We also include support for ipython blocks via the [[https://github.com/gregsexton/ob-ipython][ob-ipython]] package.
-
-#+BEGIN_SRC emacs-lisp
-(use-package ob-ipython
-  :ensure t)
-#+END_SRC
-
 *** Set up Babel behavior
 In frames with multiple windows is better to edit code in the same
 window:
@@ -991,91 +916,12 @@ tab behave as in the native major mode inside blocks.
 (setq org-src-tab-acts-natively t)
 #+END_SRC
 
-When evaluating blocks I want them be silent, usually I only use them
-to process data. Also export both code and results.
+Export both code and results.
 
 #+BEGIN_SRC emacs-lisp
-;; Messes things up
-;; (setq org-babel-default-header-args
-;;       (cons '(:results . "silent")
-;;             (assq-delete-all :results org-babel-default-header-args)))
-
 (setq org-babel-default-header-args
       (cons '(:exports . "both")
             (assq-delete-all :exports org-babel-default-header-args)))
-#+END_SRC
-
-*** Killing and restarting sessions
-Here I define a pair of functions to restart and kill sessions.
-Restarting a session means kill it, the run all the blocks belonging
-to the session up to the current block. This functions were created by
-John Kitchin.
-
-#+BEGIN_SRC emacs-lisp
-(defun src-block-in-session-p (&optional name)
-  "Return if src-block is in a session of NAME.
-NAME may be nil for unnamed sessions."
-  (let* ((info (org-babel-get-src-block-info))
-         (lang (nth 0 info))
-         (body (nth 1 info))
-         (params (nth 2 info))
-         (session (cdr (assoc :session params))))
-
-    (cond
-     ;; unnamed session, both name and session are nil
-     ((and (null session)
-           (null name))
-      t)
-     ;; Matching name and session
-     ((and
-       (stringp name)
-       (stringp session)
-       (string= name session))
-      t)
-     ;; no match
-     (t nil))))
-
-(defun org-babel-restart-session-to-point (&optional arg)
-  "Restart session up to the src-block in the current point.
-Goes to beginning of buffer and executes each code block with
-`org-babel-execute-src-block' that has the same language and
-session as the current block. ARG has same meaning as in
-`org-babel-execute-src-block'."
-  (interactive "P")
-  (unless (org-in-src-block-p)
-    (error "You must be in a src-block to run this command"))
-  (org-babel-kill-session)
-  (let* ((current-point (point-marker))
-         (info (org-babel-get-src-block-info))
-         (lang (nth 0 info))
-         (params (nth 2 info))
-         (session (cdr (assoc :session params))))
-    (save-excursion
-      (goto-char (point-min))
-      (while (re-search-forward org-babel-src-block-regexp nil t)
-        ;; goto start of block
-        (goto-char (match-beginning 0))
-        (let* ((this-info (org-babel-get-src-block-info))
-               (this-lang (nth 0 this-info))
-               (this-params (nth 2 this-info))
-               (this-session (cdr (assoc :session this-params))))
-          (when
-              (and
-               (< (point) (marker-position current-point))
-               (string= lang this-lang)
-               (src-block-in-session-p session))
-            (org-babel-execute-src-block arg)))
-        ;; move forward so we can find the next block
-        (forward-line)))))
-
-(defun org-babel-kill-session ()
-  "Kill session for current code block."
-  (interactive)
-  (unless (org-in-src-block-p)
-    (error "You must be in a src-block to run this command"))
-  (save-window-excursion
-    (org-babel-switch-to-session)
-    (kill-buffer)))
 #+END_SRC
 
 *** Wrap text in a code block
@@ -1187,72 +1033,11 @@ Enable storing, inserting and following links in any buffer:
         ("\\.svg\\'" . "feh --magick-timeout 1 -. %s")))
 #+END_SRC
 
-*** Minor mode to font lock links outside org
-Here we define a minor mode to font lock Org links in non org buffers.
-Derived from [[https://github.com/seanohalpin/org-link-minor-mode][here]] but without the key bindings. I find it less
-obtrusive to use the org included global functions.
+Custom link types:
 
 #+BEGIN_SRC emacs-lisp
-(defun org-link-minor-mode-unfontify-region (beg end &optional maybe_loudly)
-  "Remove fontification and activation overlays from links."
-  (font-lock-default-unfontify-region beg end)
-  (let* ((buffer-undo-list t)
-         (inhibit-read-only t) (inhibit-point-motion-hooks t)
-         (inhibit-modification-hooks t)
-         deactivate-mark buffer-file-name buffer-file-truename)
-    (org-decompose-region beg end)
-    (remove-text-properties beg end
-                            '(mouse-face t keymap t org-linked-text t
-                                         invisible t intangible t
-                                         help-echo t rear-nonsticky t
-                                         org-no-flyspell t org-emphasis t))
-    (org-remove-font-lock-display-properties beg end)))
-
-;;;###autoload
-(define-minor-mode org-link-minor-mode
-  "Toggle display of org-mode style bracket links in non-org-mode buffers."
-  :lighter " org-link"
-
-  (let ((org-link-minor-mode-keywords
-         (list
-          '(org-activate-angle-links (0 'org-link t))
-          '(org-activate-plain-links)
-          '(org-activate-bracket-links (0 'org-link t))
-          '(org-activate-dates (0 'org-date t))
-          ))
-        )
-    (if org-link-minor-mode
-        (if (derived-mode-p 'org-mode)
-            (progn
-              (message "org-mode doesn't need org-link-minor-mode")
-              (org-link-minor-mode -1)
-              )
-          (font-lock-add-keywords nil org-link-minor-mode-keywords t)
-          (org-set-local 'org-descriptive-links org-descriptive-links)
-          (if org-descriptive-links (add-to-invisibility-spec '(org-link)))
-          (org-set-local 'font-lock-unfontify-region-function
-                         'org-link-minor-mode-unfontify-region)
-          (org-restart-font-lock)
-          )
-      (unless (derived-mode-p 'org-mode)
-        (font-lock-remove-keywords nil org-link-minor-mode-keywords)
-        (org-restart-font-lock)
-        (remove-from-invisibility-spec '(org-link))
-        (kill-local-variable 'org-descriptive-links)
-        (kill-local-variable 'font-lock-unfontify-region-function)
-        )
-      )
-    )
-  )
-
-(add-hook 'prog-mode-hook 'org-link-minor-mode)
-(add-hook 'LaTeX-mode-hook 'org-link-minor-mode)
-#+END_SRC
-
-*** Custom link types
-Define a link to a YouTube video as defined [[http://endlessparentheses.com/embedding-youtube-videos-with-org-mode-links.html][here]].
-
-#+BEGIN_SRC emacs-lisp
+;; Define a link to a YouTube video as defined in
+;; http://endlessparentheses.com/embedding-youtube-videos-with-org-mode-links.html
 (defvar yt-iframe-format
   ;; You may want to change your width and height.
   (concat "<iframe width=\"440\""
@@ -1274,6 +1059,7 @@ Define a link to a YouTube video as defined [[http://endlessparentheses.com/embe
      (latex (format "\href{%s}{%s}"
                     path (or desc "video"))))))
 
+;; Open link path in a terminal
 (org-add-link-type "dir+term" 'org-dir-term-open)
 
 (defun org-dir-term-open (path)
@@ -1286,21 +1072,21 @@ Define a link to a YouTube video as defined [[http://endlessparentheses.com/embe
 (defun org-dir+term-complete-link (&optional arg)
   "Create a dir link using completion."
   (let ((file (org-iread-file-name "File: "))
-	(pwd (file-name-as-directory (expand-file-name ".")))
-	(pwd1 (file-name-as-directory (abbreviate-file-name
-				       (expand-file-name ".")))))
+        (pwd (file-name-as-directory (expand-file-name ".")))
+        (pwd1 (file-name-as-directory (abbreviate-file-name
+                                       (expand-file-name ".")))))
     (cond ((equal arg '(16))
-	   (concat "dir+term:"
-		   (abbreviate-file-name (expand-file-name file))))
-	  ((string-match
-	    (concat "^" (regexp-quote pwd1) "\\(.+\\)") file)
-	   (concat "dir+term:" (match-string 1 file)))
-	  ((string-match
-	    (concat "^" (regexp-quote pwd) "\\(.+\\)")
-	    (expand-file-name file))
-	   (concat "dir+term:"
-		   (match-string 1 (expand-file-name file))))
-	  (t (concat "dir+term:" file)))))
+           (concat "dir+term:"
+                   (abbreviate-file-name (expand-file-name file))))
+          ((string-match
+            (concat "^" (regexp-quote pwd1) "\\(.+\\)") file)
+           (concat "dir+term:" (match-string 1 file)))
+          ((string-match
+            (concat "^" (regexp-quote pwd) "\\(.+\\)")
+            (expand-file-name file))
+           (concat "dir+term:"
+                   (match-string 1 (expand-file-name file))))
+          (t (concat "dir+term:" file)))))
 #+END_SRC
 
 ** Navigation
@@ -1430,17 +1216,15 @@ hack, there should be a better way of doing this.
 One the best things about org-capture is that you can define your own
 templates for capturing.
 
-Here I define a template to store notes in files inside my Notes directory.
-Using "s" prompts for the file to store the note, if the file does not
-exists it creates it. I still need a template for a global to-do list.
+**** TODO I still need a template for a global to-do list.
 
 #+BEGIN_SRC emacs-lisp
-(setq org-capture-templates
-      '(
-        ("s" "Note (select file)" entry (file+headline
-          (read-file-name "File to capture to:" "~/Documents/Notes/") "Refile")
-         "** %?\n %i\n")
-        ))
+;; (setq org-capture-templates
+;;       '(
+;;         ("s" "Note (select file)" entry (file+headline
+;;           (read-file-name "File to capture to:" "~/Documents/Notes/") "Refile")
+;;          "** %?\n %i\n")
+;;         ))
 #+END_SRC
 
 ** Agenda setup
@@ -1476,9 +1260,6 @@ ox-bibtex handles citations in HTML exports, for LaTeX citations I use
 (require 'ox-koma-letter)
 (require 'ox-bibtex)
 #+END_SRC
-
-**** TODO Tufte-org-mode
-An Org mode environment for producing Tufte-LaTeX books and handouts.
 
 **** LaTeX back-end configuration
 The LaTeX back-end needs some extra configuration.
@@ -1524,20 +1305,6 @@ package via "#+LATEX_HEADER: /usepackage{minted}"
         ("framesep" "2mm")))
 (setq org-latex-pdf-process
       '("latexmk -pdflatex='pdflatex --shell-escape' -pdf %f"))
-#+END_SRC
-
-**** Beamer back-end configuration
-Beamer also needs some tweaks.
-
-#+BEGIN_SRC emacs-lisp
-(add-to-list  'org-beamer-environments-extra
-              '("onlyenv" "O" "\\begin{onlyenv}%a" "\\end{onlyenv}"))
-
-(add-to-list 'org-beamer-environments-extra
-             '("textpos" "X" "\\begin{textblock}{10}(3,3) \\visible %a {" "} \\end{textblock}"))
-
-(add-to-list 'org-beamer-environments-extra
-             '("textpos1" "w" "\\begin{textblock}{%h}(3,3) \\visible %a {" "} \\end{textblock}"))
 #+END_SRC
 
 **** HTML back-end configuration
@@ -1591,7 +1358,7 @@ ugly, let's hope it's fixed upstream.):
 (setq org-ref-colorize-links nil)
 #+END_SRC
 
-I use helm-bibtex for completion, so I load this first. We then load
+I use ivy for completion, so I load this first. We then load
 org-ref. Helm-bibtex is configured to locate the pdf file using the
 field "file" which Zotero uses. We also define the directory where
 notes are stored. We setup some org-ref key bindings. Insert cite link
@@ -1606,9 +1373,10 @@ is ~C-c ]~ (default), label link ~C-c (~, and ref link ~C-c )~.
 
 (use-package org-ref
   :ensure t
+  :init (setq org-ref-completion-library 'org-ref-ivy-cite)
   :config
-  (define-key org-mode-map (kbd "C-c (") 'org-ref-helm-insert-label-link)
-  (define-key org-mode-map (kbd "C-c )") 'org-ref-helm-insert-ref-link))
+  (define-key org-mode-map (kbd "C-c (") 'org-ref-insert-label-function)
+  (define-key org-mode-map (kbd "C-c )") 'org-ref-insert-ref-function))
 #+END_SRC
 
 I need to configure org-ref to suite my workflow. I don't like having
@@ -1633,7 +1401,7 @@ point. We make this function open the PDF inside Emacs and use
 helm-bibtex to find the file.
 
 #+BEGIN_SRC emacs-lisp
-(defun my/org-ref-open-pdf-at-point ()
+(defun org-ref-open-pdf-at-point ()
   "Open the pdf for bibtex key under point if it exists."
   (interactive)
   (let* ((results (org-ref-get-bibtex-key-and-file))
@@ -1643,19 +1411,17 @@ helm-bibtex to find the file.
     (if (file-exists-p pdf-file)
         (org-open-file-with-emacs pdf-file)
       (message "No PDF found for %s" key))))
-
-(setq org-ref-open-pdf-function 'my/org-ref-open-pdf-at-point)
 #+END_SRC
 
 Finally we define how to store and open notes. We change the template
-to setup things for the Interleave package. When a new note is created
-the location of the PDF is inserted. We then modify the org-ref
-function to open notes to use helm-bibtex.
+to setup things. When a new note is created the location of the PDF is
+inserted. We then modify the org-ref function to open notes to use
+helm-bibtex.
 
 #+BEGIN_SRC emacs-lisp
 (setq bibtex-completion-notes-template-multiple-files
       "#+TITLE: Notes on: ${author} (${year}): ${title}
-,#+INTERLEAVE_PDF: ${file}
+,PDF:[[${file}]]
 
 ")
 
@@ -1666,26 +1432,6 @@ function to open notes to use helm-bibtex.
          (bibtex-completion-bibliography (list (file-truename (cdr results))))
          (pdf-file (bibtex-completion-find-pdf key)))
     (bibtex-completion-edit-notes key)))
-#+END_SRC
-
-Here I load the Interleave package to takes notes while reading a PDF
-inside emacs. Notes are displayed side by side with the
-PDF. Furthermore, only notes relevant to the current page are
-displayed. The package also makes it easy to add new notes pressing ~i~.
-We also fix a minor quirk that made notes be hidden when scrolling the
-PDF.
-
-#+BEGIN_SRC emacs-lisp
-(use-package interleave
-  :ensure t
-  :config
-  (advice-add 'interleave--go-to-page-note :after #'my/interleave-recenter)
-
-  (defun my/interleave-recenter (page)
-    (interactive "i")
-    (with-selected-window (get-buffer-window *interleave--org-buffer*)
-      (recenter)))
-  )
 #+END_SRC
 
 ** Templates
@@ -1720,12 +1466,11 @@ Templates for fast insertion of code blocks in org.
  - ~<p~ for python
  - ~<po~ for python with :results output
  - ~<pv~ for python with :results value output
- - ~<ip~ for ipython
  - ~<el~ for emacs-lisp
  - ~<sh~ for shell
  - ~<gp~ for gnuplot
  - ~<l~ for LaTeX
-
+   
 #+BEGIN_SRC emacs-lisp
 ;; add <p for python expansion
 (add-to-list 'org-structure-template-alist
@@ -1743,12 +1488,6 @@ Templates for fast insertion of code blocks in org.
 (add-to-list 'org-structure-template-alist
              '("pv"
                "#+BEGIN_SRC python :results value\n?\n#+END_SRC"
-               "<src lang=\"python\">\n?\n</src>"))
-
-;; add <ip for ipython expansion with session
-(add-to-list 'org-structure-template-alist
-             '("ip"
-               "#+BEGIN_SRC ipython :session \n?\n#+END_SRC"
                "<src lang=\"python\">\n?\n</src>"))
 
 ;; add <el for emacs-lisp expansion
@@ -2031,8 +1770,9 @@ applies also for HTML export:
 
 (use-package comment-dwim-2
   :ensure t
+  :bind ("M-;" . comment-dwim-2)
   :config
-  (global-set-key (kbd "M-;") 'comment-dwim-2))
+  (setq comment-dwim-2--inline-comment-behavior 'reindent-comment))
 #+END_SRC
 
 ** Highlight comment annotations
@@ -2080,11 +1820,11 @@ Semantic mode enables parsing of source code files.
   "Display a summary for the symbol under POINT."
   (interactive "P")
   (let* ((ctxt (semantic-analyze-current-context point))
-	 (pf (when ctxt
-	       (semantic-analyze-interesting-tag ctxt)))
-	)
+         (pf (when ctxt
+               (semantic-analyze-interesting-tag ctxt)))
+        )
     (if pf
-	(popup-tip (format "%s" (semantic-format-tag-summarize pf nil t)))
+        (popup-tip (format "%s" (semantic-format-tag-summarize pf nil t)))
       (popup-tip "No summary info available"))))
 (define-key semantic-mode-map (kbd "s-i") 'my/semantic-show-summary)
 (define-key semantic-mode-map (kbd "s-j") 'semantic-ia-fast-jump)
@@ -2144,7 +1884,8 @@ Install elpy package from the *elpy repository*.
 (use-package gnuplot
   :ensure t
   :config
-  (add-to-list 'auto-mode-alist '("\\.gp\\'" . gnuplot-mode)))
+  (add-to-list 'auto-mode-alist '("\\.gp\\'" . gnuplot-mode))
+  (setq gnuplot-display-process nil))
 #+END_SRC
 
 ** Processing
@@ -2187,7 +1928,7 @@ Install elpy package from the *elpy repository*.
  'c-mode-common-hook (lambda()
                        (local-set-key (kbd "C-<tab>") 'hs-toggle-hiding)
                        (local-set-key (kbd "<backtab>") 'hs/hide-show-all)
-                       (hs-minor-mode t))
+                       (hs-minor-mode t)))
 (defun hs/hide-show-all ()
   "Hide or show the contents of all headers."
   (interactive)
@@ -2197,4 +1938,3 @@ Install elpy package from the *elpy repository*.
     (setq this-command nil)))
 #+END_SRC
 The end.
-
