@@ -21,6 +21,7 @@ Load speed up:
 
 (set-exec-path-from-shell-PATH)
 #+END_SRC
+
 ** Personal information
 Personal information is stored in personal.el.
 This file must include personal information given as
@@ -41,7 +42,7 @@ This file must include personal information given as
   (setq package-archives
         '(("gnu"         . "http://elpa.gnu.org/packages/")
           ("melpa" . "http://melpa.org/packages/" )))
- 
+
   (package-initialize)
 
   ;; Bootstrap `use-package'
@@ -249,7 +250,10 @@ https://github.com/bbatsov/crux
   (setq ivy-height 5)
   (setq ivy-count-format "(%d/%d) ")
   (setq ivy-initial-inputs-alist nil)
-  (setq ivy-ignore-buffers '("\\` " "*Help*" "*scratch*" "Messages" "\\`\\*magit")))
+  (setq ivy-ignore-buffers
+        '("\\` "
+          "*Help*" "*scratch*" "*Messages*" "\\`\\*magit" "*toc*"
+          "synctex.gz")))
 #+END_SRC
 
 ** Magit
@@ -411,6 +415,21 @@ path.
   (add-to-list 'recentf-exclude "\\.log\\'")
 
   (recentf-mode +1))
+#+END_SRC
+
+** Yasnippet
+#+BEGIN_SRC emacs-lisp
+(use-package yasnippet
+  :ensure t
+  :config
+  (setq yas-snippet-dirs
+        '("~/.dotfiles/snippets"
+          yas-installed-snippets-dir))
+  (yas/global-mode 1)
+  (define-key yas-minor-mode-map (kbd "s-<tab>") 'yas-expand)
+  (define-key yas-minor-mode-map [(tab)]        nil)
+  (define-key yas-minor-mode-map (kbd "TAB")    nil)
+  (define-key yas-minor-mode-map (kbd "<tab>")  nil))
 #+END_SRC
 
 * Editing configuration
@@ -1846,12 +1865,6 @@ Semantic mode enables parsing of source code files.
 
 (define-key processing-mode-map (kbd "s-h") 'hydra-processing/body)
 
-#+END_SRC
-
-** Fish-shell
-#+BEGIN_SRC emacs-lisp
-(use-package fish-mode
-  :ensure t)
 #+END_SRC
 
 ** Hide-show
