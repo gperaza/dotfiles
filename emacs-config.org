@@ -11,42 +11,34 @@ This file must include personal information given as
 
 ** Setting up package manager and use-package
 #+begin_src emacs-lisp
-;; Please don't load outdated byte code
-(setq load-prefer-newer t)
+  ;; Please don't load outdated byte code
+  (setq load-prefer-newer t)
 
-(require 'package)
-(setq package-enable-at-startup nil)
+  (require 'package)
+  (setq package-enable-at-startup nil)
 
-(setq package-archives
-      '(("elpy" . "http://jorgenschaefer.github.io/packages/")
-        ("org"         . "http://orgmode.org/elpa/")
-        ("gnu"         . "http://elpa.gnu.org/packages/")
-        ("melpa-stable" . "http://melpa-stable.milkbox.net/packages/")
-        ("melpa" . "http://melpa.org/packages/" )
-        ))
+  (setq package-archives
+        '(("gnu"         . "http://elpa.gnu.org/packages/")
+          ("melpa" . "http://melpa.org/packages/" )))
+ 
+  (package-initialize)
 
-(package-initialize)
+  ;; Bootstrap `use-package'
+  (unless (package-installed-p 'use-package)
+    (package-refresh-contents)
+    (package-install 'use-package))
 
-;; Bootstrap `use-package'
-(unless (package-installed-p 'use-package)
-  (package-refresh-contents)
-  (package-install 'use-package))
+  (eval-when-compile
+    (require 'use-package))
+  (require 'bind-key)
 
-(eval-when-compile
-  (require 'use-package))
-(require 'bind-key)
-
-(use-package paradox
-  :ensure t
-  :commands paradox-list-packages)
+  (use-package paradox
+    :ensure t
+    :commands paradox-list-packages)
 #+end_src
 
 ** Some nice configurations
 #+BEGIN_SRC emacs-lisp
-;; reduce the frequency of garbage collection by making it happen on
-;; each 50MB of allocated data (the default is on every 0.76MB)
-(setq gc-cons-threshold 50000000)
-
 ;; warn when opening files bigger than 100MB
 (setq large-file-warning-threshold 100000000)
 
@@ -108,11 +100,11 @@ This file must include personal information given as
 
 ** Font settings
 #+BEGIN_SRC emacs-lisp
-(defvar gp/fixed-font-family "Source Code Pro")
+;;(defvar gp/fixed-font-family "Source Code Pro")
 
-(set-frame-font gp/fixed-font-family)
-(set-face-attribute 'default nil :font gp/fixed-font-family)
-(set-face-font 'default gp/fixed-font-family)
+;;(set-frame-font gp/fixed-font-family)
+;;(set-face-attribute 'default nil :font gp/fixed-font-family)
+;;(set-face-font 'default gp/fixed-font-family)
 
 ;; adjust font size to screen resolution
 (if (display-graphic-p)
@@ -123,9 +115,9 @@ This file must include personal information given as
 
 ** Color theme
 #+BEGIN_SRC emacs-lisp
-(use-package material-theme
-  :ensure t
-  :config (load-theme 'material t))
+(use-package spacemacs-theme
+  :ensure t)
+(load-theme 'spacemacs-dark t)
 #+END_SRC
 
 ** Smart mode line
@@ -250,47 +242,6 @@ https://github.com/bbatsov/crux
   (global-set-key (kbd "C-S-z") 'undo-tree-redo))
 #+END_SRC
 
-** Dired
-#+BEGIN_SRC emacs-lisp
-(require 'dired)
-;; set dired listing options
-(setq dired-listing-switches "-alDhp")
-
-;; reuse buffer
-(define-key dired-mode-map (kbd "RET") 'dired-find-alternate-file)
-(define-key dired-mode-map (kbd "^")
-  (lambda () (interactive) (find-alternate-file "..")))
-
-;; make sure dired buffers end in a slash so we can identify them easily
-(defun ensure-buffer-name-ends-in-slash ()
-  "change buffer name to end with slash"
-  (let ((name (buffer-name)))
-    (if (not (string-match "/$" name))
-        (rename-buffer (concat name "/") t))))
-(add-hook 'dired-mode-hook 'ensure-buffer-name-ends-in-slash)
-
-(defun xah-open-in-external-app (&optional file)
-  "Open the current file or dired marked files in external app.
-The app is chosen from your OS's preference."
-  (interactive)
-  (let (doIt
-        (myFileList
-         (cond
-          ((string-equal major-mode "dired-mode")
-           (dired-get-marked-files))
-          ((not file) (list (buffer-file-name)))
-          (file (list file)))))
-    (setq doIt (if (<= (length myFileList) 5)
-                   t
-                 (y-or-n-p "Open more than 5 files? ")))
-    (when doIt
-      (mapc
-       (lambda (fPath)
-         (let ((process-connection-type nil))
-           (start-process "" nil "xdg-open" fPath))) myFileList))))
-(define-key dired-mode-map (kbd "E") 'xah-open-in-external-app)
-#+END_SRC
-
 ** pdf-tools
 #+BEGIN_SRC emacs-lisp
 (use-package pdf-tools
@@ -299,41 +250,6 @@ The app is chosen from your OS's preference."
   :config
   (pdf-tools-install)
   (add-hook 'pdf-view-mode-hook 'pdf-view-auto-slice-minor-mode))
-#+END_SRC
-
-** Eyebrowse
-A window configuration manager. We bind it to M-W instead of C-c C-w
-to avoid conflicts with org.
-#+BEGIN_SRC emacs-lisp
-(use-package eyebrowse
-  :ensure t
-  :demand
-  :init
-  (setq eyebrowse-keymap-prefix (kbd "M-W"))
-  (defhydra hydra-eyebrowse ()
-    "eyebrowse"
-    ("s" eyebrowse-switch-to-window-config "switch")
-    ("n" eyebrowse-next-window-config "next")
-    ("p" eyebrowse-prev-window-config "prev")
-    ("l" eyebrowse-last-window-config "last")
-    ("c" eyebrowse-close-window-config "close")
-    ("r" eyebrowse-rename-window-config "rename")
-    ("1" eyebrowse-switch-to-window-config-1)
-    ("2" eyebrowse-switch-to-window-config-2)
-    ("3" eyebrowse-switch-to-window-config-3)
-    ("4" eyebrowse-switch-to-window-config-4)
-    ("5" eyebrowse-switch-to-window-config-5)
-    ("6" eyebrowse-switch-to-window-config-6)
-    ("7" eyebrowse-switch-to-window-config-7)
-    ("8" eyebrowse-switch-to-window-config-8)
-    ("9" eyebrowse-switch-to-window-config-9)
-    ("0" eyebrowse-switch-to-window-config-0)
-    ("q" nil "quit"))
-  :config
-  (eyebrowse-mode t)
-  (setq eyebrowse-new-workspace t)
-  (global-set-key (kbd "M-1") 'hydra-eyebrowse/body)
-)
 #+END_SRC
 
 ** Flyspell
@@ -797,12 +713,10 @@ compilation and white space handling.
 #+END_SRC
 
 * org-mode
-Org-mode it's the main reason I use Emacs. Here we configure it to our
-liking. First we load the latest org and extras goodies from org-contrib.
-
 #+BEGIN_SRC emacs-lisp
 (use-package org
-  :ensure org-plus-contrib)
+  :ensure t
+  :pin gnu)
 #+END_SRC
 
 ** Appearance
@@ -813,7 +727,8 @@ asterisks at the beginning of headings with nicer symbols:
 
 #+BEGIN_SRC emacs-lisp
 (setq org-ellipsis " ▼")
-(require 'org-bullets)
+(use-package org-bullets
+    :ensure t)
 (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
 #+END_SRC
 
@@ -1250,8 +1165,6 @@ ox-bibtex handles citations in HTML exports, for LaTeX citations I use
 (require 'ox-latex)
 (require 'ox-html)
 (require 'ox-beamer)
-(require 'ox-koma-letter)
-(require 'ox-bibtex)
 #+END_SRC
 
 **** LaTeX back-end configuration
@@ -1330,8 +1243,8 @@ exported, for this we activate ignore-headlines from ox-extra.
 Now the tag "ignore" does just this.
 
 #+BEGIN_SRC emacs-lisp
-(require 'ox-extra)
-(ox-extras-activate '(ignore-headlines))
+;;(require 'ox-extra)
+;;(ox-extras-activate '(ignore-headlines))
 #+END_SRC
 
 ** Org-ref
@@ -1730,7 +1643,7 @@ applies also for HTML export:
          :publishing-function org-publish-attachment)
         ))
 #+END_SRC
-
+    
 * Programming
 ** Parenthesis
 #+BEGIN_SRC emacs-lisp
@@ -1834,18 +1747,18 @@ Semantic mode enables parsing of source code files.
 #+END_SRC
 
 ** Python
-Install elpy package from the *elpy repository*.
 #+BEGIN_SRC emacs-lisp
-(use-package elpy
+(use-package anaconda-mode
   :ensure t
   :config
-  (elpy-enable)
-  (setq elpy-rpc-backend "jedi")
-  (elpy-use-ipython)
-  (remove-hook 'elpy-modules 'elpy-module-flymake)
-  (add-hook 'python-mode-hook
-            (lambda () (set (make-local-variable 'comment-inline-offset) 2)))
-  (setq elpy-rpc-error-timeout 100000000))
+  (add-hook 'python-mode-hook 'anaconda-mode)
+  (add-hook 'python-mode-hook 'anaconda-eldoc-mode)
+  (when (executable-find "ipython") (setq python-shell-interpreter "ipython")))
+(use-package company-anaconda
+  :ensure t
+  :config
+  (eval-after-load "company"
+    '(add-to-list 'company-backends 'company-anaconda)))
 #+END_SRC
 
 ** C
