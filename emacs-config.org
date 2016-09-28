@@ -249,7 +249,7 @@ https://github.com/bbatsov/crux
   (setq ivy-height 5)
   (setq ivy-count-format "(%d/%d) ")
   (setq ivy-initial-inputs-alist nil)
-  (setq ivy-ignore-buffers '("\\` " "*Help*" "*scratch*" "Messages")))
+  (setq ivy-ignore-buffers '("\\` " "*Help*" "*scratch*" "Messages" "\\`\\*magit")))
 #+END_SRC
 
 ** Magit
