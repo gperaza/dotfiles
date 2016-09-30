@@ -13,10 +13,10 @@
 \textbf{$2}
 \end{center}
 
-\begin{center}
-\fbox{\fbox{\parbox{5.5in}{\centering
-$3.}}}
-\end{center}
+% \begin{center}
+% \fbox{\fbox{\parbox{5.5in}{\centering
+% }}}
+% \end{center}
 
 \vspace{5mm}
 

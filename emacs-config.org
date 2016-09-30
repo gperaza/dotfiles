@@ -383,9 +383,9 @@ path.
   (interactive)
   "Open a terminal in current buffer's path."
   (call-process
-   "xfce4-terminal"
+   "konsole"
    nil 0 nil
-   (concat "--default-working-directory="
+   (concat "--workdir="
            (file-name-directory (or load-file-name buffer-file-name)))))
 (global-set-key (kbd "C-c t") 'open-term-here)
 #+END_SRC
@@ -1024,7 +1024,7 @@ Custom link types:
 
 (defun org-dir-term-open (path)
   "Open PATH in a terminal."
-  (call-process "xfce4-terminal"
+  (call-process "konsole"
                 nil 0 nil
                 (concat "--default-working-directory="
                         (expand-file-name path))))
