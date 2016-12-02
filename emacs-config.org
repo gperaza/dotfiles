@@ -708,6 +708,7 @@ which I rarely use.
 * LaTeX
 The latex-extra package provides folding, navigation, 1-key
 compilation and white space handling.
+
 #+BEGIN_SRC emacs-lisp
 (use-package tex
   :ensure auctex
