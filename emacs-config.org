@@ -127,6 +127,9 @@ This file must include personal information given as
 
 ;;Better frame title
 (setq frame-title-format "%b")
+
+;; Ignore system colors
+(setq inhibit-x-resources 't)
 #+END_SRC
 
 ** Font settings
@@ -146,9 +149,14 @@ This file must include personal information given as
 
 ** Color theme
 #+BEGIN_SRC emacs-lisp
-(use-package spacemacs-theme
-  :ensure t)
-(load-theme 'spacemacs-dark t)
+;; (use-package spacemacs-theme
+;;   :ensure t)
+;; (load-theme 'spacemacs-dark t)
+
+(use-package solarized-theme
+  :ensure t
+  :config
+  (load-theme 'solarized-dark t))
 #+END_SRC
 
 ** Smart mode line
@@ -229,8 +237,6 @@ https://github.com/bbatsov/crux
 (global-set-key (kbd "C-x C-b") 'ibuffer-other-window)
 (use-package smex ;;provides history to counsel-M-x
   :ensure t)
-;; (use-package flx ;;provides better fuzzy sorting
-;;   :ensure t)
 (use-package counsel
   :ensure t
   :bind
@@ -254,6 +260,8 @@ https://github.com/bbatsov/crux
         '("\\` "
           "*Help*" "*scratch*" "*Messages*" "\\`\\*magit" "*toc*"
           "synctex.gz")))
+(use-package ivy_buffer_extend
+  :load-path "~/.emacs.d/lisp/")
 #+END_SRC
 
 ** Magit
@@ -280,7 +288,8 @@ https://github.com/bbatsov/crux
   :mode (("\\.pdf$" . pdf-view-mode))
   :config
   (pdf-tools-install)
-  (add-hook 'pdf-view-mode-hook 'pdf-view-auto-slice-minor-mode))
+  ;;(add-hook 'pdf-view-mode-hook 'pdf-view-auto-slice-minor-mode)
+  )
 #+END_SRC
 
 ** Flyspell
@@ -413,6 +422,7 @@ path.
   (add-to-list 'recentf-exclude "\\org-clock-save.el\\'")
   (add-to-list 'recentf-exclude "\\.gz\\'")
   (add-to-list 'recentf-exclude "\\.log\\'")
+  (add-to-list 'recentf-exclude "\\.orhc-bibtex-cache\\'")
 
   (recentf-mode +1))
 #+END_SRC
@@ -430,6 +440,32 @@ path.
   (define-key yas-minor-mode-map [(tab)]        nil)
   (define-key yas-minor-mode-map (kbd "TAB")    nil)
   (define-key yas-minor-mode-map (kbd "<tab>")  nil))
+#+END_SRC
+
+** Ivy-bibtex
+#+BEGIN_SRC emacs-lisp
+(use-package ivy-bibtex
+  :ensure t
+  :config
+  (setq bibtex-completion-bibliography
+        '("/home/gperaza/Documents/SortedResources/full-bibliography.bib"))
+  (setq bibtex-completion-pdf-field "file")
+  (setq bibtex-completion-notes-path
+        "/home/gperaza/Documents/SortedResources/Notes"))
+#+END_SRC
+
+** Outshine and outorg
+#+BEGIN_SRC emacs-lisp
+(use-package outshine
+  :ensure t
+  :init
+  (defvar outline-minor-mode-prefix "\M-#")
+  :config
+  ;; (add-hook 'outline-minor-mode-hook 'outshine-hook-function)
+  (add-hook 'emacs-lisp-mode-hook 'outline-minor-mode)
+  (add-hook 'c-mode-hook 'outline-minor-mode)
+  (add-hook 'python-mode-hook 'outline-minor-mode)
+  (define-key outline-minor-mode-map (kbd "<S-iso-lefttab>") 'outshine-cycle-buffer))
 #+END_SRC
 
 * Editing configuration
@@ -473,6 +509,16 @@ path.
 
 ;; Turn on auto fill
 (add-hook 'text-mode-hook 'turn-on-auto-fill)
+
+;; Set truncate lines to nil
+(set-default 'truncate-lines t)
+
+;;Set fill column
+(setq-default fill-column 80)
+
+;; Save whatever’s in the current (system) clipboard before
+;; replacing it with the Emacs’ text.
+(setq save-interprogram-paste-before-kill t)
 #+END_SRC
 
 ** White space mode
@@ -683,7 +729,7 @@ compilation and white space handling.
               ;;(TeX-PDF-mode -1)
               (TeX-fold-mode t)
               (turn-on-reftex)
-              (turn-on-cdlatex)
+              ;;(turn-on-cdlatex)
               (TeX-source-correlate-mode t)
               (imenu-add-to-menubar "Index")
               (define-key LaTeX-mode-map (kbd "C-<tab>") #'latex/hide-show)
@@ -744,8 +790,8 @@ compilation and white space handling.
       (with-no-warnings (show-all))
       (setq this-command nil))))
 
-(use-package cdlatex
-  :ensure t)
+;; (use-package cdlatex
+;;   :ensure t)
 
 (defface endless/unimportant-latex-face
   '((t :height 0.7
@@ -1180,22 +1226,6 @@ templates for capturing.
 ;;         ))
 #+END_SRC
 
-** Agenda setup
-I don't use the agenda but it is my intention to learn how to.
-Supposedly one of the strong points in org.
-
-#+BEGIN_SRC emacs-lisp
-(global-set-key "\C-ca" 'org-agenda)
-
-(setq org-agenda-skip-scheduled-if-done t)
-(setq org-agenda-skip-deadline-if-done t)
-(setq org-agenda-skip-timestamp-if-done t)
-;;(setq org-agenda-todo-ignore-scheduled t)
-;;(setq org-agenda-todo-ignore-deadlines t)
-;;(setq org-agenda-todo-ignore-timestamp t)
-;;(setq org-agenda-todo-ignore-with-date t)
-#+END_SRC
-
 ** Org mode exporter
 Org-mode allow us to export our document to different formats. The two
 I use the most are LaTeX and HTML.
@@ -1210,6 +1240,13 @@ ox-bibtex handles citations in HTML exports, for LaTeX citations I use
 (require 'ox-latex)
 (require 'ox-html)
 (require 'ox-beamer)
+(use-package ox-reveal
+  :ensure t
+  :config
+  (setq org-reveal-root "file:/home/gperaza/opt/reveal.js")
+  (add-to-list 'org-structure-template-alist
+               '("revealcol"
+                 "#+REVEAL_HTML: <div class=\"column\" style=\"float:left; width: 50%\">\n?\n#+REVEAL_HTML: </div>")))
 #+END_SRC
 
 **** LaTeX back-end configuration
@@ -1313,15 +1350,10 @@ I use ivy for completion, so I load this first. We then load
 org-ref. Helm-bibtex is configured to locate the pdf file using the
 field "file" which Zotero uses. We also define the directory where
 notes are stored. We setup some org-ref key bindings. Insert cite link
-is ~C-c ]~ (default), label link ~C-c (~, and ref link ~C-c )~.
+is ~C-c ]~ (default), label link ~C-c (~, and ref link ~C-c )~. TODO This is
+not working, I need to manually setup the bindings for the ivy functions.
 
 #+BEGIN_SRC emacs-lisp
-(use-package helm-bibtex
-  :ensure t
-  :config
-  (setq bibtex-completion-pdf-field "file")
-  (setq bibtex-completion-notes-path "~/Documents/SortedResources/PaperNotes"))
-
 (use-package org-ref
   :ensure t
   :init (setq org-ref-completion-library 'org-ref-ivy-cite)
@@ -1335,7 +1367,7 @@ a huge bibliography file. Instead I like each project to have it's
 own, but helm-bibtex uses the variable ~bibtex-completion-bibliography~
 to define a global bibliography. We define a function to change this
 variable as needed and advice org-ref to use it every time we open a
-cite link.
+cite link. TODO Or perhaps this is what is breaking things.
 
 #+BEGIN_SRC emacs-lisp
 (defun my/helm-bibtex-setup ()
@@ -1844,8 +1876,8 @@ Semantic mode enables parsing of source code files.
 (use-package processing-mode
   :ensure t
   :config
-  (setq processing-location "/opt/processing-3.1.1/processing-java")
-  (setq processing-application-dir "/opt/processing-3.1.1/")
+  (setq processing-location "/opt/processing/processing-java")
+  (setq processing-application-dir "/opt/processing/")
   (setq processing-sketchbook-dir "/home/gperaza/Documents/code/processing/"))
 
 ;;Define a hydra with the basic processing commands.
@@ -1872,7 +1904,7 @@ Semantic mode enables parsing of source code files.
 (add-hook
  'c-mode-common-hook (lambda()
                        (local-set-key (kbd "C-<tab>") 'hs-toggle-hiding)
-                       (local-set-key (kbd "<backtab>") 'hs/hide-show-all)
+                       ;;(local-set-key (kbd "<backtab>") 'hs/hide-show-all)
                        (hs-minor-mode t)))
 (defun hs/hide-show-all ()
   "Hide or show the contents of all headers."
