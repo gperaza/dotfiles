@@ -461,12 +461,20 @@ path.
   :init
   (defvar outline-minor-mode-prefix "\M-#")
   :config
-  ;; (add-hook 'outline-minor-mode-hook 'outshine-hook-function)
+  ;;(add-hook 'outline-minor-mode-hook 'outshine-hook-function)
   (add-hook 'emacs-lisp-mode-hook 'outline-minor-mode)
   (add-hook 'c-mode-hook 'outline-minor-mode)
   (add-hook 'python-mode-hook 'outline-minor-mode)
   (define-key outline-minor-mode-map
-    (kbd "<S-iso-lefttab>") 'outshine-cycle-buffer))
+    (kbd "<S-iso-lefttab>") 'outshine-cycle-buffer)
+  (define-key outline-minor-mode-map
+    (kbd "<S-up>") 'outline-move-subtree-up)
+  (define-key outline-minor-mode-map
+    (kbd "<S-down>") 'outline-move-subtree-down)
+  (define-key outline-minor-mode-map
+    (kbd "<S-right>") 'outline-demote)
+  (define-key outline-minor-mode-map
+    (kbd "<S-left>") 'outline-promote))
 #+END_SRC
 
 * Editing configuration
@@ -740,7 +748,14 @@ compilation and white space handling.
   ;; reftex settings
   (setq reftex-enable-partial-scans t)
   (setq reftex-use-multiple-selection-buffers t)
-  (setq reftex-plug-into-AUCTeX t))
+  (setq reftex-plug-into-AUCTeX t)
+
+  (add-hook 'LaTeX-mode-hook
+            (lambda ()
+              (setq outline-promotion-headings
+                    '("\\chapter" "\\section" "\\subsection"
+                      "\\subsubsection" "\\paragraph" "\\subparagraph"))))
+  )
 #+END_SRC
 
 * org-mode
