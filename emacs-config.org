@@ -465,7 +465,8 @@ path.
   (add-hook 'emacs-lisp-mode-hook 'outline-minor-mode)
   (add-hook 'c-mode-hook 'outline-minor-mode)
   (add-hook 'python-mode-hook 'outline-minor-mode)
-  (define-key outline-minor-mode-map (kbd "<S-iso-lefttab>") 'outshine-cycle-buffer))
+  (define-key outline-minor-mode-map
+    (kbd "<S-iso-lefttab>") 'outshine-cycle-buffer))
 #+END_SRC
 
 * Editing configuration
@@ -729,11 +730,8 @@ compilation and white space handling.
               ;;(TeX-PDF-mode -1)
               (TeX-fold-mode t)
               (turn-on-reftex)
-              ;;(turn-on-cdlatex)
               (TeX-source-correlate-mode t)
               (imenu-add-to-menubar "Index")
-              (define-key LaTeX-mode-map (kbd "C-<tab>") #'latex/hide-show)
-              (define-key LaTeX-mode-map [backtab] #'latex/hide-show-all)
               (setq TeX-command-extra-options "--shell-escape")
               (LaTeX-math-mode t)))
   (setq flyspell-tex-command-regexp
@@ -741,73 +739,7 @@ compilation and white space handling.
   ;; reftex settings
   (setq reftex-enable-partial-scans t)
   (setq reftex-use-multiple-selection-buffers t)
-  (setq reftex-plug-into-AUCTeX t)
-
-;;; Section Folding
-  (require 'hideshow)
-  (defun latex/section-regexp ()
-    "Return a regexp matching anything in `latex/section-hierarchy'."
-    (format "^\\(%s\\)"
-            (mapconcat 'identity
-                       '("\\\\headerbox\\_>"
-                         "\\\\subparagraph\\*?\\_>"
-                         "\\\\paragraph\\*?\\_>"
-                         "\\\\subsubsection\\*?\\_>"
-                         "\\\\subsection\\*?\\_>"
-                         "\\\\section\\*?\\_>"
-                         "\\\\chapter\\*?\\_>"
-                         "\\\\part\\*?\\_>"
-                         "\\\\appendix\\_>\\|\\\\\\(begin\\|end\\){document}"
-                         "\\\\documentclass\\_>"
-                         )
-                       "\\|")))
-
-  (defun latex//header-at-point ()
-    "Return header under point or nil, as per `latex/section-hierarchy'."
-    (save-match-data
-      (save-excursion
-        (goto-char (line-beginning-position))
-        (when (looking-at (latex/section-regexp))
-          (match-string-no-properties 0)))))
-
-  (defun latex/hide-show ()
-    "Hide or show current header and its contents."
-    (interactive)
-    (when (latex//header-at-point)
-      (if (not (eq last-command 'latex/hide-show))
-          (with-no-warnings (hide-leaves))
-        (with-no-warnings (show-subtree))
-        (setq this-command nil))))
-
-  (defun latex/hide-show-all ()
-    "Hide or show the contents of all headers."
-    (interactive)
-    (if (null (eq last-command 'latex/hide-show-all))
-        (save-excursion
-          (goto-char (point-min))
-          (while (outline-next-heading)
-            (with-no-warnings (hide-leaves))))
-      (with-no-warnings (show-all))
-      (setq this-command nil))))
-
-;; (use-package cdlatex
-;;   :ensure t)
-
-(defface endless/unimportant-latex-face
-  '((t :height 0.7
-       :inherit font-lock-comment-face))
-  "Face used on less relevant math commands."
-  :group 'latex-faces)
-
-(font-lock-add-keywords
- 'latex-mode
- `((,(rx (or (and "\\" (or (any ",.!;")
-                           (and (or "left" "right"
-                                    "big" "Big")
-                                symbol-end)))
-             (any "_^")))
-    0 'endless/unimportant-latex-face prepend))
- 'end)
+  (setq reftex-plug-into-AUCTeX t))
 #+END_SRC
 
 * org-mode
