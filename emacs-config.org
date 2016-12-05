@@ -454,7 +454,7 @@ path.
         "/home/gperaza/Documents/SortedResources/Notes"))
 #+END_SRC
 
-** Outshine and outorg
+** TODO Outshine and outorg
 #+BEGIN_SRC emacs-lisp
 (use-package outshine
   :ensure t
@@ -465,6 +465,7 @@ path.
   (add-hook 'emacs-lisp-mode-hook 'outline-minor-mode)
   (add-hook 'c-mode-hook 'outline-minor-mode)
   (add-hook 'python-mode-hook 'outline-minor-mode)
+  ;; Structure editing
   (define-key outline-minor-mode-map
     (kbd "<S-iso-lefttab>") 'outshine-cycle-buffer)
   (define-key outline-minor-mode-map
@@ -475,6 +476,7 @@ path.
     (kbd "<S-right>") 'outline-demote)
   (define-key outline-minor-mode-map
     (kbd "<S-left>") 'outline-promote))
+  ;; Navigation TODO)
 #+END_SRC
 
 * Editing configuration
