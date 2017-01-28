@@ -155,6 +155,16 @@ This file must include personal information given as
 
 (use-package solarized-theme
   :ensure t
+  :init
+  (setq solarized-use-variable-pitch nil)
+  (setq solarized-scale-org-headlines nil)
+  (setq solarized-height-minus-1 120)
+  (setq solarized-height-plus-1 120)
+  (setq solarized-height-plus-2 120)
+  (setq solarized-height-plus-3 120)
+  (setq solarized-height-plus-4 120)
+  (setq font-latex-fontify-script nil)
+  ;; (setq font-latex-fontify-sectioning 1)
   :config
   (load-theme 'solarized-dark t))
 #+END_SRC
@@ -253,13 +263,15 @@ https://github.com/bbatsov/crux
   ("C-c i" . counsel-imenu)
   :config
   (ivy-mode 1)
-  (setq ivy-height 5)
+  (setq ivy-height 6)
   (setq ivy-count-format "(%d/%d) ")
   (setq ivy-initial-inputs-alist nil)
   (setq ivy-ignore-buffers
         '("\\` "
           "*Help*" "*scratch*" "*Messages*" "\\`\\*magit" "*toc*"
-          "synctex.gz")))
+          "synctex.gz"))
+  (setq ivy-re-builders-alist
+        '((t . ivy--regex-ignore-order))))
 (use-package ivy_buffer_extend
   :load-path "~/.emacs.d/lisp/")
 #+END_SRC
@@ -310,7 +322,10 @@ https://github.com/bbatsov/crux
   (add-to-list 'ispell-skip-region-alist
                '("^#\\+begin_example " . "#\\+end_example$"))
   (add-to-list 'ispell-skip-region-alist
-               '("^#\\+BEGIN_EXAMPLE " . "#\\+END_EXAMPLE$")))
+               '("^#\\+BEGIN_EXAMPLE " . "#\\+END_EXAMPLE$"))
+  (setq flyspell-tex-command-regexp
+        "\\(\\(begin\\|end\\)[  ]*{\\|\\(cite[a-z*]*\\|label\\|ref\\|eqref\\|usepackage\\|documentclass\\|bibliographystyle\\)[         ]*\\(\\[[^]]*\\]\\)?{[^{}]*\\)")
+)
 
 (use-package flyspell-correct-popup
   :ensure t
@@ -726,6 +741,7 @@ compilation and white space handling.
   (setq-default TeX-master nil)
   (setq TeX-auto-save t)
   (setq TeX-parse-self t)
+  (setq TeX-electric-math (cons "$" "$"))
 
   ;;Use pdf-tools to open PDF files
   (setq TeX-view-program-selection '((output-pdf "PDF Tools"))
@@ -742,11 +758,9 @@ compilation and white space handling.
               (TeX-fold-mode t)
               (turn-on-reftex)
               (TeX-source-correlate-mode t)
-              (imenu-add-to-menubar "Index")
               (setq TeX-command-extra-options "--shell-escape")
               (LaTeX-math-mode t)))
-  (setq flyspell-tex-command-regexp
-        "\\(\\(begin\\|end\\)[  ]*{\\|\\(cite[a-z*]*\\|label\\|ref\\|eqref\\|usepackage\\|documentclass\\|bibliographystyle\\)[         ]*\\(\\[[^]]*\\]\\)?{[^{}]*\\)")
+
   ;; reftex settings
   (setq reftex-enable-partial-scans t)
   (setq reftex-use-multiple-selection-buffers t)
@@ -757,7 +771,10 @@ compilation and white space handling.
               (setq outline-promotion-headings
                     '("\\chapter" "\\section" "\\subsection"
                       "\\subsubsection" "\\paragraph" "\\subparagraph"))))
-  )
+  ;; extra outline headers
+  (setq TeX-outline-extra
+        '(("\\\\begin{frame}" 5)))
+)
 #+END_SRC
 
 * org-mode
@@ -1193,10 +1210,12 @@ ox-bibtex handles citations in HTML exports, for LaTeX citations I use
 (use-package ox-reveal
   :ensure t
   :config
-  (setq org-reveal-root "file:/home/gperaza/opt/reveal.js")
-  (add-to-list 'org-structure-template-alist
-               '("revealcol"
-                 "#+REVEAL_HTML: <div class=\"column\" style=\"float:left; width: 50%\">\n?\n#+REVEAL_HTML: </div>")))
+  (setq org-reveal-root "../reveal.js")
+  (setq org-reveal-hlevel 1)
+  (add-to-list
+   'org-structure-template-alist
+   '("revealcol"
+     "#+REVEAL_HTML: <div class=\"column\" style=\"float:left; width: 50%\">\n?\n#+REVEAL_HTML: </div>")))
 #+END_SRC
 
 **** LaTeX back-end configuration
@@ -1248,9 +1267,9 @@ package via "#+LATEX_HEADER: /usepackage{minted}"
 **** HTML back-end configuration
 First disable emacs default style and include my own:
 #+BEGIN_SRC emacs-lisp
-(setq org-html-head-include-default-style nil)
-(setq org-html-head
- "<link rel='stylesheet' href='http://gperaza.github.io/org.css' />")
+;; (setq org-html-head-include-default-style nil)
+;; (setq org-html-head
+;;  "<link rel='stylesheet' href='http://gperaza.github.io/org.css' />")
 #+END_SRC
 
 *** Export behavior
@@ -1671,6 +1690,85 @@ applies also for HTML export:
         ))
 #+END_SRC
     
+* HTML projects
+** Probability and statistics course page
+#+BEGIN_SRC emacs-lisp
+(require 'ox-publish)
+(setq org-html-mathjax-options
+'((path "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML")
+ (scale "100")
+ (align "center")
+ (font "TeX")
+ (linebreaks "false")
+ (autonumber "AMS")
+ (indent "0em")
+ (multlinewidth "85%")
+ (tagindent ".8em")
+ (tagside "right")))
+(setq my-prob-stat-course-dir
+      "~/Documents/Teaching/Probability-and-Statistics/course-site/")
+(add-to-list
+ 'org-publish-project-alist
+ `("prob-stats-html"
+   :base-directory ,my-prob-stat-course-dir
+   :base-extension "org"
+   :publishing-directory ,my-prob-stat-course-dir
+   :recursive nil
+   :publishing-function org-html-publish-to-html
+   :headline-levels 4
+   :html-head "<link rel='stylesheet' href='css/course.css' />\n<link rel='stylesheet' href='http://fonts.googleapis.com/css?family=PT+Sans:400,400italic,700|Abril+Fatface'>"
+   :html-preamble ,(concat
+       "<h1>Probability and Statistics - UPY - 2017</h1>\n"
+       "<a href=\"index.html\"> HOME </a>\n|\n"
+       "<a href=\"syllabus.html\"> SYLLABUS </a>\n |\n"
+       "<a href=\"lectures.html\"> LECTURES </a>\n|\n"
+       "<a href=\"homework.html\"> HOMEWORK </a>\n|\n"
+       "<a href=\"lab.html\"> LABS </a>\n|\n"
+       )
+   ))
+;; (add-to-list
+;;  'org-publish-project-alist
+;;  `("prob-stats-static"
+;;    :base-directory ,concat my-prob-stat-course-dir
+;;    :base-extension "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|swf"
+;;    :publishing-directory ,my-prob-stat-course-dir
+;;    :recursive t
+;;    :publishing-function org-publish-attachment
+;;    ))
+(add-to-list
+ 'org-publish-project-alist
+ `("prob-stats-slides"
+   :base-directory ,(concat my-prob-stat-course-dir "slides/")
+   :base-extension "org"
+   :publishing-directory ,(concat my-prob-stat-course-dir "slides/")
+   :recursive nil
+   :publishing-function org-reveal-publish-to-reveal
+   ))
+(add-to-list
+ 'org-publish-project-alist
+ `("prob-stats-hw"
+   :base-directory ,(concat my-prob-stat-course-dir "homework/")
+   :base-extension "org"
+   :publishing-directory ,(concat my-prob-stat-course-dir "homework/")
+   :recursive nil
+   :publishing-function org-html-publish-to-html
+   :headline-levels 4
+   :html-head "<link rel='stylesheet' href='../css/course.css' />\n<link rel='stylesheet' href='http://fonts.googleapis.com/css?family=PT+Sans:400,400italic,700|Abril+Fatface'>"
+   :html-preamble ,(concat
+       "<h1>Probability and Statistics - UPY - 2017</h1>\n"
+       "<a href=\"../index.html\"> HOME </a>\n|\n"
+       "<a href=\"../syllabus.html\"> SYLLABUS </a>\n |\n"
+       "<a href=\"../lectures.html\"> LECTURES </a>\n|\n"
+       "<a href=\"../homework.html\"> HOMEWORK </a>\n|\n"
+       "<a href=\"../lab.html\"> LABS </a>\n|\n"
+       )
+   ))
+(add-to-list
+ 'org-publish-project-alist
+ '("prob-stats-course"
+   :components ("prob-stats-html" "prob-stats-slides" "prob-stats-hw")))
+#+END_SRC
+
 * Programming
 ** Parenthesis
 #+BEGIN_SRC emacs-lisp
