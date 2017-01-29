@@ -1,0 +1,8 @@
+#!/bin/bash
+set -euo pipefail
+IFS=$'\n\t'
+
+in_file=$1
+out_file=$(echo $1 | cut -f 1 -d .).pdf
+
+inkscape $in_file --export-pdf=$out_file
