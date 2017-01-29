@@ -271,7 +271,17 @@ https://github.com/bbatsov/crux
           "*Help*" "*scratch*" "*Messages*" "\\`\\*magit" "*toc*"
           "synctex.gz"))
   (setq ivy-re-builders-alist
-        '((t . ivy--regex-ignore-order))))
+        '((t . ivy--regex-ignore-order)))
+  (ivy-add-actions t
+                   '(("I" (lambda (x) (with-ivy-window (insert x))) "insert")))
+  (ivy-add-actions 'counsel-find-file
+                   '(("F" (lambda (x) (with-ivy-window (insert (file-relative-name x))))
+                      "insert relative file name")
+                     ("B" (lambda (x)
+                            (with-ivy-window
+                              (insert (file-name-nondirectory (replace-regexp-in-string "/\\'" "" x)))))
+                      "insert file name without any directory information")))
+  )
 (use-package ivy_buffer_extend
   :load-path "~/.emacs.d/lisp/")
 #+END_SRC
