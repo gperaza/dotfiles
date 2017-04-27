@@ -1,0 +1,8 @@
+#!/bin/bash
+
+cd Images
+
+a1=$(pwd | cut -d / -f 9)
+a2=$(pwd | cut -d / -f 8)
+
+ffmpeg -framerate 25 -i image-%05d.jpg -c:v libx264 -profile:v high -crf 20 -pix_fmt yuv420p video-Exp-${a1}-${a2}.mp4

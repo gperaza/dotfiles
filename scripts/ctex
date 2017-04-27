@@ -4,3 +4,4 @@ IFS=$'\n\t'
 
 rm -rf *.aux auto/ *.bbl *.log *.blg *.out *.rel *.toc
 rm -rf *.bcf *.run.xml *.synctex.gz *.fdb_latexmk *.fls *.pyg
+rm -rf *.nav *.snm ltximg/ _region_.tex

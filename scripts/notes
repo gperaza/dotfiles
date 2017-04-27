@@ -1,0 +1,62 @@
+#!/bin/bash
+# This script finds notes using a fuzzy matcher, it then opens the math in
+# emacs. Is a targer does not exists an empty buffer is created. Based on deft
+# for emacs. Requires fzf.
+
+# Options:
+# -s|--search: Search for regexp in file contents,
+
+# TODO: Filer by tags.
+
+# set -euo pipefail
+# IFS=$'\n\t'
+
+NOTESDIR=~/Documents/Notes/
+export FZF_DEFAULT_OPTS="--height 40% --reverse --border -i --ansi"
+
+cd $NOTESDIR
+
+while [ "$1" != "" ]; do
+    case $1 in
+        -s | --search )         shift
+                                search_string=$1
+                                ;;
+        -c | --create)          shift
+                                file_to_create=$1
+                                ;;
+        * )                     echo Not a valid argument.
+                                exit 1
+    esac
+    shift
+done
+
+if ! [ -z "$search_string" ]; then
+    line=$(grep -n --color=always -i -e "$search_string" ./*.org |
+               sed "s/.\///" | fzf)
+    notefile=$(echo "$line" | cut -d : -f 1)
+    linenum=$(echo "$line" | cut -d : -f 2)
+
+    if  [ -z "$notefile" ]; then exit 1; fi
+    emacsclient -a '' -c +"${linenum}" "$notefile"
+elif ! [ -z "$file_to_create" ]; then
+    emacsclient -a '' -c "$file_to_create"
+else
+    file_list=$(ls -t ./*.org)
+
+    for file in $file_list
+    do
+        file=$(echo "$file" | sed "s/.\///")
+        title=$(grep -m 1 "#+TITLE:" "$file" | sed "s/#+TITLE: //")
+        summary=$(grep -m 1 "#+SUBTITLE:" "$file" | sed "s/#+SUBTITLE: //")
+        # tags=$(grep -m 1 "#+FILETAGS:" $file | sed "s/#+FILETAGS: //")
+
+        line_list+="\e[0m\e[1m${title};\e[0m${summary};\e[90m${file}#"
+    done
+
+    notefile=$(echo -e "$line_list" | sed "s/#/\n/g" | column -t -s ";" |
+                   fzf | rev | cut -f 1 -d " "| rev)
+    if  [ -z "$notefile" ]; then exit 1; fi
+    emacsclient -a '' -c "$notefile"
+fi
+
+exit 0

@@ -1,0 +1,97 @@
+#!/bin/bash
+
+# A script to replicate the functionality of helm-bibtex for the
+# terminal. Searchs for papaers using fzf and offers several actions for the
+# selection. Uses bibtool for bibtex parsing.
+
+# TODO: All keep session actions.
+# TODO: Handle multiple selections.
+# TODO: Make customization easier.
+
+export bred="\e[0;31m"
+pdfdir=~/Documents/SortedResources
+bib_input_file=~/Documents/SortedResources/bibliography.bib
+
+print_help () {
+    key=$(echo "$1" | cut -d'{' -f4)
+    printf "[${bred}ENTER\e[0m]:open pdf or url,                "
+    printf "${bred}KEY\e[0m: \e[0;32m%s\n" "$key"
+    printf "[${bred}CTRL+action\e[0m]: execute action and exit,"
+    printf " [${bred}ALT+action\e[0m]: execute action and keep session\n"
+    printf "Actions: [${bred}p\e[0m]: open pdf, "
+    printf "  [${bred}u\e[0m]: open url(doi), "
+    printf "  [${bred}n\e[0m]: notes\n"
+    printf "         [${bred}a\e[0m]: mail entry, "
+    printf "[${bred}r\e[0m]: print entry, "
+    printf "    [${bred}o\e[0m]: open bibtex file at entry"
+}
+
+export -f print_help
+
+FZF_DEFAULT_OPTS="-m --no-mouse --reverse --ansi +x --no-hscroll --inline-info"
+FZF_DEFAULT_OPTS+=" --prompt='Search([tab]:help):'"
+FZF_DEFAULT_OPTS+=" --preview-window=down:4:hidden"
+FZF_DEFAULT_OPTS+=" --bind=tab:toggle-preview,ctrl-space:toggle"
+FZF_DEFAULT_OPTS+=" --expect=ctrl-p,ctrl-u,ctrl-n,ctrl-e,ctrl-r,ctrl-o"
+FZF_DEFAULT_OPTS+=",alt-u,alt-n,alt-a,alt-r,alt-o"
+
+export FZF_DEFAULT_OPTS
+
+line=$(bibparser.py | fzf --preview 'print_help {}')
+if [ -z "$line" ]; then
+    exit 0
+fi
+readarray -t line < <(echo "$line")
+
+key=$(echo "${line[1]}" | cut -d'{' -f4)
+pdf="$(echo "${line[1]}" | cut -d'{' -f5 | cut -d':' -f2)"
+doi=$(echo "${line[1]}" | cut -d'{' -f6)
+notes=~/Documents/SortedResources/Notes/${key}.org
+line_num=$(grep -n "$key" "$bib_input_file" | cut -f1 -d:)
+
+echo $doi
+case "${line[0]}" in
+    "" )
+        if [ ! -z "$pdf" ];then
+            echo "Opening pdf..."
+            okular "$pdfdir$pdf"&
+        elif [ ! -z "$doi" ];then
+            echo "Opening doi $doi..."
+            google-chrome-stable "https://dx.doi.org/$doi"
+        else
+            echo "No pdf nor doi. Doing nothing."
+        fi
+        ;;
+    "ctrl-p" )
+        if [ ! -z "$pdf" ];then
+            echo "Opening pdf..."
+            okular "$pdfdir$pdf"&
+        else
+            echo "No pdf. Doing nothing."
+        fi
+        ;;
+    "ctrl-u" )
+        if [ ! -z "$doi" ];then
+            echo "Opening doi $doi..."
+            google-chrome-stable "https://dx.doi.org/$doi"
+        else
+            echo "No doi. Doing nothing."
+        fi
+        ;;
+    "ctrl-n" )
+        echo "Opening notes file..."
+        emacsclient -a '' -c "$notes"
+        ;;
+    "ctrl-e" )
+        echo "Attaching to email..."
+        echo "Not implemented yet."
+        ;;
+    "ctrl-r" )
+        echo "Printing entry..."
+        bibtool -X "$key" "$bib_input_file"
+        ;;
+    "ctrl-o" )
+        echo "Opening bib file..."
+        emacsclient -a '' -c "+$line_num" "$bib_input_file"
+        ;;
+esac

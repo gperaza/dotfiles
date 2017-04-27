@@ -151,22 +151,22 @@ This file must include personal information given as
 #+BEGIN_SRC emacs-lisp
 ;; (use-package spacemacs-theme
 ;;   :ensure t)
-;; (load-theme 'spacemacs-dark t)
+   (load-theme 'darktooth t)
 
-(use-package solarized-theme
-  :ensure t
-  :init
-  (setq solarized-use-variable-pitch nil)
-  (setq solarized-scale-org-headlines nil)
-  (setq solarized-height-minus-1 120)
-  (setq solarized-height-plus-1 120)
-  (setq solarized-height-plus-2 120)
-  (setq solarized-height-plus-3 120)
-  (setq solarized-height-plus-4 120)
-  (setq font-latex-fontify-script nil)
-  ;; (setq font-latex-fontify-sectioning 1)
-  :config
-  (load-theme 'solarized-dark t))
+;; (use-package solarized-theme
+;;   :ensure t
+;;   :init
+;;   (setq solarized-use-variable-pitch nil)
+;;   (setq solarized-scale-org-headlines nil)
+;;   (setq solarized-height-minus-1 120)
+;;   (setq solarized-height-plus-1 120)
+;;   (setq solarized-height-plus-2 120)
+;;   (setq solarized-height-plus-3 120)
+;;   (setq solarized-height-plus-4 120)
+;;   (setq font-latex-fontify-script nil)
+;;   ;; (setq font-latex-fontify-sectioning 1)
+;;   :config
+;;   (load-theme 'solarized-dark t))
 #+END_SRC
 
 ** Smart mode line
@@ -227,7 +227,7 @@ https://github.com/bbatsov/crux
   "Like `fill-paragraph', but unfill if used twice."
   (interactive)
   (let ((fill-column
-         (if (eq last-command 'endless/fill-or-unfill)
+         (if (eq last-command 'fill-or-unfill)
              (progn (setq this-command nil)
                     (point-max))
            fill-column)))
@@ -261,11 +261,16 @@ https://github.com/bbatsov/crux
   ("C-c g" . counsel-ag)
   ("C-c r" . ivy-resume)
   ("C-c i" . counsel-imenu)
+  ("C-x b" . ivy-switch-buffer)
+  ("C-x <left>" . counsel-mark-ring)
+  ("C-x <right>" . counsel-mark-ring)
   :config
   (ivy-mode 1)
   (setq ivy-height 6)
   (setq ivy-count-format "(%d/%d) ")
   (setq ivy-initial-inputs-alist nil)
+  (setq counsel-yank-pop-separator "\n--------------------------------------\n")
+  (setq swiper-include-line-number-in-search t)
   (setq ivy-ignore-buffers
         '("\\` "
           "*Help*" "*scratch*" "*Messages*" "\\`\\*magit" "*toc*"
@@ -282,8 +287,8 @@ https://github.com/bbatsov/crux
                               (insert (file-name-nondirectory (replace-regexp-in-string "/\\'" "" x)))))
                       "insert file name without any directory information")))
   )
-(use-package ivy_buffer_extend
-  :load-path "~/.emacs.d/lisp/")
+(use-package ivy-hydra
+  :ensure t)
 #+END_SRC
 
 ** Magit
@@ -489,7 +494,6 @@ path.
   ;;(add-hook 'outline-minor-mode-hook 'outshine-hook-function)
   (add-hook 'emacs-lisp-mode-hook 'outline-minor-mode)
   (add-hook 'c-mode-hook 'outline-minor-mode)
-  (add-hook 'python-mode-hook 'outline-minor-mode)
   ;; Structure editing
   (define-key outline-minor-mode-map
     (kbd "<S-iso-lefttab>") 'outshine-cycle-buffer)
@@ -560,7 +564,7 @@ path.
 ** White space mode
 #+BEGIN_SRC emacs-lisp
 (setq whitespace-line-column 80)
-(setq whitespace-style '(face tabs empty trailing lines-tail))
+(setq whitespace-style '(face trailing lines-tail))
 (add-hook 'prog-mode-hook 'whitespace-mode)
 (add-hook 'LaTeX-mode-hook 'whitespace-mode)
 #+END_SRC
@@ -731,15 +735,6 @@ succeeds without error.
   :config (winner-mode 1))
 #+END_SRC
 
-** Back button
-Navigate the mark ring, replaces binding for next/previous-buffer
-which I rarely use.
-#+BEGIN_SRC emacs-lisp
-(use-package back-button
-  :ensure t
-  :config (back-button-mode 1))
-#+END_SRC
-
 * LaTeX
 The latex-extra package provides folding, navigation, 1-key
 compilation and white space handling.
@@ -782,9 +777,21 @@ compilation and white space handling.
                     '("\\chapter" "\\section" "\\subsection"
                       "\\subsubsection" "\\paragraph" "\\subparagraph"))))
   ;; extra outline headers
+
+  (setq LaTeX-section-list
+        '(("chapter" 1)
+          ("section" 2)
+          ("subsection" 3)
+          ("subsubsection" 4)
+          ("paragraph" 5)
+          ("subparagraph" 6)))
+
   (setq TeX-outline-extra
-        '(("\\\\begin{frame}" 5)))
-)
+        '(("\\\\begin{frame}" 5)
+          ("\\\\question" 5)
+          (" *\\\\part" 6))
+        )
+  )
 #+END_SRC
 
 * org-mode
@@ -852,6 +859,11 @@ Enable display of pretty entities by default. This makes text like
 (setq org-pretty-entities t)
 #+END_SRC
 
+Start with contents displayed
+#+BEGIN_SRC emacs-lisp
+(setq org-startup-folded 'content)
+#+END_SRC
+
 ** Babel, code inside org
 Babel is Org-mode's ability to execute source code within Org-mode
 documents.
@@ -861,6 +873,7 @@ First we need to tell babel which languages we intend to use, we can
 add more later.
 
 #+BEGIN_SRC emacs-lisp
+(require 'ob-shell)
 (org-babel-do-load-languages
  'org-babel-load-languages
  '((emacs-lisp . t)
@@ -1156,7 +1169,9 @@ is already narrowed."
 (add-hook 'LaTeX-mode-hook
           (lambda ()
             (define-key LaTeX-mode-map "\C-xn"
-              nil)))
+              nil)
+            (define-key LaTeX-mode-map "\C-ci" 'counsel-outline)
+            ))
 #+END_SRC
 
 ** Org capture
@@ -1188,21 +1203,6 @@ hack, there should be a better way of doing this.
 (advice-add 'org-refile :after #'org-save-all-org-buffers)
 #+END_SRC
 
-*** Templates
-One the best things about org-capture is that you can define your own
-templates for capturing.
-
-**** TODO I still need a template for a global to-do list.
-
-#+BEGIN_SRC emacs-lisp
-;; (setq org-capture-templates
-;;       '(
-;;         ("s" "Note (select file)" entry (file+headline
-;;           (read-file-name "File to capture to:" "~/Documents/Notes/") "Refile")
-;;          "** %?\n %i\n")
-;;         ))
-#+END_SRC
-
 ** Org mode exporter
 Org-mode allow us to export our document to different formats. The two
 I use the most are LaTeX and HTML.
@@ -1216,16 +1216,6 @@ ox-bibtex handles citations in HTML exports, for LaTeX citations I use
 #+BEGIN_SRC emacs-lisp
 (require 'ox-latex)
 (require 'ox-html)
-(require 'ox-beamer)
-(use-package ox-reveal
-  :ensure t
-  :config
-  (setq org-reveal-root "../reveal.js")
-  (setq org-reveal-hlevel 1)
-  (add-to-list
-   'org-structure-template-alist
-   '("revealcol"
-     "#+REVEAL_HTML: <div class=\"column\" style=\"float:left; width: 50%\">\n?\n#+REVEAL_HTML: </div>")))
 #+END_SRC
 
 **** LaTeX back-end configuration
@@ -1306,94 +1296,6 @@ Now the tag "ignore" does just this.
 #+BEGIN_SRC emacs-lisp
 ;;(require 'ox-extra)
 ;;(ox-extras-activate '(ignore-headlines))
-#+END_SRC
-
-** Org-ref
-Org-ref is a fantastic package from John Kitchin to manage citations
-and references in org-mode. It is worth it to read the whole
-documentation (use command ~(org-ref-help)~ ).
-
-Org-ref enables interactive cite links (~cite~), label links (~label~),
-
-Org-ref gives an error on HTML export. I don't understand why, but It
-is related to the function ~org-ref-make-org-link-cite-key-visible~ that
-makes cites inside descriptive links correctly colored (I think). So
-we set org-ref-colorize-links to never load the advice (This fix is
-ugly, let's hope it's fixed upstream.):
-
-#+BEGIN_SRC emacs-lisp
-(setq org-ref-colorize-links nil)
-#+END_SRC
-
-I use ivy for completion, so I load this first. We then load
-org-ref. Helm-bibtex is configured to locate the pdf file using the
-field "file" which Zotero uses. We also define the directory where
-notes are stored. We setup some org-ref key bindings. Insert cite link
-is ~C-c ]~ (default), label link ~C-c (~, and ref link ~C-c )~. TODO This is
-not working, I need to manually setup the bindings for the ivy functions.
-
-#+BEGIN_SRC emacs-lisp
-(use-package org-ref
-  :ensure t
-  :init (setq org-ref-completion-library 'org-ref-ivy-cite)
-  :config
-  (define-key org-mode-map (kbd "C-c (") 'org-ref-insert-label-function)
-  (define-key org-mode-map (kbd "C-c )") 'org-ref-insert-ref-function))
-#+END_SRC
-
-I need to configure org-ref to suite my workflow. I don't like having
-a huge bibliography file. Instead I like each project to have it's
-own, but helm-bibtex uses the variable ~bibtex-completion-bibliography~
-to define a global bibliography. We define a function to change this
-variable as needed and advice org-ref to use it every time we open a
-cite link. TODO Or perhaps this is what is breaking things.
-
-#+BEGIN_SRC emacs-lisp
-(defun my/helm-bibtex-setup ()
-  (interactive)
-    (let* ((results (org-ref-get-bibtex-key-and-file)))
-    (setq bibtex-completion-bibliography (list (file-truename (cdr results)))))
-  )
-
-(advice-add 'org-ref-cite-candidates :before 'my/helm-bibtex-setup)
-#+END_SRC
-
-We also need to change the function org-ref uses to open PDF's at
-point. We make this function open the PDF inside Emacs and use
-helm-bibtex to find the file.
-
-#+BEGIN_SRC emacs-lisp
-(defun org-ref-open-pdf-at-point ()
-  "Open the pdf for bibtex key under point if it exists."
-  (interactive)
-  (let* ((results (org-ref-get-bibtex-key-and-file))
-         (key (car results))
-         (bibtex-completion-bibliography (list (file-truename (cdr results))))
-         (pdf-file (bibtex-completion-find-pdf key)))
-    (if (file-exists-p pdf-file)
-        (org-open-file-with-emacs pdf-file)
-      (message "No PDF found for %s" key))))
-#+END_SRC
-
-Finally we define how to store and open notes. We change the template
-to setup things. When a new note is created the location of the PDF is
-inserted. We then modify the org-ref function to open notes to use
-helm-bibtex.
-
-#+BEGIN_SRC emacs-lisp
-(setq bibtex-completion-notes-template-multiple-files
-      "#+TITLE: Notes on: ${author} (${year}): ${title}
-,PDF:[[${file}]]
-
-")
-
-(defun org-ref-open-notes-at-point ()
-(interactive)
-  (let* ((results (org-ref-get-bibtex-key-and-file))
-         (key (car results))
-         (bibtex-completion-bibliography (list (file-truename (cdr results))))
-         (pdf-file (bibtex-completion-find-pdf key)))
-    (bibtex-completion-edit-notes key)))
 #+END_SRC
 
 ** Templates
@@ -1700,85 +1602,6 @@ applies also for HTML export:
         ))
 #+END_SRC
     
-* HTML projects
-** Probability and statistics course page
-#+BEGIN_SRC emacs-lisp
-(require 'ox-publish)
-(setq org-html-mathjax-options
-'((path "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML")
- (scale "100")
- (align "center")
- (font "TeX")
- (linebreaks "false")
- (autonumber "AMS")
- (indent "0em")
- (multlinewidth "85%")
- (tagindent ".8em")
- (tagside "right")))
-(setq my-prob-stat-course-dir
-      "~/Documents/Teaching/Probability-and-Statistics/course-site/")
-(add-to-list
- 'org-publish-project-alist
- `("prob-stats-html"
-   :base-directory ,my-prob-stat-course-dir
-   :base-extension "org"
-   :publishing-directory ,my-prob-stat-course-dir
-   :recursive nil
-   :publishing-function org-html-publish-to-html
-   :headline-levels 4
-   :html-head "<link rel='stylesheet' href='css/course.css' />\n<link rel='stylesheet' href='http://fonts.googleapis.com/css?family=PT+Sans:400,400italic,700|Abril+Fatface'>"
-   :html-preamble ,(concat
-       "<h1>Probability and Statistics - UPY - 2017</h1>\n"
-       "<a href=\"index.html\"> HOME </a>\n|\n"
-       "<a href=\"syllabus.html\"> SYLLABUS </a>\n |\n"
-       "<a href=\"lectures.html\"> LECTURES </a>\n|\n"
-       "<a href=\"homework.html\"> HOMEWORK </a>\n|\n"
-       "<a href=\"lab.html\"> LABS </a>\n|\n"
-       )
-   ))
-;; (add-to-list
-;;  'org-publish-project-alist
-;;  `("prob-stats-static"
-;;    :base-directory ,concat my-prob-stat-course-dir
-;;    :base-extension "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|swf"
-;;    :publishing-directory ,my-prob-stat-course-dir
-;;    :recursive t
-;;    :publishing-function org-publish-attachment
-;;    ))
-(add-to-list
- 'org-publish-project-alist
- `("prob-stats-slides"
-   :base-directory ,(concat my-prob-stat-course-dir "slides/")
-   :base-extension "org"
-   :publishing-directory ,(concat my-prob-stat-course-dir "slides/")
-   :recursive nil
-   :publishing-function org-reveal-publish-to-reveal
-   ))
-(add-to-list
- 'org-publish-project-alist
- `("prob-stats-hw"
-   :base-directory ,(concat my-prob-stat-course-dir "homework/")
-   :base-extension "org"
-   :publishing-directory ,(concat my-prob-stat-course-dir "homework/")
-   :recursive nil
-   :publishing-function org-html-publish-to-html
-   :headline-levels 4
-   :html-head "<link rel='stylesheet' href='../css/course.css' />\n<link rel='stylesheet' href='http://fonts.googleapis.com/css?family=PT+Sans:400,400italic,700|Abril+Fatface'>"
-   :html-preamble ,(concat
-       "<h1>Probability and Statistics - UPY - 2017</h1>\n"
-       "<a href=\"../index.html\"> HOME </a>\n|\n"
-       "<a href=\"../syllabus.html\"> SYLLABUS </a>\n |\n"
-       "<a href=\"../lectures.html\"> LECTURES </a>\n|\n"
-       "<a href=\"../homework.html\"> HOMEWORK </a>\n|\n"
-       "<a href=\"../lab.html\"> LABS </a>\n|\n"
-       )
-   ))
-(add-to-list
- 'org-publish-project-alist
- '("prob-stats-course"
-   :components ("prob-stats-html" "prob-stats-slides" "prob-stats-hw")))
-#+END_SRC
-
 * Programming
 ** Parenthesis
 #+BEGIN_SRC emacs-lisp
@@ -1973,6 +1796,19 @@ Semantic mode enables parsing of source code files.
     (setq this-command nil)))
 #+END_SRC
 The end.
+** Markdown mode
+#+BEGIN_SRC emacs-lisp
+(use-package markdown-mode
+  :ensure t)
+#+END_SRC
+** zeal-at-point
+#+BEGIN_SRC emacs-lisp
+(use-package zeal-at-point
+  :ensure t
+  :config
+  (global-set-key "\C-cd" 'zeal-at-point)
+  )
+#+END_SRC
 * End
 #+BEGIN_SRC emacs-lisp
 )
