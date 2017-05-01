@@ -308,17 +308,6 @@ https://github.com/bbatsov/crux
   (global-set-key (kbd "C-S-z") 'undo-tree-redo))
 #+END_SRC
 
-** pdf-tools
-#+BEGIN_SRC emacs-lisp
-(use-package pdf-tools
-  :ensure t
-  :mode (("\\.pdf$" . pdf-view-mode))
-  :config
-  (pdf-tools-install)
-  ;;(add-hook 'pdf-view-mode-hook 'pdf-view-auto-slice-minor-mode)
-  )
-#+END_SRC
-
 ** Flyspell
 #+BEGIN_SRC emacs-lisp
 (use-package flyspell
@@ -749,11 +738,11 @@ compilation and white space handling.
   (setq TeX-electric-math (cons "$" "$"))
 
   ;;Use pdf-tools to open PDF files
-  (setq TeX-view-program-selection '((output-pdf "PDF Tools"))
+  (setq TeX-view-program-selection '((output-pdf "Okular"))
         TeX-source-correlate-start-server t)
   ;;Update PDF buffers after successful LaTeX runs
-  (add-hook 'TeX-after-compilation-finished-functions
-            'TeX-revert-document-buffer)
+  ;; (add-hook 'TeX-after-compilation-finished-functions
+  ;;           'TeX-revert-document-buffer)
 
   (add-hook 'LaTeX-mode-hook
             (lambda ()
@@ -987,13 +976,6 @@ Allow lists with letters in them.
 
 #+BEGIN_SRC emacs-lisp
 (setq org-list-allow-alphabetical t)
-#+END_SRC
-
-*** Org CDLatex
-CDLaTeX allows to insert environments easily in org using "C-{".
-
-#+BEGIN_SRC emacs-lisp
-(add-hook 'org-mode-hook 'turn-on-org-cdlatex)
 #+END_SRC
 
 ** Structure editing
