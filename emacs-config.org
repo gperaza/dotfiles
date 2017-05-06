@@ -149,24 +149,7 @@ This file must include personal information given as
 
 ** Color theme
 #+BEGIN_SRC emacs-lisp
-;; (use-package spacemacs-theme
-;;   :ensure t)
    (load-theme 'darktooth t)
-
-;; (use-package solarized-theme
-;;   :ensure t
-;;   :init
-;;   (setq solarized-use-variable-pitch nil)
-;;   (setq solarized-scale-org-headlines nil)
-;;   (setq solarized-height-minus-1 120)
-;;   (setq solarized-height-plus-1 120)
-;;   (setq solarized-height-plus-2 120)
-;;   (setq solarized-height-plus-3 120)
-;;   (setq solarized-height-plus-4 120)
-;;   (setq font-latex-fontify-script nil)
-;;   ;; (setq font-latex-fontify-sectioning 1)
-;;   :config
-;;   (load-theme 'solarized-dark t))
 #+END_SRC
 
 ** Smart mode line
@@ -725,9 +708,6 @@ succeeds without error.
 #+END_SRC
 
 * LaTeX
-The latex-extra package provides folding, navigation, 1-key
-compilation and white space handling.
-
 #+BEGIN_SRC emacs-lisp
 (use-package tex
   :ensure auctex
@@ -1156,35 +1136,6 @@ is already narrowed."
             ))
 #+END_SRC
 
-** Org capture
-Org capture allows to quickly write to do's and notes without leaving
-what we are currently doing. We start to capture with "C-c c".
-
-#+BEGIN_SRC emacs-lisp
-(define-key global-map "\C-cc" 'org-capture)
-#+END_SRC
-
-For templates that do not define a target, I want notes stored in
-Notes/inbox.org.
-
-#+BEGIN_SRC emacs-lisp
-(setq org-default-notes-file "~/Documents/Notes/inbox.org")
-#+END_SRC
-
-The default behavior is to add the note at a header specified by the
-template. We can also choose a header by choosing "refiling" when
-exiting org-capture. Here I allow for new headings to be created when
-refiling. For some reason the org buffer is not saved when refiling,
-so I advice org refile to save all buffers when done. This is an ugly
-hack, there should be a better way of doing this.
-
-#+BEGIN_SRC emacs-lisp
-(setq org-refile-allow-creating-parent-nodes t)
-
-;; Ugly hack to save the file after refiling.
-(advice-add 'org-refile :after #'org-save-all-org-buffers)
-#+END_SRC
-
 ** Org mode exporter
 Org-mode allow us to export our document to different formats. The two
 I use the most are LaTeX and HTML.
@@ -1244,14 +1195,6 @@ package via "#+LATEX_HEADER: /usepackage{minted}"
         ("framesep" "2mm")))
 (setq org-latex-pdf-process
       '("latexmk -pdflatex='pdflatex --shell-escape' -pdf %f"))
-#+END_SRC
-
-**** HTML back-end configuration
-First disable emacs default style and include my own:
-#+BEGIN_SRC emacs-lisp
-;; (setq org-html-head-include-default-style nil)
-;; (setq org-html-head
-;;  "<link rel='stylesheet' href='http://gperaza.github.io/org.css' />")
 #+END_SRC
 
 *** Export behavior
@@ -1314,7 +1257,6 @@ Templates for fast insertion of code blocks in org.
  - ~<pv~ for python with :results value output
  - ~<el~ for emacs-lisp
  - ~<sh~ for shell
- - ~<gp~ for gnuplot
  - ~<l~ for LaTeX
    
 #+BEGIN_SRC emacs-lisp
@@ -1347,18 +1289,6 @@ Templates for fast insertion of code blocks in org.
              '("sh"
                "#+BEGIN_SRC sh\n?\n#+END_SRC"
                "<src lang=\"shell\">\n?\n</src>"))
-
-;; add <gp for gnuplot to file
-(add-to-list 'org-structure-template-alist
-             `("gp"
-               ,(concat "#+BEGIN_SRC gnuplot :file ./Fig/plot_file.pdf\n"
-                       "reset\n"
-                       "set term pdfcairo\n"
-                       "?\n"
-                       "#+END_SRC\n"
-                       "\n"
-                       "#+CAPTION:\n"
-                       "#+RESULTS:\n")))
 
 ;; add <l for latex
 (add-to-list 'org-structure-template-alist
@@ -1403,9 +1333,6 @@ Posted:
 #+END_SRC
 
 ** Blog using org publish
-I publish my personal site using org-publish to create a static web
-page that I then upload to Github.
-
 *** Formatting functions and variables
 This function removes brackets for time stamps.
 
@@ -1458,130 +1385,11 @@ drawer name as a class.
           "\n</div>"))
 #+END_SRC
 
-*** Preamble and postamble
-The preamble contains the navigation bar mainly.
-
-The preamble for posts:
-
-#+BEGIN_SRC emacs-lisp
-(setq my-preamble-posts
-      (concat
-       "<a href=\"../index.html\"> HOME </a>\n|\n"
-       "<a href=\"../blog.html\"> BLOG </a>\n |\n"
-       "<a href=\"../teaching.html\"> TEACHING </a>\n|\n"
-       "<a href=\"../research.html\"> RESEARCH </a>\n|\n"
-       "<a href=\"../about.html\"> ABOUT ME </a>\n|\n"
-       "<a href=\"archive.html\"> ARCHIVE </a>\n"
-       ))
-#+END_SRC
-
-The preamble for pages:
-
-#+BEGIN_SRC emacs-lisp
-(setq my-preamble-pages
-      (concat
-       "<a href=\"index.html\"> HOME </a>\n|\n"
-       "<a href=\"blog.html\"> BLOG </a>\n |\n"
-       "<a href=\"teaching.html\"> TEACHING </a>\n|\n"
-       "<a href=\"research.html\"> RESEARCH </a>\n|\n"
-       "<a href=\"about.html\"> ABOUT ME </a>\n|\n"
-       "<a href=\"posts/archive.html\"> ARCHIVE </a>\n"
-       ))
-#+END_SRC
-
-The postamble contains author information and modification date, this
-applies also for HTML export:
-
-#+BEGIN_SRC emacs-lisp
-(setq org-html-postamble t
-        org-html-postamble-format
-        '(("en" "<a class=\"author\"
-           href=\"http://gperaza.github.org\">%a</a> / <span
-           class=\"date\">%T</span><span class=\"creator\">%c</span>")))
-#+END_SRC
-
 *** Project configuration
 #+BEGIN_SRC emacs-lisp
 (use-package htmlize
   :ensure t)
 (setq org-html-htmlize-output-type 'css)
-(setq org-publish-project-alist
-      `(("blog"
-         :components ("posts", "pages", "images", "css"))
-        ("posts"
-         :base-directory "~/Blog/posts/"
-         :base-extension "org"
-         :publishing-directory "~/Blog/pub/posts/"
-         :recursive nil
-
-         :publishing-function org-html-publish-to-html
-         ;; :preparation-function
-         ;; :completition-function
-
-         :htmlized-source t
-
-         :with-author t
-         :with-creator t
-         :with-date nil
-         :with-email t
-         :with-toc t
-
-         :headline-level 4
-         :section-numbers nil
-         :html-validation-link nil
-
-         :html-head "<link rel='stylesheet' href='../org.css' />"
-         :html-head-include-default-style nil
-         :html-head-include-scripts t
-         :html-preamble ,my-preamble-posts
-
-         :auto-sitemap t
-         :sitemap-filename "archive"
-         :sitemap-title "Blog archive"
-         :sitemap-sort-files anti-chronologically
-         :sitemap-file-entry-format "%t (Posted: %d)"
-         :sitemap-date-format "%d %b %Y")
-        ("pages"
-         :base-directory "~/Blog/"
-         :base-extension "org"
-         :publishing-directory "~/Blog/pub/"
-         :recursive nil
-
-         :publishing-function org-html-publish-to-html
-         :preparation-function my-bibtex-function
-         ;; :completition-functiont
-         :html-format-drawer-function my-blog-org-export-format-drawer
-
-         :htmlized-source t
-
-         :with-author t
-         :with-creator t
-         :with-date nil
-         :with-email t
-         :with-toc nil
-         :with-tasks done
-         :with-todo-keywords nil
-
-         :headline-level 4
-         :section-numbers nil
-         :html-validation-link nil
-
-         :html-head "<link rel='stylesheet' href='org.css' />"
-         :html-head-include-default-style nil
-         :html-head-include-scripts t
-         :html-preamble ,my-preamble-pages)
-        ("images"
-         :base-directory "~/Blog/img/"
-         :base-extension ".*"
-         :publishing-directory "~/Blog/pub/img/"
-         :publishing-function org-publish-attachment
-         :recursive t)
-        ("css"
-         :base-directory "~/.dotfiles/css/"
-         :base-extension "css"
-         :publishing-directory "~/Blog/pub/"
-         :publishing-function org-publish-attachment)
-        ))
 #+END_SRC
     
 * Programming
@@ -1589,11 +1397,6 @@ applies also for HTML export:
 #+BEGIN_SRC emacs-lisp
 (show-paren-mode 1)
 (electric-pair-mode 1)
-
-(defvar match-paren--idle-timer nil)
-(defvar match-paren--delay 0.5)
-;; (setq-local match-paren--idle-timer
-;;       (run-with-idle-timer match-paren--delay t #'blink-matching-open))
 
 (use-package rainbow-delimiters
   :ensure t
@@ -1614,11 +1417,25 @@ applies also for HTML export:
   (auto-fill-mode 1))
 (add-hook 'prog-mode-hook 'comment-auto-fill)
 
-(use-package comment-dwim-2
-  :ensure t
-  :bind ("M-;" . comment-dwim-2)
-  :config
-  (setq comment-dwim-2--inline-comment-behavior 'reindent-comment))
+(defun xah-comment-dwim ()
+  "Like `comment-dwim', but toggle comment if cursor is not at end of line.
+URL `http://ergoemacs.org/emacs/emacs_toggle_comment_by_line.html'
+Version 2016-10-25"
+  (interactive)
+  (if (region-active-p)
+      (comment-dwim nil)
+    (let ((-lbp (line-beginning-position))
+          (-lep (line-end-position)))
+      (if (eq -lbp -lep)
+          (progn
+            (comment-dwim nil))
+        (if (eq (point) -lep)
+            (progn
+              (comment-dwim nil))
+          (progn
+            (comment-or-uncomment-region -lbp -lep)
+            (forward-line )))))))
+(global-set-key (kbd "M-;") 'xah-comment-dwim)
 #+END_SRC
 
 ** Highlight comment annotations
@@ -1727,11 +1544,10 @@ Semantic mode enables parsing of source code files.
 
 ** Gnuplot
 #+BEGIN_SRC emacs-lisp
-(use-package gnuplot
-  :ensure t
-  :config
-  (add-to-list 'auto-mode-alist '("\\.gp\\'" . gnuplot-mode))
-  (setq gnuplot-display-process nil))
+(use-package gnuplot-mode
+  :ensure t)
+  ;; :config
+  ;; (add-to-list 'auto-mode-alist '("\\.gp\\'" . gnuplot-mode)))
 #+END_SRC
 
 ** Processing
@@ -1783,6 +1599,7 @@ The end.
 (use-package markdown-mode
   :ensure t)
 #+END_SRC
+
 ** zeal-at-point
 #+BEGIN_SRC emacs-lisp
 (use-package zeal-at-point
@@ -1791,6 +1608,7 @@ The end.
   (global-set-key "\C-cd" 'zeal-at-point)
   )
 #+END_SRC
+
 * End
 #+BEGIN_SRC emacs-lisp
 )
