@@ -134,12 +134,6 @@ This file must include personal information given as
 
 ** Font settings
 #+BEGIN_SRC emacs-lisp
-;;(defvar gp/fixed-font-family "Source Code Pro")
-
-;;(set-frame-font gp/fixed-font-family)
-;;(set-face-attribute 'default nil :font gp/fixed-font-family)
-;;(set-face-font 'default gp/fixed-font-family)
-
 ;; adjust font size to screen resolution
 (if (display-graphic-p)
     (if (< (x-display-pixel-width) 1920)
@@ -249,7 +243,7 @@ https://github.com/bbatsov/crux
   ("C-x <right>" . counsel-mark-ring)
   :config
   (ivy-mode 1)
-  (setq ivy-height 6)
+  (setq ivy-height 7)
   (setq ivy-count-format "(%d/%d) ")
   (setq ivy-initial-inputs-alist nil)
   (setq counsel-yank-pop-separator "\n--------------------------------------\n")
@@ -260,8 +254,6 @@ https://github.com/bbatsov/crux
           "synctex.gz"))
   (setq ivy-re-builders-alist
         '((t . ivy--regex-ignore-order)))
-  (ivy-add-actions t
-                   '(("I" (lambda (x) (with-ivy-window (insert x))) "insert")))
   (ivy-add-actions 'counsel-find-file
                    '(("F" (lambda (x) (with-ivy-window (insert (file-relative-name x))))
                       "insert relative file name")
@@ -270,6 +262,12 @@ https://github.com/bbatsov/crux
                               (insert (file-name-nondirectory (replace-regexp-in-string "/\\'" "" x)))))
                       "insert file name without any directory information")))
   )
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(ivy-highlight-face ((t (:inherit minibuffer-prompt)))))
 (use-package ivy-hydra
   :ensure t)
 #+END_SRC
@@ -299,17 +297,6 @@ https://github.com/bbatsov/crux
   (setq ispell-program-name "aspell"
         ispell-extra-args '("--sug-mode=ultra"))
   (add-hook 'text-mode-hook 'turn-on-flyspell)
-  ;; ispell should not check code blocks in org mode
-  (add-to-list 'ispell-skip-region-alist
-               '(":\\(PROPERTIES\\|LOGBOOK\\):" . ":END:"))
-  (add-to-list 'ispell-skip-region-alist
-               '("#\\+BEGIN_SRC" . "#\\+END_SRC"))
-  (add-to-list 'ispell-skip-region-alist
-               '("#\\+begin_src" . "#\\+end_src"))
-  (add-to-list 'ispell-skip-region-alist
-               '("^#\\+begin_example " . "#\\+end_example$"))
-  (add-to-list 'ispell-skip-region-alist
-               '("^#\\+BEGIN_EXAMPLE " . "#\\+END_EXAMPLE$"))
   (setq flyspell-tex-command-regexp
         "\\(\\(begin\\|end\\)[  ]*{\\|\\(cite[a-z*]*\\|label\\|ref\\|eqref\\|usepackage\\|documentclass\\|bibliographystyle\\)[         ]*\\(\\[[^]]*\\]\\)?{[^{}]*\\)")
 )
@@ -450,7 +437,7 @@ path.
   :ensure t
   :config
   (setq bibtex-completion-bibliography
-        '("/home/gperaza/Documents/SortedResources/full-bibliography.bib"))
+        '("/home/gperaza/Documents/SortedResources/bibliography.bib"))
   (setq bibtex-completion-pdf-field "file")
   (setq bibtex-completion-notes-path
         "/home/gperaza/Documents/SortedResources/Notes"))

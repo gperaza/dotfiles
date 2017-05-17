@@ -7,6 +7,8 @@
 # TODO: All keep session actions.
 # TODO: Handle multiple selections.
 # TODO: Make customization easier.
+# TODO: Make bibparser use first argument as file to parse.
+# TODO: Handle error when bibtex parser or bibtool are not installed.
 
 export bred="\e[0;31m"
 pdfdir=~/Documents/SortedResources
@@ -14,16 +16,16 @@ bib_input_file=~/Documents/SortedResources/bibliography.bib
 
 print_help () {
     key=$(echo "$1" | cut -d'{' -f4)
-    printf "[${bred}ENTER\e[0m]:open pdf or url,                "
-    printf "${bred}KEY\e[0m: \e[0;32m%s\n" "$key"
-    printf "[${bred}CTRL+action\e[0m]: execute action and exit,"
-    printf " [${bred}ALT+action\e[0m]: execute action and keep session\n"
-    printf "Actions: [${bred}p\e[0m]: open pdf, "
-    printf "  [${bred}u\e[0m]: open url(doi), "
-    printf "  [${bred}n\e[0m]: notes\n"
-    printf "         [${bred}a\e[0m]: mail entry, "
-    printf "[${bred}r\e[0m]: print entry, "
-    printf "    [${bred}o\e[0m]: open bibtex file at entry"
+    echo -ne "[${bred}ENTER\e[0m]:open pdf or url,                "
+    echo -e  "${bred}KEY\e[0m: \e[0;32m$key"
+    echo -ne "[${bred}CTRL+action\e[0m]: execute action and exit,"
+    echo -e  " [${bred}ALT+action\e[0m]: execute action and keep session"
+    echo -ne "Actions: [${bred}p\e[0m]: open pdf, "
+    echo -ne "  [${bred}u\e[0m]: open url(doi), "
+    echo -e  "  [${bred}n\e[0m]: notes"
+    echo -ne "         [${bred}a\e[0m]: mail entry, "
+    echo -ne "[${bred}r\e[0m]: print entry, "
+    echo -ne "    [${bred}o\e[0m]: open bibtex file at entry"
 }
 
 export -f print_help

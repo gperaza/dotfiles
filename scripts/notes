@@ -4,7 +4,9 @@
 # for emacs. Requires fzf.
 
 # Options:
+# -h|--help: Print help.
 # -s|--search: Search for regexp in file contents,
+# -n|--new: Make a new note.
 
 # TODO: Filer by tags.
 
@@ -21,14 +23,23 @@ while [ "$1" != "" ]; do
         -s | --search )         shift
                                 search_string=$1
                                 ;;
-        -c | --create)          shift
+        -n | --new)             shift
                                 file_to_create=$1
+                                ;;
+        -h | --help)            shift
+                                echo "-h: print this help"
+                                echo "-s: search notes filenames with argument"
+                                echo "-n: create a new note with argument as filename"
+                                exit 0
                                 ;;
         * )                     echo Not a valid argument.
                                 exit 1
     esac
     shift
 done
+
+
+
 
 if ! [ -z "$search_string" ]; then
     line=$(grep -n --color=always -i -e "$search_string" ./*.org |
