@@ -452,7 +452,6 @@ path.
   :config
   ;;(add-hook 'outline-minor-mode-hook 'outshine-hook-function)
   (add-hook 'emacs-lisp-mode-hook 'outline-minor-mode)
-  (add-hook 'c-mode-hook 'outline-minor-mode)
   ;; Structure editing
   (define-key outline-minor-mode-map
     (kbd "<S-iso-lefttab>") 'outshine-cycle-buffer)
@@ -660,6 +659,11 @@ succeeds without error.
        ("s-<delete>" . hungry-delete-forward)))
 #+END_SRC
 
+** Multiple Cursors
+#+BEGIN_SRC emacs-lisp
+(use-package multiple-cursors
+  :ensure t)
+#+END_SRC
 * Navigation
 ** Misc
 #+BEGIN_SRC emacs-lisp
@@ -690,7 +694,6 @@ succeeds without error.
 ** Winner mode, undo-redo window configuration
 #+BEGIN_SRC emacs-lisp
 (use-package winner
-  :ensure t
   :config (winner-mode 1))
 #+END_SRC
 
@@ -875,6 +878,13 @@ Export both code and results.
       (cons '(:exports . "both")
             (assq-delete-all :exports org-babel-default-header-args)))
 #+END_SRC
+
+Disable Flycheck when editing code blocks.
+#+BEGIN_SRC emacs-lisp
+(defun disable-flycheck-in-org-src-block ()
+  (setq-local flycheck-disabled-checkers '(emacs-lisp-checkdoc)))
+(add-hook 'org-src-mode-hook 'disable-flycheck-in-org-src-block)
+#+END_SRC 
 
 *** Wrap text in a code block
 Sometimes I need to wrap some text inside a code block, specially for
@@ -1570,7 +1580,7 @@ Semantic mode enables parsing of source code files.
 (add-hook
  'c-mode-common-hook (lambda()
                        (local-set-key (kbd "C-<tab>") 'hs-toggle-hiding)
-                       ;;(local-set-key (kbd "<backtab>") 'hs/hide-show-all)
+                       (local-set-key (kbd "<backtab>") 'hs/hide-show-all)
                        (hs-minor-mode t)))
 (defun hs/hide-show-all ()
   "Hide or show the contents of all headers."
@@ -1580,7 +1590,7 @@ Semantic mode enables parsing of source code files.
     (hs-show-all)
     (setq this-command nil)))
 #+END_SRC
-The end.
+
 ** Markdown mode
 #+BEGIN_SRC emacs-lisp
 (use-package markdown-mode
