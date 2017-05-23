@@ -1,7 +1,8 @@
 #!/bin/bash
 # This script finds notes using a fuzzy matcher, it then opens the math in
 # emacs. Is a targer does not exists an empty buffer is created. Based on deft
-# for emacs. Requires fzf.
+# for emacs. Requires fzf. Searches file name and contents, responsive for a
+# small set of notes, but may become slow as note base grows.
 
 # Options:
 # -h|--help: Print help.
@@ -9,12 +10,32 @@
 # -n|--new: Make a new note.
 
 # TODO: Filer by tags.
-
-# set -euo pipefail
-# IFS=$'\n\t'
+# TODO: Display filename and content preview in help window.
+# TODO: Allow the creation for a new note from the search string.
+# TODO: Create a template for new notes with the #+TITLE: prefix.
+# TODO: Add actions: delete, rename, create.
+# Customization
 
 NOTESDIR=~/Documents/Notes/
-export FZF_DEFAULT_OPTS="--height 40% --reverse --border -i --ansi"
+NOTE_EXTENSION="org"
+SEPARATOR=" --- "
+SEP_LEN=${#SEPARATOR}
+SEPARATOR="\e[0m\e[38;5;240m${SEPARATOR}\e[0m"
+EMPTY_FILE_TITLE="[EMPTY file]"
+
+# Global variables
+FZF_DEFAULT_OPTS="-m --no-mouse --reverse --ansi +x --no-hscroll --inline-info"
+FZF_DEFAULT_OPTS+=" --prompt='Search([tab]:help):'"
+FZF_DEFAULT_OPTS+=" --preview-window=down:4:hidden"
+FZF_DEFAULT_OPTS+=" --bind=tab:toggle-preview,ctrl-space:toggle"
+# FZF_DEFAULT_OPTS+=" --expect=ctrl-p,ctrl-u,ctrl-n,ctrl-e,ctrl-r,ctrl-o"
+# FZF_DEFAULT_OPTS+=",alt-u,alt-n,alt-a,alt-r,alt-o"
+export FZF_DEFAULT_OPTS
+
+COLUMNS=$(stty size | cut -d ' ' -f 2)
+let ALLOWED_LEN=$COLUMNS-12-4
+
+# SCRIPT
 
 cd $NOTESDIR
 
@@ -38,9 +59,6 @@ while [ "$1" != "" ]; do
     shift
 done
 
-
-
-
 if ! [ -z "$search_string" ]; then
     line=$(grep -n --color=always -i -e "$search_string" ./*.org |
                sed "s/.\///" | fzf)
@@ -51,21 +69,47 @@ if ! [ -z "$search_string" ]; then
     emacsclient -a '' -c +"${linenum}" "$notefile"
 elif ! [ -z "$file_to_create" ]; then
     emacsclient -a '' -c "$file_to_create"
-else
-    file_list=$(ls -t ./*.org)
+else # Run default action
+
+    # Initially sort by modification date, newest first.
+    file_list=$(ls -t ./*.${NOTE_EXTENSION})
 
     for file in $file_list
     do
         file=$(echo "$file" | sed "s/.\///")
         title=$(grep -m 1 "#+TITLE:" "$file" | sed "s/#+TITLE: //")
+        if [ -z "$title" ]; then
+            # If there is no title use filename as title.
+            title=$file
+        fi
+        title_len=${#title}
+        title="\e[0m\e[0;32m${title}\e[0m"
+
         summary=$(grep -m 1 "#+SUBTITLE:" "$file" | sed "s/#+SUBTITLE: //")
+        # Crop summary to desired len
+        let max_summary_len=$ALLOWED_LEN-$title_len-$SEP_LEN
+        summary=${summary:0:$max_summary_len}
+        sum_len=${#summary}
+        summary="\e[0m\e[38;5;245m${summary}\e[0m"
+
+        mod_date=$(stat "$file" | grep Modify -m 1 |
+                       cut -d ' '  -f2)
+        # Pad mod date to desired len
+        let date_len=${#mod_date}+$ALLOWED_LEN-$title_len-$SEP_LEN-$sum_len
+        mod_date=$(printf "%${date_len}s" "$mod_date")
+        mod_date="\e[0m\e[0;34m${mod_date}\e[0m"
+
         # tags=$(grep -m 1 "#+FILETAGS:" $file | sed "s/#+FILETAGS: //")
 
-        line_list+="\e[0m\e[1m${title};\e[0m${summary};\e[90m${file}#"
+        # Passes whole content to fzf, may slow down with large note base. Still
+        # don't know if this is a good idea. Gives a lot of spurios
+        # matches. Need to read fzf documantation.
+        contents=$(tr '\n' ' ' < "$file")
+
+        line_list+="${title}${SEPARATOR}${summary} ${mod_date};${contents};${file};\n"
     done
 
-    notefile=$(echo -e "$line_list" | sed "s/#/\n/g" | column -t -s ";" |
-                   fzf | rev | cut -f 1 -d " "| rev)
+    notefile=$(echo -e "$line_list" | fzf | rev | cut -f 2 -d ";"| rev)
     if  [ -z "$notefile" ]; then exit 1; fi
     emacsclient -a '' -c "$notefile"
 fi

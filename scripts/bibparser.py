@@ -1,9 +1,9 @@
 #!/home/gperaza/anaconda3/bin/python
 
+import os
 import bibtexparser
 from bibtexparser.bparser import BibTexParser
 from bibtexparser.customization import convert_to_unicode
-import os
 
 
 def get_fields(entry):

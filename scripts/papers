@@ -9,6 +9,7 @@
 # TODO: Make customization easier.
 # TODO: Make bibparser use first argument as file to parse.
 # TODO: Handle error when bibtex parser or bibtool are not installed.
+# TODO: Make functions to handle actions.
 
 export bred="\e[0;31m"
 pdfdir=~/Documents/SortedResources
@@ -41,6 +42,7 @@ export FZF_DEFAULT_OPTS
 
 line=$(bibparser.py | fzf --preview 'print_help {}')
 if [ -z "$line" ]; then
+    # If line if empty exit. Handles C-c.
     exit 0
 fi
 readarray -t line < <(echo "$line")
@@ -51,12 +53,11 @@ doi=$(echo "${line[1]}" | cut -d'{' -f6)
 notes=~/Documents/SortedResources/Notes/${key}.org
 line_num=$(grep -n "$key" "$bib_input_file" | cut -f1 -d:)
 
-echo $doi
 case "${line[0]}" in
     "" )
         if [ ! -z "$pdf" ];then
             echo "Opening pdf..."
-            okular "$pdfdir$pdf"&
+            okular "$pdfdir$pdf" 1>/dev/null &
         elif [ ! -z "$doi" ];then
             echo "Opening doi $doi..."
             google-chrome-stable "https://dx.doi.org/$doi"
