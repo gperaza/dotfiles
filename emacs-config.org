@@ -846,18 +846,12 @@ add more later.
 #+END_SRC
 
 *** Set up Babel behavior
-Don't ask for confirmation when evaluating a code block.
+Don't ask for confirmation when evaluating a code block. I generally have huge
+and slow code blocks, we don't want to evaluate this on export. Also, being huge
+better keep them folded at start-up.
 
 #+BEGIN_SRC emacs-lisp
-(setq org-confirm-babel-evaluate nil
-      org-confirm-elisp-link-function nil
-      org-confirm-shell-link-function nil)
-#+END_SRC
-
-I generally have huge and slow code blocks, we don't want to evaluate
-this on export. Also, being huge better keep them folded at startup.
-
-#+BEGIN_SRC emacs-lisp
+(setq org-confirm-babel-evaluate nil)
 (setq org-export-babel-evaluate nil)
 (setq org-hide-block-startup t)
 #+END_SRC
@@ -880,6 +874,7 @@ Export both code and results.
 #+END_SRC
 
 Disable Flycheck when editing code blocks.
+
 #+BEGIN_SRC emacs-lisp
 (defun disable-flycheck-in-org-src-block ()
   (setq-local flycheck-disabled-checkers '(emacs-lisp-checkdoc)))
@@ -956,20 +951,6 @@ Allow lists with letters in them.
 #+END_SRC
 
 ** Structure editing
-*** Refile and copy
-When reviewing the captured data, you may want to refile or to copy
-some of the entries into a different list, for example into a
-project. Cutting, finding the right location, and then pasting the
-note is cumbersome. To simplify this process, you can use the
-refile command ~C-c C-w~. But first we need to configure it to target
-down to level 3 headings and use path like selection:
-
-#+BEGIN_SRC emacs-lisp
-(setq org-refile-targets '((nil . (:maxlevel . 3))))
-(setq org-refile-use-outline-path t)
-(setq org-outline-path-complete-in-steps nil)
-#+END_SRC
-
 ** Org mode links
 Enable storing, inserting and following links in any buffer:
 
@@ -1053,8 +1034,7 @@ press ? with the cursor at the beginning of a headline.
 #+END_SRC
 
 A hydra to navigate when not in a heading. Useful when I don't
-remember the commands. Now includes the useful ~org-toc-show~ to show a
-table of contents.
+remember the commands.
 
 #+BEGIN_SRC emacs-lisp
 (defhydra hydra-org (:color red :columns 3)
@@ -1063,16 +1043,9 @@ table of contents.
   ("p" outline-previous-visible-heading "prev heading")
   ("N" org-forward-heading-same-level "next heading at same level")
   ("P" org-backward-heading-same-level "prev heading at same level")
-  ("u" outline-up-heading "up heading")
-  ("g" org-goto "goto" :exit t)
-  ("t" org-toc-show "TOC" :exit t))
+  ("u" outline-up-heading "up heading"))
 
 (define-key org-mode-map (kbd "s-n") 'hydra-org/body)
-#+END_SRC
-
-Set some org-toc properties, activate follow mode:
-#+BEGIN_SRC emacs-lisp
-(setq org-toc-follow-mode t)
 #+END_SRC
 
 Function that replaces the entire key map for narrow widen in org.
