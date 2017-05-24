@@ -664,6 +664,7 @@ succeeds without error.
 (use-package multiple-cursors
   :ensure t)
 #+END_SRC
+
 * Navigation
 ** Misc
 #+BEGIN_SRC emacs-lisp
@@ -773,43 +774,12 @@ asterisks at the beginning of headings with nicer symbols:
 (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
 #+END_SRC
 
-This hides the markup markers (* for bold. / for emphasis, etc.), they
-are still there, just hidden:
-
-#+BEGIN_SRC emacs-lisp
-(setq org-hide-emphasis-markers t)
-#+END_SRC
-
-We change the "-" in lists to nice bullets:
-
-#+BEGIN_SRC emacs-lisp
-(font-lock-add-keywords
- 'org-mode
- '(("^ +\\([-*]\\) "
-    (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
-#+END_SRC
-
 I like to keep text width under 80 characters. Indentation in lower
 level headings makes things look weird so we disable indentation all
 together.
 
 #+BEGIN_SRC emacs-lisp
 (setq org-adapt-indentation nil)
-#+END_SRC
-
-Make code blocks pretty:
-
-#+BEGIN_SRC emacs-lisp
-(setq org-src-fontify-natively t)
-#+END_SRC
-
-Increase the size of and colorize latex fragments in text:
-
-#+BEGIN_SRC emacs-lisp
-(plist-put org-format-latex-options :scale 1.5)
-
-(eval-after-load 'org
-  '(setf org-highlight-latex-and-related '(latex)))
 #+END_SRC
 
 Enable display of pretty entities by default. This makes text like
@@ -929,6 +899,22 @@ LaTeX code. I don't remember where I find this but it is useful.
 (define-key org-mode-map (kbd "C-<") 'org-begin-template)
 #+END_SRC
 
+*** LaTeX fragments
+Edit LaTeX fragments like editing src blocks
+
+#+BEGIN_SRC emacs-lisp
+(use-package org-edit-latex
+  :ensure t
+  :config
+  (add-hook 'org-mode-hook 'org-edit-latex-mode))
+#+END_SRC
+
+Increase the size of latex fragments in text:
+
+#+BEGIN_SRC emacs-lisp
+(plist-put org-format-latex-options :scale 1.5)
+#+END_SRC
+
 ** Editing
 Configuration of some ways to write in org.
 
@@ -950,7 +936,6 @@ Allow lists with letters in them.
 (setq org-list-allow-alphabetical t)
 #+END_SRC
 
-** Structure editing
 ** Org mode links
 Enable storing, inserting and following links in any buffer:
 
@@ -1033,21 +1018,6 @@ press ? with the cursor at the beginning of a headline.
 (setq org-use-speed-commands t)
 #+END_SRC
 
-A hydra to navigate when not in a heading. Useful when I don't
-remember the commands.
-
-#+BEGIN_SRC emacs-lisp
-(defhydra hydra-org (:color red :columns 3)
-  "Org Mode Movements"
-  ("n" outline-next-visible-heading "next heading")
-  ("p" outline-previous-visible-heading "prev heading")
-  ("N" org-forward-heading-same-level "next heading at same level")
-  ("P" org-backward-heading-same-level "prev heading at same level")
-  ("u" outline-up-heading "up heading"))
-
-(define-key org-mode-map (kbd "s-n") 'hydra-org/body)
-#+END_SRC
-
 Function that replaces the entire key map for narrow widen in org.
 Narrowing is really useful to focus only on the relevant section we
 want to edit. Now we can narrow/widen smartly using only
@@ -1110,18 +1080,14 @@ is already narrowed."
 Org-mode allow us to export our document to different formats. The two
 I use the most are LaTeX and HTML.
 
-*** Export back-ends
-Enable back-ends for export formats. Aside from LaTeX and HTML, beamer
-is to make presentations, koma-letter is a LaTeX class for letters and
-ox-bibtex handles citations in HTML exports, for LaTeX citations I use
-[[*Org-ref][org-ref]].
+Set-up export back-ends
 
 #+BEGIN_SRC emacs-lisp
 (require 'ox-latex)
 (require 'ox-html)
 #+END_SRC
 
-**** LaTeX back-end configuration
+*** LaTeX back-end configuration
 The LaTeX back-end needs some extra configuration.
 
 Define extra packages to be included in latex exports.
@@ -1173,24 +1139,6 @@ braces are used.
 
 #+BEGIN_SRC emacs-lisp
 (setq org-export-with-sub-superscripts '{})
-#+END_SRC
-
-If org-export-allow-bind-keywords is non-nil, Emacs variables can
-become buffer-local during export by using the BIND keyword. Its
-syntax is ‘#+BIND: variable value’. This is particularly useful for
-in-buffer settings that cannot be changed using specific keywords.
-
-#+BEGIN_SRC emacs-lisp
-(setq org-export-allow-bind-keywords t)
-#+END_SRC
-
-Sometimes I want a header to be ignored but the content to be
-exported, for this we activate ignore-headlines from ox-extra.
-Now the tag "ignore" does just this.
-
-#+BEGIN_SRC emacs-lisp
-;;(require 'ox-extra)
-;;(ox-extras-activate '(ignore-headlines))
 #+END_SRC
 
 ** Templates
@@ -1303,7 +1251,6 @@ Posted:
 #+END_SRC
 
 ** Blog using org publish
-*** Formatting functions and variables
 This function removes brackets for time stamps.
 
 #+BEGIN_SRC emacs-lisp
@@ -1355,7 +1302,7 @@ drawer name as a class.
           "\n</div>"))
 #+END_SRC
 
-*** Project configuration
+Htmlize for code blocks.
 #+BEGIN_SRC emacs-lisp
 (use-package htmlize
   :ensure t)
