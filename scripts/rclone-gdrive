@@ -1,0 +1,16 @@
+#!/bin/sh
+
+# Script for syncing local files to google drive using rclone. Syncs up to the
+# remote, keeps local intact.
+
+# Flags:
+# --drive-use-trash: Send deleted files to the trash instead of permanently
+# deteting the.
+# --drive-formats ods,odt,odp: Export Google docs in libreoffice format.
+# -u, --update: This forces rclone to skip any files which exist on the
+# -destination and have a modified time that is newer than the source file.
+
+# Commands:
+# rclone sync - Make source and dest identical, modifying destination only.
+
+#rclone sync /home/gperaza/Documents/

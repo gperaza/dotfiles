@@ -1463,8 +1463,6 @@ Semantic mode enables parsing of source code files.
 #+BEGIN_SRC emacs-lisp
 (use-package gnuplot-mode
   :ensure t)
-  ;; :config
-  ;; (add-to-list 'auto-mode-alist '("\\.gp\\'" . gnuplot-mode)))
 #+END_SRC
 
 ** Processing
@@ -1475,24 +1473,6 @@ Semantic mode enables parsing of source code files.
   (setq processing-location "/opt/processing/processing-java")
   (setq processing-application-dir "/opt/processing/")
   (setq processing-sketchbook-dir "/home/gperaza/Documents/code/processing/"))
-
-;;Define a hydra with the basic processing commands.
-(defhydra hydra-processing ()
-    "Processing"
-    ("r" processing-sketch-run "Run sketch.")
-    ("b" processing-sketch-build "Compile sketch.")
-    ("p" processing-sketch-present "Run sketch full screen.")
-    ("e" processing-export-application "Export sketch.")
-    ("d" processing-find-in-reference "Find in reference.")
-    ("f" processing-find-sketch "Find or create sketch.")
-    ("s" processing-search-forums "Search forum.")
-    ("l" processing-open-examples "Open examples.")
-    ("h" processing-open-reference "Open examples.")
-    ("o" processing-open-sketchbook "Open sketchbook.")
-    ("q" nil "quit"))
-
-(define-key processing-mode-map (kbd "s-h") 'hydra-processing/body)
-
 #+END_SRC
 
 ** Hide-show
