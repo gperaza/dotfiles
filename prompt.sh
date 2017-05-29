@@ -200,8 +200,8 @@ _lp_load_color()
     cpu_load=${cpu_load#0}    # Remove leading '0', again (ex: 0.09)
     local -i load=${cpu_load:-0}/$CPUNUM
 
-    if (( load > 60 )); then
-        echo -nE "💻${load}%${NO_COL}"
+    if (( load > 50 )); then
+        echo -nE "⌂${load}%${NO_COL}"
     fi
 }
 
@@ -225,8 +225,8 @@ _lp_temperature()
         (( $i > ${temperature:-0} )) && temperature=i
     done
 
-    (( temperature >= 60 )) && \
-        echo -nE "🌡$temperature°${NO_COL}"
+    (( temperature >= 70 )) && \
+        echo -nE "θ$temperature°${NO_COL}"
 }
 
 ##########
