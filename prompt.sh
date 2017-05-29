@@ -168,10 +168,12 @@ timer_stop () {
         local H=$((T/60/60%24))
         local D=$((T/60/60/24))
 
-        timer_show=$([[ $D > 0 ]] && printf '%dd%dh' $D $H ||
+        timer_show="[⌛"
+        timer_show+=$([[ $D > 0 ]] && printf '%dd%dh' $D $H ||
                 ([[ $H > 0 ]] && printf '%dh%dm' $H $M) ||
                 ([[ $M > 0 ]] && printf '%dm%ds' $M $S) ||
                 printf "%ds" $S)
+        timer_show+="]"
     else
         timer_show=""
     fi
@@ -276,8 +278,7 @@ _lp_set_prompt()
         LP_PERM="${RED}:${NO_COL}"
     fi
 
-    local TIME="${BLUE}\t${NO_COL} "
-    PS1="${LP_PS1_PREFIX}${TIME}${LP_LOAD}${LP_TEMP}${LP_JOBS}"
+    PS1="${LP_PS1_PREFIX}${LP_LOAD}${LP_TEMP}${LP_JOBS}"
 
     # add user, host and permissions colon
     LP_PWD="${LP_COLOR_PATH}\w$NO_COL"
@@ -287,8 +288,11 @@ _lp_set_prompt()
     LP_VCS="$(_lp_sl "$(_lp_git_branch_color)")"
     PS1+="${LP_VCS}"
 
+    timer_stop
+
     # add return code and prompt mark
-    PS1+="${LP_RUNTIME}\n${LP_ERR}${LP_COLOR_MARK}> "
+    PS1+="\n${timer_show}${LP_ERR}${LP_COLOR_MARK}> "
+
 }
 
 prompt_tag()
