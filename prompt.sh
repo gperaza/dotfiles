@@ -252,7 +252,7 @@ _lp_sl()
 ########################
 
 # Shorten the path of the current working directory
-PROMPT_DIRTRIM=2
+PROMPT_DIRTRIM=1
 
 _lp_set_prompt()
 {
@@ -278,10 +278,10 @@ _lp_set_prompt()
         LP_PERM="${RED}:${NO_COL}"
     fi
 
-    PS1="${LP_PS1_PREFIX}${LP_LOAD}${LP_TEMP}${LP_JOBS}"
+    PS1="┌─${LP_PS1_PREFIX}${LP_LOAD}${LP_TEMP}${LP_JOBS}"
 
     # add user, host and permissions colon
-    LP_PWD="${LP_COLOR_PATH}\w$NO_COL"
+    LP_PWD="${LP_COLOR_PATH}\W$NO_COL"
     PS1+="${LP_USER}${LP_HOST}${LP_PERM}${LP_PWD}"
 
     # Add VCS infos
@@ -291,7 +291,7 @@ _lp_set_prompt()
     timer_stop
 
     # add return code and prompt mark
-    PS1+="\n${timer_show}${LP_ERR}${LP_COLOR_MARK}> "
+    PS1+="\n└─${timer_show}${LP_ERR}${LP_COLOR_MARK}>${NO_COL} "
 
 }
 

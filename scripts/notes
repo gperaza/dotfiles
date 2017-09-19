@@ -104,7 +104,7 @@ else # Run default action
         # Passes whole content to fzf, may slow down with large note base. Still
         # don't know if this is a good idea. Gives a lot of spurios
         # matches. Need to read fzf documantation.
-        contents=$(tr '\n' ' ' < "$file")
+        # contents=$(tr '\n' ' ' < "$file")
 
         line_list+="${title}${SEPARATOR}${summary} ${mod_date};${contents};${file};\n"
     done
