@@ -1158,9 +1158,9 @@ If not, look up both of the words.
 
 * org-mode
 #+BEGIN_SRC emacs-lisp
-(use-package org
-  :ensure t
-  :pin gnu)
+ (use-package org
+   :ensure t
+   :pin gnu)
 #+END_SRC
 
 ** Appearance
@@ -1213,7 +1213,9 @@ add more later.
    (C . t)
    (latex . t)
    (awk . t)
-   (gnuplot . t)))
+   (gnuplot . t)
+   (dot . t)))
+(add-to-list 'org-src-lang-modes '("dot" . "graphviz-dot"))
 #+END_SRC
 
 *** Set up Babel behavior
@@ -1223,7 +1225,6 @@ better keep them folded at start-up.
 
 #+BEGIN_SRC emacs-lisp
 (setq org-confirm-babel-evaluate nil)
-(setq org-export-babel-evaluate nil)
 (setq org-hide-block-startup t)
 #+END_SRC
 
@@ -1236,12 +1237,10 @@ tab behave as in the native major mode inside blocks.
 (setq org-src-tab-acts-natively t)
 #+END_SRC
 
-Export both code and results.
+Do not evaluate on export.
 
 #+BEGIN_SRC emacs-lisp
-(setq org-babel-default-header-args
-      (cons '(:exports . "both")
-            (assq-delete-all :exports org-babel-default-header-args)))
+(add-to-list 'org-babel-default-header-args '(:eval . "no-export"))
 #+END_SRC
 
 Disable Flycheck when editing code blocks.
@@ -1344,8 +1343,8 @@ Enable storing, inserting and following links in any buffer:
 (setq org-file-apps
       '((auto-mode . emacs)
         ("\\.mm\\'" . default)
-        ("\\.x?html?\\'" . "google-chorme %s")
-        ("\\.pdf\\'" . default)
+        ("\\.x?html?\\'" . "firefox %s")
+        ("\\.pdf\\'" . "okular %s")
         ("\\.png\\'" . "pqiv -i %s")
         ("\\.jpg\\'" . "pqiv -i %s")
         ("\\.svg\\'" . "feh --magick-timeout 1 -. %s")))
@@ -1872,6 +1871,11 @@ Semantic mode enables parsing of source code files.
   :ensure t)
 #+END_SRC
 
+** Graphviz
+#+BEGIN_SRC emacs-lisp
+(use-package graphviz-dot-mode
+  :ensure t)
+#+END_SRC
 ** zeal-at-point
 #+BEGIN_SRC emacs-lisp
 (use-package zeal-at-point

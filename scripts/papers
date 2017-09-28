@@ -12,7 +12,7 @@
 # TODO: Make functions to handle actions.
 
 export bred="\e[0;31m"
-pdfdir=~/Documents/SortedResources
+pdfdir=
 bib_input_file=~/Documents/SortedResources/bibliography.bib
 
 print_help () {
