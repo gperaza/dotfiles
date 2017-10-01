@@ -1593,13 +1593,6 @@ Htmlize for code blocks.
   :bind ("M-;" . comment-dwim-2))
 #+END_SRC
 
-** Highlight comment annotations
-#+BEGIN_SRC emacs-lisp
-(use-package hl-todo
-  :ensure t
-  :config (add-hook 'prog-mode-hook 'hl-todo-mode))
-#+END_SRC
-
 ** Flycheck
 #+BEGIN_SRC emacs-lisp
 (use-package flycheck
@@ -1611,15 +1604,6 @@ Htmlize for code blocks.
   :config
   (with-eval-after-load 'flycheck
     (flycheck-pos-tip-mode)))
-#+END_SRC
-
-** Clean-aindent-mode
-#+BEGIN_SRC emacs-lisp
-(use-package clean-aindent-mode
-  :ensure t
-  :config
-  (add-hook 'prog-mode-hook 'clean-aindent-mode)
-  (define-key prog-mode-map (kbd "RET") 'newline-and-indent))
 #+END_SRC
 
 ** Semantic mode
@@ -1707,22 +1691,6 @@ Semantic mode enables parsing of source code files.
   (setq processing-sketchbook-dir "/home/gperaza/Documents/code/processing/"))
 #+END_SRC
 
-** Hide-show
-#+BEGIN_SRC emacs-lisp
-(add-hook
- 'c-mode-common-hook (lambda()
-                       (local-set-key (kbd "C-<tab>") 'hs-toggle-hiding)
-                       (local-set-key (kbd "<backtab>") 'hs/hide-show-all)
-                       (hs-minor-mode t)))
-(defun hs/hide-show-all ()
-  "Hide or show the contents of all headers."
-  (interactive)
-  (if (null (eq last-command 'hs/hide-show-all))
-      (hs-hide-all)
-    (hs-show-all)
-    (setq this-command nil)))
-#+END_SRC
-
 ** Markdown mode
 #+BEGIN_SRC emacs-lisp
 (use-package markdown-mode
@@ -1734,6 +1702,7 @@ Semantic mode enables parsing of source code files.
 (use-package graphviz-dot-mode
   :ensure t)
 #+END_SRC
+
 ** zeal-at-point
 #+BEGIN_SRC emacs-lisp
 (use-package zeal-at-point
