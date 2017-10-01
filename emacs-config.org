@@ -1158,50 +1158,31 @@ If not, look up both of the words.
 
 * org-mode
 #+BEGIN_SRC emacs-lisp
- (use-package org
+(use-package org
    :ensure t
    :pin gnu)
 #+END_SRC
 
 ** Appearance
-Here we make org buffers look nice. Only affects visuals.
-
-Change the ellipsis at the end of collapsed nodes and replace the
-asterisks at the beginning of headings with nicer symbols:
-
 #+BEGIN_SRC emacs-lisp
-(setq org-ellipsis " ▼")
-(use-package org-bullets
-    :ensure t)
-(add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
-#+END_SRC
-
-I like to keep text width under 80 characters. Indentation in lower
-level headings makes things look weird so we disable indentation all
-together.
-
-#+BEGIN_SRC emacs-lisp
+;; Align text at column 1
 (setq org-adapt-indentation nil)
-#+END_SRC
 
-Start with contents displayed
-#+BEGIN_SRC emacs-lisp
+;; Start with contents displayed
 (setq org-startup-folded 'content)
-#+END_SRC
 
-Highlight latex fragments
-#+BEGIN_SRC emacs-lisp
+;; Highlight latex fragments
 (setq org-highlight-latex-and-related '(latex))
+
+;; Increase the size of latex fragments in text:
+(plist-put org-format-latex-options :scale 1.5)
+
+;; Allow lists with letters in them.
+(setq org-list-allow-alphabetical t)
 #+END_SRC
 
 ** Babel, code inside org
-Babel is Org-mode's ability to execute source code within Org-mode
-documents.
-
 *** Enable languages
-First we need to tell babel which languages we intend to use, we can
-add more later.
-
 #+BEGIN_SRC emacs-lisp
 (require 'ob-shell)
 (org-babel-do-load-languages
@@ -1219,9 +1200,7 @@ add more later.
 #+END_SRC
 
 *** Set up Babel behavior
-Don't ask for confirmation when evaluating a code block. I generally have huge
-and slow code blocks, we don't want to evaluate this on export. Also, being huge
-better keep them folded at start-up.
+Don't ask for confirmation when evaluating a code block.
 
 #+BEGIN_SRC emacs-lisp
 (setq org-confirm-babel-evaluate nil)
@@ -1256,65 +1235,7 @@ Edit code in same window
 (setq org-src-window-setup 'current-window)
 #+END_SRC
 
-*** Wrap text in a code block
-Sometimes I need to wrap some text inside a code block, specially for
-LaTeX code. I don't remember where I find this but it is useful.
-
-#+BEGIN_SRC emacs-lisp
-(defun org-begin-template ()
-  "Make a template at point."
-  (interactive)
-  (if (org-at-table-p)
-      (call-interactively 'org-table-rotate-recalc-marks)
-    (let* ((choices '(("s" . "SRC")
-                      ("e" . "EXAMPLE")
-                      ("q" . "QUOTE")
-                      ("v" . "VERSE")
-                      ("c" . "CENTER")
-                      ("l" . "LaTeX")
-                      ("h" . "HTML")
-                      ("a" . "ASCII")))
-           (key
-            (key-description
-             (vector
-              (read-key
-               (concat (propertize "Template type: " 'face 'minibuffer-prompt)
-                       (mapconcat (lambda (choice)
-                                    (concat (propertize (car choice) 'face 'font-lock-type-face)
-                                            ": "
-                                            (cdr choice)))
-                                  choices
-                                  ", ")))))))
-      (let ((result (assoc key choices)))
-        (when result
-          (let ((choice (cdr result)))
-            (cond
-             ((region-active-p)
-              (let ((start (region-beginning))
-                    (end (region-end)))
-                (goto-char end)
-                (insert "#+END_" choice "\n")
-                (goto-char start)
-                (insert "#+BEGIN_" choice "\n")))
-             (t
-              (insert "#+BEGIN_" choice "\n")
-              (save-excursion (insert "#+END_" choice))))))))))
-
-;;bind to key
-(define-key org-mode-map (kbd "C-<") 'org-begin-template)
-#+END_SRC
-
-*** LaTeX fragments
-Increase the size of latex fragments in text:
-
-#+BEGIN_SRC emacs-lisp
-(plist-put org-format-latex-options :scale 1.5)
-#+END_SRC
-
-** Editing
-Configuration of some ways to write in org.
-
-*** Footnotes
+** Footnotes
 In-line and still reference-able footnote definitions. Footnotes have
 random unique id's and being inline means it is difficult to mess up
 references by deleting stuff.
@@ -1323,13 +1244,6 @@ references by deleting stuff.
 (setq org-footnote-define-inline t)
 (setq org-footnote-auto-label 'random)
 (setq org-footnote-auto-adjust nil)
-#+END_SRC
-
-*** Lists
-Allow lists with letters in them.
-
-#+BEGIN_SRC emacs-lisp
-(setq org-list-allow-alphabetical t)
 #+END_SRC
 
 ** Org mode links
@@ -1348,62 +1262,6 @@ Enable storing, inserting and following links in any buffer:
         ("\\.png\\'" . "pqiv -i %s")
         ("\\.jpg\\'" . "pqiv -i %s")
         ("\\.svg\\'" . "feh --magick-timeout 1 -. %s")))
-#+END_SRC
-
-Custom link types:
-
-#+BEGIN_SRC emacs-lisp
-;; Define a link to a YouTube video as defined in
-;; http://endlessparentheses.com/embedding-youtube-videos-with-org-mode-links.html
-(defvar yt-iframe-format
-  ;; You may want to change your width and height.
-  (concat "<iframe width=\"440\""
-          " height=\"335\""
-          " src=\"https://www.youtube.com/embed/%s\""
-          " frameborder=\"0\""
-          " allowfullscreen>%s</iframe>"))
-
-(org-add-link-type
- "yt"
- (lambda (handle)
-   (browse-url
-    (concat "https://www.youtube.com/embed/"
-            handle)))
- (lambda (path desc backend)
-   (cl-case backend
-     (html (format yt-iframe-format
-                   path (or desc "")))
-     (latex (format "\href{%s}{%s}"
-                    path (or desc "video"))))))
-
-;; Open link path in a terminal
-(org-add-link-type "dir+term" 'org-dir-term-open)
-
-(defun org-dir-term-open (path)
-  "Open PATH in a terminal."
-  (call-process "konsole"
-                nil 0 nil
-                (concat "--default-working-directory="
-                        (expand-file-name path))))
-
-(defun org-dir+term-complete-link (&optional arg)
-  "Create a dir link using completion."
-  (let ((file (org-iread-file-name "File: "))
-        (pwd (file-name-as-directory (expand-file-name ".")))
-        (pwd1 (file-name-as-directory (abbreviate-file-name
-                                       (expand-file-name ".")))))
-    (cond ((equal arg '(16))
-           (concat "dir+term:"
-                   (abbreviate-file-name (expand-file-name file))))
-          ((string-match
-            (concat "^" (regexp-quote pwd1) "\\(.+\\)") file)
-           (concat "dir+term:" (match-string 1 file)))
-          ((string-match
-            (concat "^" (regexp-quote pwd) "\\(.+\\)")
-            (expand-file-name file))
-           (concat "dir+term:"
-                   (match-string 1 (expand-file-name file))))
-          (t (concat "dir+term:" file)))))
 #+END_SRC
 
 ** Navigation
