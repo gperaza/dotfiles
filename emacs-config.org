@@ -282,12 +282,6 @@ https://github.com/bbatsov/crux
                               (insert (file-name-nondirectory (replace-regexp-in-string "/\\'" "" x)))))
                       "insert file name without any directory information")))
   )
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(ivy-highlight-face ((t (:inherit minibuffer-prompt)))))
 (use-package ivy-hydra
   :ensure t)
 #+END_SRC
@@ -654,12 +648,6 @@ succeeds without error.
 :ensure t
 :bind (("s-<backspace>" . hungry-delete-backward)
        ("s-<delete>" . hungry-delete-forward)))
-#+END_SRC
-
-** Multiple Cursors
-#+BEGIN_SRC emacs-lisp
-(use-package multiple-cursors
-  :ensure t)
 #+END_SRC
 
 ** Sdcv mode (dictionary)
@@ -1160,7 +1148,10 @@ If not, look up both of the words.
 #+BEGIN_SRC emacs-lisp
 (use-package org
    :ensure t
-   :pin gnu)
+   :pin gnu
+   :config
+   (add-hook 'org-mode-hook 'turn-on-org-cdlatex)
+)
 #+END_SRC
 
 ** Appearance
@@ -1185,10 +1176,15 @@ If not, look up both of the words.
 *** Enable languages
 #+BEGIN_SRC emacs-lisp
 (require 'ob-shell)
+
+(use-package ob-ipython
+  :ensure t)
+
 (org-babel-do-load-languages
  'org-babel-load-languages
  '((emacs-lisp . t)
    (python . t)
+   (ipython . t)
    (sh . t)
    (org . t)
    (C . t)
@@ -1261,7 +1257,7 @@ Enable storing, inserting and following links in any buffer:
         ("\\.pdf\\'" . "okular %s")
         ("\\.png\\'" . "pqiv -i %s")
         ("\\.jpg\\'" . "pqiv -i %s")
-        ("\\.svg\\'" . "feh --magick-timeout 1 -. %s")))
+        ("\\.svg\\'" . "pqiv -i %s")))
 #+END_SRC
 
 ** Navigation
@@ -1357,6 +1353,7 @@ Define extra packages to be included in latex exports.
         ("" "nicefrac" nil)
         ("" "units" nil)
         ("" "gensymb" nil)
+        ("" "svg" nil)
         ))
 #+END_SRC
 
@@ -1563,6 +1560,15 @@ Htmlize for code blocks.
 (setq org-html-htmlize-output-type 'css)
 #+END_SRC
     
+** Org-Download
+#+BEGIN_SRC emacs-lisp
+(use-package org-download
+  :ensure t
+  :config
+  (setq-default org-download-image-dir "./figures")
+  (setq-default org-download-heading-lvl nil))
+#+END_SRC
+
 * Programming
 ** Parenthesis
 #+BEGIN_SRC emacs-lisp
@@ -1712,6 +1718,18 @@ Semantic mode enables parsing of source code files.
   )
 #+END_SRC
 
+** EIN
+#+BEGIN_SRC emacs-lisp
+(use-package ein
+  :ensure t
+  :config
+  (setq ein:jupyter-default-server-command "~/anaconda3/bin/jupyter"))
+#+END_SRC
+** ox-ipynb
+#+BEGIN_SRC emacs-lisp
+(use-package ox-ipynb
+  :load-path "~/.emacs.d/ox-ipynb/")
+#+END_SRC
 * End
 #+BEGIN_SRC emacs-lisp
 )
