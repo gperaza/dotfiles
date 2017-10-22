@@ -337,6 +337,7 @@ https://github.com/bbatsov/crux
   (setq company-backends (delete 'company-xcode company-backends))
   (setq company-backends (delete 'company-cmake company-backends))
   (setq company-backends (delete 'company-oddmuse company-backends))
+  (setq company-backends (delete 'company-dabbrev company-backends))
   )
 
 (use-package company-math
