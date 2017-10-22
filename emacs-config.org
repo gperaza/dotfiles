@@ -328,16 +328,16 @@ https://github.com/bbatsov/crux
   :ensure t
   :config
   (global-set-key (kbd "s-º") 'company-complete)
-  (add-hook 'after-init-hook 'global-company-mode))
-
-(use-package company-c-headers
-  :ensure t
-  :config
-  (add-to-list 'company-backends 'company-c-headers))
-
-(use-package company-auctex
-  :defer t
-  :ensure t)
+  (add-hook 'after-init-hook 'global-company-mode)
+  (setq company-backends (delete 'company-bbdb company-backends))
+  (setq company-backends (delete 'company-nxml company-backends))
+  (setq company-backends (delete 'company-css company-backends))
+  (setq company-backends (delete 'company-eclim company-backends))
+  (setq company-backends (delete 'company-clang company-backends))
+  (setq company-backends (delete 'company-xcode company-backends))
+  (setq company-backends (delete 'company-cmake company-backends))
+  (setq company-backends (delete 'company-oddmuse company-backends))
+  )
 
 (use-package company-math
   :ensure t
@@ -346,12 +346,7 @@ https://github.com/bbatsov/crux
 
 (defun my-company-latex-mode-setup ()
   (setq-local company-backends
-              (append '(company-auctex-labels
-                        company-auctex-bibs
-                        (company-math-symbols-latex
-                         company-auctex-macros
-                         company-auctex-environments)
-                        )
+              (append '((company-math-symbols-latex company-latex-commands))
                       company-backends)))
 (add-hook 'LaTeX-mode-hook 'my-company-latex-mode-setup)
 
@@ -360,6 +355,12 @@ https://github.com/bbatsov/crux
 (defun add-pcomplete-to-capf ()
   (add-hook 'completion-at-point-functions 'pcomplete-completions-at-point nil t))
 (add-hook 'org-mode-hook #'add-pcomplete-to-capf)
+
+(defun my-company-org-mode-setup ()
+  (setq-local company-backends
+              (append '(company-ob-ipython)
+                      company-backends)))
+(add-hook 'org-mode-hook 'my-company-org-mode-setup)
 #+END_SRC
 
 ** Deft
@@ -1178,7 +1179,17 @@ If not, look up both of the words.
 (require 'ob-shell)
 
 (use-package ob-ipython
-  :ensure t)
+  :ensure t
+  :config
+  (setq org-babel-default-header-args:ipython
+        '((:results . "replace drawer")
+          (:session . "ipython")
+          (:exports . "both")
+          (:cache .   "no")
+          (:noweb . "no")
+          (:hlines . "no")
+          (:tangle . "no")
+          (:eval . "never-export"))))
 
 (org-babel-do-load-languages
  'org-babel-load-languages
@@ -1446,6 +1457,12 @@ Templates for fast insertion of code blocks in org.
              '("pv"
                "#+BEGIN_SRC python :results value\n?\n#+END_SRC"
                "<src lang=\"python\">\n?\n</src>"))
+
+;; add <ip for python expansion
+(add-to-list 'org-structure-template-alist
+             '("ip"
+               "#+BEGIN_SRC ipython\n?\n#+END_SRC"
+               "<src lang=\"ipython\">\n?\n</src>"))
 
 ;; add <el for emacs-lisp expansion
 (add-to-list 'org-structure-template-alist
