@@ -1126,6 +1126,7 @@ If not, look up both of the words.
   (setq reftex-enable-partial-scans t)
   (setq reftex-use-multiple-selection-buffers t)
   (setq reftex-plug-into-AUCTeX t)
+  (setq reftex-ref-macro-prompt nil)
 
   (setq TeX-outline-extra '(("\\\\frametitle\\b" 2)))
   (setq font-latex-user-keyword-classes
@@ -1434,29 +1435,14 @@ notes. It's available using the "<paper" expansion.
 *** Code block templates
 Templates for fast insertion of code blocks in org.
  - ~<p~ for python
- - ~<po~ for python with :results output
- - ~<pv~ for python with :results value output
  - ~<el~ for emacs-lisp
  - ~<sh~ for shell
- - ~<l~ for LaTeX
    
 #+BEGIN_SRC emacs-lisp
 ;; add <p for python expansion
 (add-to-list 'org-structure-template-alist
              '("p"
                "#+BEGIN_SRC python\n?\n#+END_SRC"
-               "<src lang=\"python\">\n?\n</src>"))
-
-;; add <por for python expansion with raw output
-(add-to-list 'org-structure-template-alist
-             '("po"
-               "#+BEGIN_SRC python :results output raw\n?\n#+END_SRC"
-               "<src lang=\"python\">\n?\n</src>"))
-
-;; add <pv for python expansion with value
-(add-to-list 'org-structure-template-alist
-             '("pv"
-               "#+BEGIN_SRC python :results value\n?\n#+END_SRC"
                "<src lang=\"python\">\n?\n</src>"))
 
 ;; add <ip for python expansion
@@ -1476,108 +1462,8 @@ Templates for fast insertion of code blocks in org.
              '("sh"
                "#+BEGIN_SRC sh\n?\n#+END_SRC"
                "<src lang=\"shell\">\n?\n</src>"))
-
-;; add <l for latex
-(add-to-list 'org-structure-template-alist
-             '("l"
-               "#+BEGIN_LATEX latex\n?\n#+END_LATEX"
-               "<src lang=\"latex\">\n?\n</src>"))
 #+END_SRC
 
-*** Blogging
-This is post template. To create a blog post in it's own org file.
-Accesses by ~<bpost~.
-
-#+BEGIN_SRC emacs-lisp
-(add-to-list 'org-structure-template-alist
-             `("bpost" ,(concat "#+TITLE: ?\n"
-"#+DATE:\n"
-"#+SUBTITLE: Posted:\n"
-"# #+SUBTITLE: (/Last edited: {{{modification-time(%d %b %Y %H:%M)}}}/ )\n"
-"#+AUTHOR: " user-full-name "\n"
-"#+EMAIL: " user-mail-address "\n"
-"#+LANGUAGE: en\n\n\n\n"
-"* COMMENT local variables for this file
-# Local Variables:
-# eval: (setq system-time-locale \"en\")
-# ispell-local-dictionary: \"en\"
-# End:"
-)))
-#+END_SRC
-
-This template creates a post preview. It's meant to be inserted in the
-blog main page as a to-do heading. When the post is done mark is as
-DONE to be published. Contains a summary of the post. Accessed by
-~<bprev~.
-
-#+BEGIN_SRC emacs-lisp
-(add-to-list 'org-structure-template-alist
-             '("bprev" "* TODO ?
-:DATES:
-Posted:
-# (/Edited: /)
-:END:"))
-#+END_SRC
-
-** Blog using org publish
-This function removes brackets for time stamps.
-
-#+BEGIN_SRC emacs-lisp
-(add-to-list 'org-export-filter-timestamp-functions
-             #'endless/filter-timestamp)
-
-(defun endless/filter-timestamp (trans back _comm)
-  "Remove <> around time-stamps."
-  (pcase back
-    ((or `jekyll `html)
-     (replace-regexp-in-string "&[lg]t;" "" trans))
-    (`latex
-     (replace-regexp-in-string "[<>]" "" trans))))
-#+END_SRC
-
-Here I define the format for displaying time stamps.
-
-#+BEGIN_SRC emacs-lisp
-(setq-default org-display-custom-times t)
-
-;;; Before you ask: No, removing the <> here doesn't work.
-(setq org-time-stamp-custom-formats
-      '("<%d %b %Y>" . "<%d/%m/%y %a %H:%M>"))
-#+END_SRC
-
-This function creates the bibliography HTML file that is included in
-the Research page.
-
-#+BEGIN_SRC emacs-lisp
-(defun my-bibtex-function ()
-  (shell-command-to-string
-   (concat "bibtex2html -d -r -nobibsource -nokeywords "
-           "-nf arxiv \"Arxiv\" --revkeys -nodoc "
-           "-m ~/Blog/macros.tex -s ~/Blog/owens_web "
-           "-noheader -nofooter ~/Blog/mypubs.bib; "
-           "echo \"#+BEGIN_HTML\" > ~/Blog/mypubs.in; "
-           "cat ~/Blog/mypubs.html >> ~/Blog/mypubs.in; "
-           "echo  \"\" >> ~/Blog/mypubs.in; "
-           "echo \"#+END_HTML\" >> ~/Blog/mypubs.in")))
-#+END_SRC
-
-This function is used to format a drawer in HTML export. It adds the
-drawer name as a class.
-
-#+BEGIN_SRC emacs-lisp
-(defun my-blog-org-export-format-drawer (name content)
-  (concat "<div class=\"drawer " (downcase name) "\">\n"
-          content
-          "\n</div>"))
-#+END_SRC
-
-Htmlize for code blocks.
-#+BEGIN_SRC emacs-lisp
-(use-package htmlize
-  :ensure t)
-(setq org-html-htmlize-output-type 'css)
-#+END_SRC
-    
 ** Org-Download
 #+BEGIN_SRC emacs-lisp
 (use-package org-download
@@ -1727,21 +1613,7 @@ Semantic mode enables parsing of source code files.
   :ensure t)
 #+END_SRC
 
-** zeal-at-point
-#+BEGIN_SRC emacs-lisp
-(use-package zeal-at-point
-  :ensure t
-  :config
-  (global-set-key "\C-cd" 'zeal-at-point)
-  )
-#+END_SRC
 
-** EIN
-#+BEGIN_SRC emacs-lisp
-(use-package ein
-  :ensure t
-  :config
-  (setq ein:jupyter-default-server-command "~/anaconda3/bin/jupyter"))
 #+END_SRC
 ** ox-ipynb
 #+BEGIN_SRC emacs-lisp
