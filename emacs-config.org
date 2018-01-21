@@ -238,12 +238,6 @@ https://github.com/bbatsov/crux
 (global-set-key [remap fill-paragraph] #'fill-or-unfill)
 #+END_SRC
 
-** Hydra
-#+BEGIN_SRC emacs-lisp
-(use-package hydra
-  :ensure t)
-#+END_SRC
-
 ** Counsel
 #+BEGIN_SRC emacs-lisp
 (global-set-key (kbd "C-x C-b") 'ibuffer-other-window)
@@ -289,8 +283,6 @@ https://github.com/bbatsov/crux
                               (insert (file-name-nondirectory (replace-regexp-in-string "/\\'" "" x)))))
                       "insert file name without any directory information")))
   )
-(use-package ivy-hydra
-  :ensure t)
 #+END_SRC
 
 ** Magit
@@ -1158,7 +1150,6 @@ If not, look up both of the words.
 #+BEGIN_SRC emacs-lisp
 (use-package org
    :ensure t
-   :pin gnu
    :config
    (add-hook 'org-mode-hook 'turn-on-org-cdlatex)
 )
