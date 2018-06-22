@@ -1,0 +1,21 @@
+#! /usr/bin/env python
+
+import sys
+import random
+from tabulate import tabulate
+
+if len(sys.argv) != 3:
+    print('Please provide #students #problems')
+    sys.exit()
+
+
+ns = int(sys.argv[1])
+np = int(sys.argv[2])
+
+
+slist = list(range(1, ns + 1))
+plist = list(range(1, np + 1))
+random.shuffle(slist)
+
+print(tabulate(zip(slist, plist),
+               headers=['Student', 'Problem'], tablefmt='orgtbl'))

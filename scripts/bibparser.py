@@ -16,6 +16,7 @@ def get_fields(entry):
 
     author = entry['author'] if 'author' in entry else " "
     author = author.replace("{", "").replace("}", "").replace("\,", ",")
+    author = author.replace(' and ', '|')
 
     year = entry['year'] if 'year' in entry else " "
 

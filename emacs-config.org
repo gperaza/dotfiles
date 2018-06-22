@@ -1,3 +1,4 @@
+
 #+PROPERTY: header-args:emacs-lisp :tangle ~/.emacs.d/init.el
 
 * Load speedup
@@ -33,29 +34,29 @@ This file must include personal information given as
 
 ** Setting up package manager and use-package
 #+begin_src emacs-lisp
-  ;; Please don't load outdated byte code
-  (setq load-prefer-newer t)
+;; Please don't load outdated byte code
+(setq load-prefer-newer t)
 
-  (require 'package)
-  (setq package-enable-at-startup nil)
+(require 'package)
+(setq package-enable-at-startup nil)
 
-  (setq package-archives
-        '(("gnu" . "http://elpa.gnu.org/packages/")
-          ("melpa" . "http://melpa.org/packages/" )
-          ("elpy" . "https://jorgenschaefer.github.io/packages/")
-          ("org" . "https://orgmode.org/elpa/")
-))
+(setq package-archives
+      '(("gnu" . "http://elpa.gnu.org/packages/")
+        ("melpa" . "http://melpa.org/packages/" )
+        ("elpy" . "https://jorgenschaefer.github.io/packages/")
+        ("org" . "https://orgmode.org/elpa/")
+        ))
 
-  (package-initialize)
+(package-initialize)
 
-  ;; Bootstrap `use-package'
-  (unless (package-installed-p 'use-package)
-    (package-refresh-contents)
-    (package-install 'use-package))
+;; Bootstrap `use-package'
+(unless (package-installed-p 'use-package)
+  (package-refresh-contents)
+  (package-install 'use-package))
 
-  (eval-when-compile
-    (require 'use-package))
-  (require 'bind-key)
+(eval-when-compile
+  (require 'use-package))
+(require 'bind-key)
 #+end_src
 
 ** Some nice configurations
@@ -142,37 +143,15 @@ This file must include personal information given as
 
 ** Color theme
 #+BEGIN_SRC emacs-lisp
-;; (load-theme 'darktooth t)
-
-(use-package doom-themes
-  :config
-  ;; Global settings (defaults)
-  (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
-        doom-themes-enable-italic t) ; if nil, italics is universally disabled
-
-  ;; Load the theme (doom-one, doom-molokai, etc); keep in mind that each theme
-  ;; may have their own settings.
-  (load-theme 'doom-peacock t)
-
-  ;; Enable flashing mode-line on errors
-  (doom-themes-visual-bell-config)
-
-  ;; Enable custom neotree theme
-  ;; (doom-themes-neotree-config)  ; all-the-icons fonts must be installed!
-
-  ;; Corrects (and improves) org-mode's native fontification.
-  (doom-themes-org-config)
-  )
+;; (load-theme 'flatland t)
+(load-theme 'dracula t)
 #+END_SRC
 
 ** Smart mode line
 #+BEGIN_SRC emacs-lisp
-(use-package smart-mode-line
-  :ensure t
+(use-package rich-minority
   :config
-  (setq rm-whitelist "Projectile")
-  (sml/setup)
-  (setq sml/name-width 30))
+  (setq rm-whitelist "Projectile"))
 #+END_SRC
 
 ** Nice scrolling, not centering after scrolling.
@@ -191,6 +170,30 @@ This file must include personal information given as
 #+BEGIN_SRC emacs-lisp
 (use-package olivetti
   :ensure t)
+#+END_SRC
+
+** Page break lines
+#+BEGIN_SRC emacs-lisp
+(use-package page-break-lines
+  :ensure t
+  :config
+  (setq page-break-lines-modes
+        '(emacs-lisp-mode
+          lisp-mode
+          scheme-mode
+          compilation-mode
+          outline-mode
+          help-mode
+          latex-mode
+          python-mode))
+  (global-page-break-lines-mode))
+#+END_SRC
+** Dash board
+#+BEGIN_SRC emacs-lisp
+(use-package dashboard
+  :ensure t
+  :config
+  (dashboard-setup-startup-hook))
 #+END_SRC
 
 * Utilities
@@ -436,9 +439,6 @@ path.
 (use-package yasnippet
   :ensure t
   :config
-  (setq yas-snippet-dirs
-        '("~/.dotfiles/snippets"
-          yas-installed-snippets-dir))
   (yas/global-mode 1)
   )  ;; (define-key yas-minor-mode-map (kbd "s-<tab>") 'yas-expand)
   ;; (define-key yas-minor-mode-map [(tab)]        nil)
@@ -458,6 +458,20 @@ path.
         "/home/gperaza/Documents/SortedResources/Notes"))
 #+END_SRC
 
+** Power thesaurus
+#+BEGIN_SRC emacs-lisp
+(use-package powerthesaurus
+  :ensure t
+  :bind (("s-t" . powerthesaurus-lookup-word-at-point)
+         ("s-T" . powerthesaurus-lookup-word)))
+#+END_SRC
+
+** Wordnik dictionary
+#+BEGIN_SRC emacs-lisp
+(use-package define-word
+  :ensure t
+  :bind (("s-w" . define-word-at-point)))
+#+END_SRC
 * Editing configuration
 ** Some general editing configurations
 #+BEGIN_SRC emacs-lisp
@@ -1149,7 +1163,7 @@ If not, look up both of the words.
 * org-mode
 #+BEGIN_SRC emacs-lisp
 (use-package org
-   :ensure t
+   :ensure org-plus-contrib
    :config
    (add-hook 'org-mode-hook 'turn-on-org-cdlatex)
 )
@@ -1202,7 +1216,7 @@ If not, look up both of the words.
  '((emacs-lisp . t)
    (python . t)
    (ipython . t)
-   (sh . t)
+   (shell . t)
    (org . t)
    (C . t)
    (latex . t)
@@ -1351,6 +1365,7 @@ Set-up export back-ends
 #+BEGIN_SRC emacs-lisp
 (require 'ox-latex)
 (require 'ox-html)
+(require 'ox-koma-letter)
 #+END_SRC
 
 *** LaTeX back-end configuration
@@ -1359,18 +1374,18 @@ The LaTeX back-end needs some extra configuration.
 Define extra packages to be included in latex exports.
 
 #+BEGIN_SRC emacs-lisp
-(setq org-latex-packages-alist
-      '(("" "lmodern" nil);; latin modern fonts
-        ("" "mathtools" t);; superseeds amsmath
-        ("" "url" nil);; enable \url{} for urls
-        ("" "color" nil)
-        ("" "amssymb" nil)
-        ("" "amsopn" nil)
-        ("" "nicefrac" nil)
-        ("" "units" nil)
-        ("" "gensymb" nil)
-        ("" "svg" nil)
-        ))
+;; (setq org-latex-packages-alist
+;;       '(("" "lmodern" nil);; latin modern fonts
+;;         ("" "mathtools" t);; superseeds amsmath
+;;         ("" "url" nil);; enable \url{} for urls
+;;         ("" "color" nil)
+;;         ("" "amssymb" nil)
+;;         ("" "amsopn" nil)
+;;         ("" "nicefrac" nil)
+;;         ("" "units" nil)
+;;         ("" "gensymb" nil)
+;;         ;; ("" "svg" nil)
+;;         ))
 #+END_SRC
 
 To enable syntax highlighting for source code in LaTeX export we need
