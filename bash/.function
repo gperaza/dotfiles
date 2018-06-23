@@ -1,0 +1,9 @@
+function define {
+    sdcv --color "$1" | less -r
+}
+
+function random() {
+    echo $(($(od -N3 -An -i /dev/urandom) % ($1+1)))
+}
+
+[ -f ~/.fzf.bash ] && source ~/.fzf.bash

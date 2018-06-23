@@ -1,0 +1,1630 @@
+
+#+PROPERTY: header-args:emacs-lisp :tangle ~/.emacs.d/init.el
+
+* Load speedup
+Load speed up:
+#+BEGIN_SRC emacs-lisp
+(let ((gc-cons-threshold most-positive-fixnum)
+      (file-name-handler-alist nil))
+#+END_SRC
+
+* Setup
+** Setup path correctly
+#+BEGIN_SRC emacs-lisp
+(defun set-exec-path-from-shell-PATH ()
+  (interactive)
+  (let ((path-from-shell
+         (replace-regexp-in-string
+          "^.*\n.*shell\n" ""
+          (shell-command-to-string "$SHELL --login -i -c 'echo $PATH'"))))
+        (setenv "PATH" path-from-shell)
+        (setq exec-path (split-string path-from-shell path-separator))))
+
+(set-exec-path-from-shell-PATH)
+#+END_SRC
+
+** Personal information
+Personal information is stored in personal.el.
+This file must include personal information given as
+> (setq user-full-name "MY NAME"
+>       user-mail-address "MY EMAIL")
+#+BEGIN_SRC emacs-lisp
+(load "~/.dotfiles/personal.el")
+#+END_SRC
+
+** Setting up package manager and use-package
+#+begin_src emacs-lisp
+;; Please don't load outdated byte code
+(setq load-prefer-newer t)
+
+(require 'package)
+(setq package-enable-at-startup nil)
+
+(setq package-archives
+      '(("gnu" . "http://elpa.gnu.org/packages/")
+        ("melpa" . "http://melpa.org/packages/" )
+        ("elpy" . "https://jorgenschaefer.github.io/packages/")
+        ("org" . "https://orgmode.org/elpa/")
+        ))
+
+(package-initialize)
+
+;; Bootstrap `use-package'
+(unless (package-installed-p 'use-package)
+  (package-refresh-contents)
+  (package-install 'use-package))
+
+(eval-when-compile
+  (require 'use-package))
+(require 'bind-key)
+#+end_src
+
+** Some nice configurations
+#+BEGIN_SRC emacs-lisp
+(defun my-minibuffer-setup-hook ()
+  (setq gc-cons-threshold most-positive-fixnum))
+
+(defun my-minibuffer-exit-hook ()
+  (setq gc-cons-threshold 800000))
+
+(add-hook 'minibuffer-setup-hook #'my-minibuffer-setup-hook)
+(add-hook 'minibuffer-exit-hook #'my-minibuffer-exit-hook)
+
+;; warn when opening files bigger than 100MB
+(setq large-file-warning-threshold 100000000)
+
+;; Make backups and auto saves to the same directory
+(setq backup-directory-alist '(("." . "~/.EmacsBackups")))
+(setq auto-save-file-name-transforms '((".*" "~/.EmacsSaves/" t)))
+#+END_SRC
+
+** Custom set variables
+#+BEGIN_SRC emacs-lisp
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(custom-safe-themes
+   (quote
+    ("3c83b3676d796422704082049fc38b6966bcad960f896669dfc21a7a37a748fa" default)))
+ '(safe-local-variable-values
+   (quote
+    ((eval setq system-time-locale "es")
+     (eval setq system-time-locale "C")
+     (eval setq org-link-file-path-type 'relative)))))
+#+END_SRC
+
+* User interface
+** Some nice configurations
+#+BEGIN_SRC emacs-lisp
+;;Start always maximized
+(add-to-list 'default-frame-alist '(fullscreen . maximized))
+
+;; Set scratch message
+(setq initial-scratch-message nil)
+
+;; Menus and bars.
+(tool-bar-mode -1)
+(menu-bar-mode -1)
+(scroll-bar-mode -1)
+(setq initial-major-mode 'org-mode)
+
+;;Disable blinking cursor and start up screen
+(blink-cursor-mode -1)
+
+;;Disable startup screen
+(setq inhibit-startup-screen t)
+
+;;Display column number.
+(column-number-mode t)
+
+;;Enable y/n answers
+(fset 'yes-or-no-p 'y-or-n-p)
+
+;;Show unfinished keystroke early
+(setq echo-keystrokes 0.1)
+
+;;Better frame title
+(setq frame-title-format "%b")
+
+;; Ignore system colors
+(setq inhibit-x-resources 't)
+#+END_SRC
+
+** Font settings
+#+BEGIN_SRC emacs-lisp
+;; adjust font size to screen resolution
+(if (display-graphic-p)
+    (if (< (x-display-pixel-width) 1920)
+        (set-face-attribute 'default nil :height 100)
+      (set-face-attribute 'default nil :height 120)))
+#+END_SRC
+
+** Color theme
+#+BEGIN_SRC emacs-lisp
+;; (load-theme 'flatland t)
+(load-theme 'dracula t)
+#+END_SRC
+
+** Smart mode line
+#+BEGIN_SRC emacs-lisp
+(use-package rich-minority
+  :config
+  (setq rm-whitelist "Projectile"))
+#+END_SRC
+
+** Nice scrolling, not centering after scrolling.
+#+BEGIN_SRC emacs-lisp
+(setq scroll-margin 0
+      scroll-conservatively 10000
+      scroll-preserve-screen-position 1)
+
+(setq mouse-wheel-scroll-amount '(1 ((shift) . 1))) ;; one line at a time
+(setq mouse-wheel-progressive-speed nil) ;; don't accelerate scrolling
+(setq mouse-wheel-follow-mouse 't) ;; scroll window under mouse
+(setq auto-window-vscroll nil)
+#+END_SRC
+
+** Olivetti mode
+#+BEGIN_SRC emacs-lisp
+(use-package olivetti
+  :ensure t)
+#+END_SRC
+
+** Page break lines
+#+BEGIN_SRC emacs-lisp
+(use-package page-break-lines
+  :ensure t
+  :config
+  (setq page-break-lines-modes
+        '(emacs-lisp-mode
+          lisp-mode
+          scheme-mode
+          compilation-mode
+          outline-mode
+          help-mode
+          latex-mode
+          python-mode))
+  (global-page-break-lines-mode))
+#+END_SRC
+** Dash board
+#+BEGIN_SRC emacs-lisp
+(use-package dashboard
+  :ensure t
+  :config
+  (dashboard-setup-startup-hook))
+#+END_SRC
+
+* Utilities
+** Crux
+Here I bind the functions I find useful, there are more. See:
+https://github.com/bbatsov/crux
+#+BEGIN_SRC emacs-lisp
+(use-package crux
+  :ensure t
+  :init
+  (setq crux-indent-sensitive-modes
+        '(conf-mode coffee-mode haml-mode
+                    python-mode slim-mode yaml-mode org-mode))
+  :bind
+  (("C-c o" . crux-open-with)
+  ("C-c D" . crux-delete-file-and-buffer)
+  ("C-c r" . crux-rename-file-and-buffer)
+  ("C-c k" . crux-kill-other-buffers)
+  ("C-c n" . crux-cleanup-buffer-or-region)
+  ("s-k" . crux-kill-line-backwards)
+  ("C-M-z" . crux-indent-defun)
+  ("C-`" . crux-switch-to-previous-buffer)
+  ("C-c s" . crux-swap-windows)
+  ("C-a" . crux-move-beginning-of-line)
+  ("C-S-<return>" . crux-smart-open-line-above)
+  ("S-<return>" . crux-smart-open-line))
+  :commands crux-recompile-init
+  :config
+  (crux-with-region-or-buffer indent-region)
+  (crux-with-region-or-buffer untabify))
+#+END_SRC
+
+** Function: fill-unfill-paragraph
+#+BEGIN_SRC emacs-lisp
+(defun fill-or-unfill ()
+  "Like `fill-paragraph', but unfill if used twice."
+  (interactive)
+  (let ((fill-column
+         (if (eq last-command 'fill-or-unfill)
+             (progn (setq this-command nil)
+                    (point-max))
+           fill-column)))
+    (call-interactively #'fill-paragraph)))
+
+(global-set-key [remap fill-paragraph] #'fill-or-unfill)
+#+END_SRC
+
+** Counsel
+#+BEGIN_SRC emacs-lisp
+(global-set-key (kbd "C-x C-b") 'ibuffer-other-window)
+(use-package smex ;;provides history to counsel-M-x
+  :ensure t)
+(use-package counsel
+  :ensure t
+  :bind
+  ("M-x" . counsel-M-x)
+  ("C-s" . counsel-grep-or-swiper)
+  ("M-y" . counsel-yank-pop)
+  ("C-x C-f" . counsel-find-file)
+  ("C-x C-r" . counsel-recentf)
+  ("C-h v" . counsel-describe-variable)
+  ("C-h f" . counsel-describe-function)
+  ("<f2> u" . counsel-unicode-char)
+  ("C-c g" . counsel-ag)
+  ("C-c r" . ivy-resume)
+  ("C-c i" . counsel-imenu)
+  ("C-x b" . ivy-switch-buffer)
+  ("C-x <left>" . counsel-mark-ring)
+  ("C-x <right>" . counsel-mark-ring)
+  ("C-c v" . ivy-push-view)
+  ("C-c V" . ivy-pop-view)
+  :config
+  (ivy-mode 1)
+  (setq ivy-height 7)
+  (setq ivy-count-format "(%d/%d) ")
+  (setq ivy-initial-inputs-alist nil)
+  (setq counsel-yank-pop-separator "\n--------------------------------------\n")
+  (setq swiper-include-line-number-in-search t)
+  (setq ivy-ignore-buffers
+        '("\\` "
+          "*Help*" "*scratch*" "*Messages*" "\\`\\*magit" "*toc*"
+          "synctex.gz"))
+  (setq ivy-re-builders-alist
+        '((t . ivy--regex-ignore-order)))
+  (ivy-add-actions 'counsel-find-file
+                   '(("F" (lambda (x) (with-ivy-window (insert (file-relative-name x))))
+                      "insert relative file name")
+                     ("B" (lambda (x)
+                            (with-ivy-window
+                              (insert (file-name-nondirectory (replace-regexp-in-string "/\\'" "" x)))))
+                      "insert file name without any directory information")))
+  )
+#+END_SRC
+
+** Magit
+#+BEGIN_SRC emacs-lisp
+(use-package magit
+  :ensure t
+  :bind ("C-x g" . magit-status))
+#+END_SRC
+
+** Undo tree
+#+BEGIN_SRC emacs-lisp
+(use-package undo-tree
+  :ensure t
+  :config
+  (global-undo-tree-mode)
+  (global-set-key (kbd "C-z") 'undo)
+  (global-set-key (kbd "C-S-z") 'undo-tree-redo))
+#+END_SRC
+
+** Flyspell
+#+BEGIN_SRC emacs-lisp
+(use-package flyspell
+  :config
+  ;; use aspell instead of ispell
+  (setq ispell-program-name "aspell"
+        ispell-extra-args '("--sug-mode=ultra"))
+  (add-hook 'text-mode-hook 'turn-on-flyspell)
+  (setq flyspell-tex-command-regexp
+        "\\(\\(begin\\|end\\)[  ]*{\\|\\(cite[a-z*]*\\|label\\|ref\\|eqref\\|usepackage\\|documentclass\\|bibliographystyle\\)[         ]*\\(\\[[^]]*\\]\\)?{[^{}]*\\)")
+)
+
+(use-package flyspell-correct-ivy
+  :ensure t
+  :config
+  (define-key
+    flyspell-mode-map (kbd "C-;") #'flyspell-correct-previous-word-generic))
+#+END_SRC
+
+** Company
+#+BEGIN_SRC emacs-lisp
+(use-package company
+  :ensure t
+  :config
+  (global-set-key (kbd "s-º") 'company-complete)
+  (add-hook 'after-init-hook 'global-company-mode)
+  (setq company-backends (delete 'company-bbdb company-backends))
+  (setq company-backends (delete 'company-nxml company-backends))
+  (setq company-backends (delete 'company-css company-backends))
+  (setq company-backends (delete 'company-eclim company-backends))
+  (setq company-backends (delete 'company-clang company-backends))
+  (setq company-backends (delete 'company-xcode company-backends))
+  (setq company-backends (delete 'company-cmake company-backends))
+  (setq company-backends (delete 'company-oddmuse company-backends))
+  (setq company-backends (delete 'company-dabbrev company-backends))
+  )
+
+(use-package company-math
+  :ensure t
+  :config
+  (add-to-list 'company-backends 'company-math-symbols-unicode))
+
+(defun my-company-latex-mode-setup ()
+  (setq-local company-backends
+              (append '((company-math-symbols-latex company-latex-commands))
+                      company-backends)))
+(add-hook 'LaTeX-mode-hook 'my-company-latex-mode-setup)
+
+;; Company for org-mode. Org-mode uses pcomplete for it's own
+;; completion. We add it to the capf backend.
+(defun add-pcomplete-to-capf ()
+  (add-hook 'completion-at-point-functions 'pcomplete-completions-at-point nil t))
+(add-hook 'org-mode-hook #'add-pcomplete-to-capf)
+
+(defun my-company-org-mode-setup ()
+  (setq-local company-backends
+              (append '(company-ob-ipython)
+                      company-backends)))
+(add-hook 'org-mode-hook 'my-company-org-mode-setup)
+#+END_SRC
+
+** Deft
+[[https://github.com/jrblevin/deft][Deft]] is an Emacs mode for quickly browsing, filtering, and editing
+directories of plain text notes, inspired by Notational Velocity. It
+was designed for increased productivity when writing and taking notes
+by making it fast and simple to find the right file at the right time
+and by automating many of the usual tasks such as creating new files
+and saving files.
+
+#+BEGIN_SRC emacs-lisp
+(use-package deft
+  :ensure t
+  :bind ("<f8>" . deft)
+  :commands (deft)
+  :config
+  (setq deft-directory "~/Documents/Notes"
+        deft-extensions '("org" "tex"))
+  (setq deft-default-extension "org")
+  (setq deft-use-filter-string-for-filename t)
+  (setq deft-file-naming-rules
+        '((noslash . "-")
+          (nospace . "-")
+          (case-fn . downcase))))
+#+END_SRC
+
+** Function: open-term-here
+A function for opening an external terminal emulator in the current
+path.
+
+#+BEGIN_SRC emacs-lisp
+(defun open-term-here ()
+  (interactive)
+  "Open a terminal in current buffer's path."
+  (call-process
+   "konsole"
+   nil 0 nil
+   (concat "--workdir="
+           (file-name-directory (or load-file-name buffer-file-name)))))
+(global-set-key (kbd "C-c t") 'open-term-here)
+#+END_SRC
+
+** Save recent files
+#+BEGIN_SRC emacs-lisp
+(use-package recentf
+  :config
+  (setq recentf-save-file (expand-file-name "recentf" "~/.emacs.d/savefile/")
+        recentf-max-saved-items 50
+        ;; disable recentf-cleanup on Emacs start, because it can cause
+        ;; problems with remote files
+        recentf-auto-cleanup 'never)
+
+  (defun prelude-recentf-exclude-p (file)
+    "A predicate to decide whether to exclude FILE from recentf."
+    (let ((file-dir (file-truename (file-name-directory file))))
+      (-any-p (lambda (dir)
+                (string-prefix-p dir file-dir))
+              (mapcar 'file-truename (list "~/.emacs.d/savefile/" "~/.emacs.d/elpa/")))))
+
+  (add-to-list 'recentf-exclude 'prelude-recentf-exclude-p)
+  (add-to-list 'recentf-exclude "COMMIT_EDITMSG\\'")
+  (add-to-list 'recentf-exclude "\\.png\\'")
+  (add-to-list 'recentf-exclude "\\org-clock-save.el\\'")
+  (add-to-list 'recentf-exclude "\\.gz\\'")
+  (add-to-list 'recentf-exclude "\\.log\\'")
+  (add-to-list 'recentf-exclude "\\.orhc-bibtex-cache\\'")
+
+  (recentf-mode +1))
+#+END_SRC
+
+** Yasnippet
+#+BEGIN_SRC emacs-lisp
+(use-package yasnippet
+  :ensure t
+  :config
+  (yas/global-mode 1)
+  )  ;; (define-key yas-minor-mode-map (kbd "s-<tab>") 'yas-expand)
+  ;; (define-key yas-minor-mode-map [(tab)]        nil)
+  ;; (define-key yas-minor-mode-map (kbd "TAB")    nil)
+  ;; (define-key yas-minor-mode-map (kbd "<tab>")  nil))
+#+END_SRC
+
+** Ivy-bibtex
+#+BEGIN_SRC emacs-lisp
+(use-package ivy-bibtex
+  :ensure t
+  :config
+  (setq bibtex-completion-bibliography
+        '("/home/gperaza/Documents/SortedResources/bibliography.bib"))
+  (setq bibtex-completion-pdf-field "file")
+  (setq bibtex-completion-notes-path
+        "/home/gperaza/Documents/SortedResources/Notes"))
+#+END_SRC
+
+** Power thesaurus
+#+BEGIN_SRC emacs-lisp
+(use-package powerthesaurus
+  :ensure t
+  :bind (("s-t" . powerthesaurus-lookup-word-at-point)
+         ("s-T" . powerthesaurus-lookup-word)))
+#+END_SRC
+
+** Wordnik dictionary
+#+BEGIN_SRC emacs-lisp
+(use-package define-word
+  :ensure t
+  :bind (("s-w" . define-word-at-point)))
+#+END_SRC
+* Editing configuration
+** Some general editing configurations
+#+BEGIN_SRC emacs-lisp
+;; always follow symlinks of vc files
+(setq vc-follow-symlinks t)
+
+;; don't use tabs to indent
+(setq-default indent-tabs-mode nil)
+
+;; Require new line at the end of a file
+(setq require-final-newline t)
+
+;;Delete selection when copying/writing on top
+(delete-selection-mode t)
+
+;;Auto revert files
+(global-auto-revert-mode t)
+
+;;Enable narrowing commands
+(put 'narrow-to-region 'disabled nil)
+(put 'narrow-to-defun 'disabled nil)
+
+;;Enable erase-buffer command
+(put 'erase-buffer 'disabled nil)
+
+;; Make ediff use one frame
+(setq ediff-window-setup-function 'ediff-setup-windows-plain)
+
+;;Treat camel case words (camelCase) as separate words.
+(global-subword-mode 1)
+
+;;Allow typing TeX characters after toggling the input method with C-\
+(setq default-input-method 'TeX)
+
+;;Remember location in a file when saving
+(require 'saveplace)
+(setq-default save-place t)
+;; For emacs 25 do (save-place-mode 1)
+
+;; Turn on auto fill
+(add-hook 'text-mode-hook 'turn-on-auto-fill)
+
+;; Set truncate lines to nil
+(set-default 'truncate-lines t)
+
+;;Set fill column
+(setq-default fill-column 80)
+
+;; Save whatever’s in the current (system) clipboard before
+;; replacing it with the Emacs’ text.
+(setq save-interprogram-paste-before-kill t)
+#+END_SRC
+
+** White space mode
+#+BEGIN_SRC emacs-lisp
+(setq whitespace-line-column 80)
+(setq whitespace-style '(face trailing lines-tail))
+(add-hook 'prog-mode-hook 'whitespace-mode)
+(add-hook 'LaTeX-mode-hook 'whitespace-mode)
+#+END_SRC
+
+** Zzz-to-char (kills from current point to character, M-z/M-Z)
+#+BEGIN_SRC emacs-lisp
+(use-package zzz-to-char
+  :ensure t
+  :config
+  (global-set-key (kbd "M-z") 'zzz-up-to-char)
+  (global-set-key (kbd "M-Z") 'zzz-to-char))
+#+END_SRC
+
+** Move lines or region up and down
+To imitate move lines outside org mode.
+#+BEGIN_SRC emacs-lisp
+(use-package move-text
+  :ensure t
+  :config
+  (global-set-key (kbd "M-S-<up>")  'move-text-up)
+  (global-set-key (kbd "M-S-<down>") 'move-text-down))
+#+END_SRC
+
+** Volatile highlights, highlight things like undo, copy, etc.
+#+BEGIN_SRC emacs-lisp
+(use-package volatile-highlights
+  :ensure t
+  :config (volatile-highlights-mode t))
+#+END_SRC
+
+** Make C-w/M-w kill/copy single line when not selection is active
+#+BEGIN_SRC emacs-lisp
+;; note - this should be after volatile-highlights is required
+(defadvice kill-region (before smart-cut activate compile)
+  "When called interactively with no active region, kill a single line instead."
+  (interactive
+   (if mark-active (list (region-beginning) (region-end))
+     (list (line-beginning-position)
+           (line-beginning-position 2)))))
+
+(use-package easy-kill
+  :ensure t
+  :config
+  (global-set-key [remap kill-ring-save] 'easy-kill)
+  (global-set-key [remap mark-sexp] 'easy-mark))
+#+END_SRC
+
+** Expand region
+#+BEGIN_SRC emacs-lisp
+(use-package expand-region
+  :ensure t
+  :bind ("M-2" . er/expand-region))
+#+END_SRC
+
+** Automatically indent yanked text in programming modes
+#+BEGIN_SRC emacs-lisp
+(defun yank-advised-indent-function (beg end)
+  "Do indentation, as long as the region isn't too large."
+  (if (<= (- end beg) 1000)
+      (indent-region beg end nil)))
+
+(defcustom prelude-yank-indent-modes '(LaTeX-mode TeX-mode)
+  "Modes in which to indent regions that are yanked (or yank-popped).
+      Only modes that don't derive from `prog-mode' should be listed here."
+  :type 'list
+  :group 'prelude)
+
+(defmacro advise-commands (advice-name commands class &rest body)
+  "Apply advice named ADVICE-NAME to multiple COMMANDS.
+      The body of the advice is in BODY."
+  `(progn
+     ,@(mapcar (lambda (command)
+                 `(defadvice ,command (,class ,(intern (concat (symbol-name command) "-" advice-name)) activate)
+                    ,@body))
+               commands)))
+
+(advise-commands "indent" (yank yank-pop) after
+                 "If current mode is one of `prelude-yank-indent-modes',
+      indent yanked text (with prefix arg don't indent)."
+                 (if (and (not (ad-get-arg 0))
+                          (not (member major-mode crux-indent-sensitive-modes))
+                          (or (derived-mode-p 'prog-mode)
+                              (member major-mode prelude-yank-indent-modes)))
+                     (let ((transient-mark-mode nil))
+                       (yank-advised-indent-function (region-beginning) (region-end)))))
+#+END_SRC
+
+** Compilation
+Let's customize the behavior of the compilation process. We always to
+save when compiling, no need to ask. Also, if a previous compilation
+process exists, kill it before starting a new one. Finally,
+automatically scroll to first error.
+
+We can interpret the ansi color escape codes to colorize the
+compilation buffer. For this we follow Malabarba's [[http://endlessparentheses.com/ansi-colors-in-the-compilation-buffer-output.html?source=rss][advice]].
+
+Also, automatically close the compilation buffer when compilation
+succeeds without error.
+
+#+BEGIN_SRC emacs-lisp
+(require 'compile)
+(setq compilation-ask-about-save nil
+      compilation-always-kill t
+      compilation-scroll-output 'first-error)
+
+(require 'ansi-color)
+(defun endless/colorize-compilation ()
+  "Colorize from `compilation-filter-start' to `point'."
+  (let ((inhibit-read-only t))
+    (ansi-color-apply-on-region
+     compilation-filter-start (point))))
+
+(add-hook 'compilation-filter-hook
+          #'endless/colorize-compilation)
+
+(defun bury-compile-buffer-if-successful (buffer string)
+  "Bury a compilation buffer if succeeded without warnings "
+  (if (and
+       (string-match "compilation" (buffer-name buffer))
+       (string-match "finished" string)
+       (not
+        (with-current-buffer buffer
+          (goto-char (point-min))
+          (search-forward "warning" nil t))))
+      (run-with-timer 1 nil 'winner-undo)))
+(add-hook 'compilation-finish-functions 'bury-compile-buffer-if-successful)
+#+END_SRC
+
+** Hungry delete
+#+BEGIN_SRC emacs-lisp
+(use-package hungry-delete
+:ensure t
+:bind (("s-<backspace>" . hungry-delete-backward)
+       ("s-<delete>" . hungry-delete-forward)))
+#+END_SRC
+
+** Sdcv mode (dictionary)
+#+BEGIN_SRC emacs-lisp
+;;; sdcv-mode.el --- major mode to do dictionary query through sdcv
+
+;; Copyright 2006~2008 pluskid,
+;;           2011 gucong
+;;
+;; Author: pluskid <pluskid@gmail.com>,
+;;         gucong <gucong43216@gmail.com>
+;;
+;; This program is free software; you can redistribute it and/or
+;; modify it under the terms of the GNU General Public License as
+;; published by the Free Software Foundation; either version 2, or (at
+;; your option) any later version.
+;;
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with this program; if not, write to the Free Software
+;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+;;; Commentary:
+
+;; This is a major mode to view output of dictionary search of sdcv.
+
+;; Put this file into your load-path and the following into your
+;; ~/.emacs:
+;;   (require 'sdcv-mode)
+;;   (global-set-key (kbd "C-c d") 'sdcv-search)
+
+;;; Changelog:
+
+;; 2012/01/02
+;;     * New variable: `sdcv-word-processor'
+;;     * Breaking change:
+;;       for `sdcv-dictionary-list' and `sdcv-dictionary-alist',
+;;       non-list (non-nil) value now means full dictionary list
+;;     * Rewrite `sdcv-search' for both interactive and non-interactive use
+;;     * `sdcv-dictionary-list' is left for customization use only
+;;     * Better highlighting.
+;;
+;; 2011/06/30
+;;     * New feature: parse output for failed lookup
+;;     * Keymap modification
+;;
+;; 2008/06/11
+;;     * sdcv-mode v 0.1 init (with background process)
+
+;;; Code:
+
+(require 'outline)
+(provide 'sdcv-mode)
+(eval-when-compile
+  (require 'cl))
+
+;;; ==================================================================
+;;; Frontend, search word and display sdcv buffer
+(defun sdcv-search (word &optional dict-list-name dict-list interactive-p)
+  "Search WORD through the command-line tool sdcv.
+The result will be displayed in buffer named with
+`sdcv-buffer-name' with `sdcv-mode' if called interactively.
+When provided with DICT-LIST-NAME, query `sdcv-dictionary-alist'
+to get the new dictionary list before search.
+Alternatively, dictionary list can be specified directly
+by DICT-LIST.  Any non-list value of it means using all dictionaries.
+When called interactively, prompt for the word.
+Prefix argument have the following meaning:
+If `sdcv-dictionary-alist' is defined, 
+use prefix argument to select a new DICT-LIST-NAME.
+Otherwise, prefix argument means using all dictionaries.
+Word may contain some special characters:
+    ,*       match zero or more characters
+    ?       match zero or one character
+    /       used at the beginning, for fuzzy search
+    |       used at the beginning, for data search
+    \       escape the character right after"
+  (interactive
+   (let* ((dict-list-name
+           (and current-prefix-arg sdcv-dictionary-alist
+                (completing-read "Select dictionary list: "
+                                 sdcv-dictionary-alist nil t)))
+          (dict-list
+           (and current-prefix-arg (not sdcv-dictionary-alist)))
+          (guess (or (and transient-mark-mode mark-active
+                          (buffer-substring-no-properties
+                           (region-beginning) (region-end)))
+                     (current-word nil t)))
+          (word (read-string (format "Search dict (default: %s): " guess)
+                             nil nil guess)))
+     (list word dict-list-name dict-list t)))
+  ;; init current dictionary list
+  (when (null sdcv-current-dictionary-list)
+    (setq sdcv-current-dictionary-list sdcv-dictionary-list))
+  ;; dict-list-name to dict-list
+  (when (and (not dict-list) dict-list-name)
+    (if (not sdcv-dictionary-alist)
+        (error "`sdcv-dictionary-alist' not defined"))
+    (setq dict-list
+          (cdr (assoc dict-list-name sdcv-dictionary-alist))))
+  ;; prepare new dictionary list
+  (when (and dict-list (not (equal sdcv-current-dictionary-list dict-list)))
+    (setq sdcv-current-dictionary-list dict-list)
+    ;; kill sdcv process
+    (and (get-process sdcv-process-name)
+         (kill-process (get-process sdcv-process-name)))
+    (while (get-process sdcv-process-name)
+      (sleep-for 0.01)))
+  (let ((result
+         (concat ">>>"
+          (mapconcat
+           (lambda (w) (sdcv-do-lookup w))
+           (if sdcv-word-processor
+               (let ((processed (funcall sdcv-word-processor word)))
+                 (if (listp processed) processed (list processed)))
+             (list word))
+           ">>>"))))
+    (if (not interactive-p)
+        result
+      (with-current-buffer (get-buffer-create sdcv-buffer-name)
+        (setq buffer-read-only nil)
+        (erase-buffer)
+        (insert result))
+      (sdcv-goto-sdcv)
+      (sdcv-mode)
+      (sdcv-mode-reinit))))
+
+(defun sdcv-list-dictionary ()
+  "Show available dictionaries."
+  (interactive)
+  (let (resize-mini-windows)
+    (shell-command "sdcv -l" sdcv-buffer-name)))
+
+(defvar sdcv-current-dictionary-list nil)
+
+(defun sdcv-generate-dictionary-argument ()
+  "Generate dictionary argument for sdcv from `sdcv-current-dictionary-list'
+and `sdcv-dictionary-path'."
+  (append
+   (and sdcv-dictionary-path (list "--data-dir" sdcv-dictionary-path))
+   (and (listp sdcv-current-dictionary-list)
+        (mapcan (lambda (dict)
+                  (list "-u" dict))
+                sdcv-current-dictionary-list))))
+
+;;; ==================================================================
+;;; utilities to switch from and to sdcv buffer
+(defvar sdcv-previous-window-conf nil
+  "Window configuration before switching to sdcv buffer.")
+(defun sdcv-goto-sdcv ()
+  "Switch to sdcv buffer in other window."
+  (interactive)
+  (unless (eq (current-buffer)
+	      (sdcv-get-buffer))
+    (setq sdcv-previous-window-conf (current-window-configuration)))
+  (let* ((buffer (sdcv-get-buffer))
+         (window (get-buffer-window buffer)))
+    (if (null window)
+        (switch-to-buffer-other-window buffer)
+      (select-window window))))
+(defun sdcv-return-from-sdcv ()
+  "Bury sdcv buffer and restore the previous window configuration."
+  (interactive)
+  (if (window-configuration-p sdcv-previous-window-conf)
+      (progn
+        (set-window-configuration sdcv-previous-window-conf)
+        (setq sdcv-previous-window-conf nil)
+        (bury-buffer (sdcv-get-buffer)))
+    (bury-buffer)))
+
+(defun sdcv-get-buffer ()
+  "Get the sdcv buffer. Create one if there's none."
+  (let ((buffer (get-buffer-create sdcv-buffer-name)))
+    (with-current-buffer buffer
+      (unless (eq major-mode 'sdcv-mode)
+        (sdcv-mode)))
+    buffer))
+
+;;; ==================================================================
+;;; The very major mode
+(defvar sdcv-mode-font-lock-keywords
+  '(
+    ;; dictionary name
+    ("^-->\\(.*\\)$" . (1 sdcv-hit-face))
+    ("^==>\\(.*\\)$" . (1 sdcv-failed-face))
+    ("^\\(>>>.*\\)$" . (1 sdcv-heading-face))
+    )
+  "Expressions to hilight in `sdcv-mode'")
+
+(defvar sdcv-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "q" 'sdcv-return-from-sdcv)
+    (define-key map (kbd "RET") 'sdcv-search)
+    (define-key map "a" 'show-all)
+    (define-key map "h" 'hide-body)
+    (define-key map "o" 'sdcv-toggle-entry)
+    (define-key map "n" 'sdcv-next-entry)
+    (define-key map "p" 'sdcv-previous-entry)
+    map)
+  "Keymap for `sdcv-mode'.")
+
+(define-derived-mode sdcv-mode nil "sdcv"
+  "Major mode to look up word through sdcv.
+\\{sdcv-mode-map}
+Turning on Text mode runs the normal hook `sdcv-mode-hook'."
+  (setq font-lock-defaults '(sdcv-mode-font-lock-keywords))
+  (setq buffer-read-only t)
+  (set (make-local-variable 'outline-regexp) "-->.*\n-->\\|==>\\|>>>")
+  (set (make-local-variable font-lock-string-face) nil)
+)
+
+(defun sdcv-mode-reinit ()
+  "Re-initialize buffer.
+Hide all entrys but the first one and goto
+the beginning of the buffer."
+  (ignore-errors
+    (setq buffer-read-only nil)
+    (sdcv-parse-failed)
+    (setq buffer-read-only t)
+    (hide-body)
+    (goto-char (point-min))
+    (forward-line 1)
+    (show-entry)))
+
+(defun sdcv-parse-failed ()
+  (goto-char (point-min))
+  (let (save-word)
+    (while (re-search-forward "^[0-9]+).*-->\\(.*\\)$" nil t)
+      (let ((cur-word (match-string-no-properties 1)))
+        (unless (string= save-word cur-word)
+          (setq save-word cur-word)
+          (re-search-backward "^\\(.\\)" nil t)
+          (match-string 1)
+          (insert (format "\n==>%s\n" save-word)))))))
+
+(defun sdcv-next-entry ()
+  (interactive)
+  (outline-next-heading)
+  (show-entry)
+  (recenter-top-bottom 0))
+(defun sdcv-previous-entry ()
+  (interactive)
+  (outline-previous-heading)
+  (show-entry)
+  (recenter-top-bottom 0))
+
+(defun sdcv-toggle-entry ()
+  (interactive)
+  (save-excursion
+    (outline-back-to-heading)
+    (if (not (outline-invisible-p (line-end-position)))
+        (hide-entry)
+      (show-entry))))
+
+;;; ==================================================================
+;;; Support for sdcv process in background
+(defun sdcv-do-lookup (word)
+  "Send the word to the sdcv process and return the result."
+  (let ((process (sdcv-get-process)))
+    (process-send-string process (concat word "\n"))
+    (with-current-buffer (process-buffer process)
+      (let ((i 0) rlt done)
+	(while (and (not done)
+		    (< i sdcv-wait-timeout))
+	  (when (sdcv-match-tail sdcv-word-prompts)
+	    (setq rlt (buffer-substring-no-properties (point-min)
+						      (point-max)))
+	    (setq done t))
+	  (when (sdcv-match-tail sdcv-choice-prompts)
+	    (process-send-string process "-1\n"))
+	  (unless done
+	    (sleep-for sdcv-wait-interval)
+	    (setq i (+ i sdcv-wait-interval))))
+	(unless (< i sdcv-wait-timeout)
+	  ;; timeout
+	  (kill-process process)
+	  (error "ERROR: timeout waiting for sdcv"))
+	(erase-buffer)
+    rlt))))
+
+(defvar sdcv-wait-timeout 2
+  "The max time (in seconds) to wait for the sdcv process to
+produce some output.")
+(defvar sdcv-wait-interval 0.01
+  "The interval (in seconds) to sleep each time to wait for
+sdcv's output.")
+
+(defconst sdcv-process-name "%sdcv-mode-process%")
+(defconst sdcv-process-buffer-name "*sdcv-mode-process*")
+
+(defvar sdcv-word-prompts '("Enter word or phrase: "
+			    "请输入单词或短语："
+			    "請輸入單字或片語：")
+  "A list of prompts that sdcv use to prompt for word.")
+
+(defvar sdcv-choice-prompts '("Your choice[-1 to abort]: "
+			      "您的选择为："
+			      "您的選擇為：")
+  "A list of prompts that sdcv use to prompt for a choice
+of multiple candicates.")
+
+(defvar sdcv-result-patterns '("^Found [0-9]+ items, similar to [*?/|]*\\(.+?\\)[*?]*\\."
+			      "^发现 [0-9]+ 条记录和 [*?/|]*\\(.+?\\)[*?]* 相似。"
+			      )
+  "A list of patterns to extract result word of sdcv. Special
+characters are stripped.")
+
+(defun sdcv-get-process ()
+  "Get or create the sdcv process."
+  (let ((process (get-process sdcv-process-name)))
+    (when (null process)
+      (with-current-buffer (get-buffer-create
+			    sdcv-process-buffer-name)
+	(erase-buffer)
+	(setq process (apply 'start-process
+			     sdcv-process-name
+			     sdcv-process-buffer-name
+			     sdcv-program-path
+			     (sdcv-generate-dictionary-argument)))
+	;; kill the initial prompt
+	(let ((i 0))
+	  (message "starting sdcv...")
+	  (while (and (not (sdcv-match-tail sdcv-word-prompts))
+		      (< i sdcv-wait-timeout))
+	    (sleep-for sdcv-wait-interval)
+	    (setq i (+ i sdcv-wait-interval)))
+	  (unless (< i sdcv-wait-timeout)
+	    ;; timeout
+	    (kill-process process)
+	    (error "ERROR: timeout waiting for sdcv"))
+	  (erase-buffer))))
+    process))
+
+(defun sdcv-buffer-tail (length)
+  "Get a substring of length LENGTH at the end of
+current buffer."
+  (let ((beg (- (point-max) length))
+	(end (point-max)))
+    (if (< beg (point-min))
+	(setq beg (point-min)))
+    (buffer-substring-no-properties beg end)))
+
+(defun sdcv-match-tail (prompts)
+  (let ((done nil)
+	(prompt nil))
+    (while (and (not done)
+		prompts)
+      (setq prompt (car prompts))
+      (setq prompts (cdr prompts))
+      (when (string-equal prompt
+                          (sdcv-buffer-tail (length prompt)))
+        (delete-region (- (point-max) (length prompt))
+                       (point-max))
+        (setq done t)))
+    done))
+
+
+;;;;##################################################################
+;;;;  User Options, Variables
+;;;;##################################################################
+
+(defvar sdcv-buffer-name "*sdcv*"
+  "The name of the buffer of sdcv.")
+(defvar sdcv-dictionary-list t
+  "A list of dictionaries to use.
+Each entry is a string denoting the name of a dictionary, which
+is then passed to sdcv through the '-u' command line option. 
+Any non-list value means using all the dictionaries.")
+(defvar sdcv-dictionary-alist nil
+  "An alist of dictionaries, used to interactively form
+dictionary list. It has the form:
+   ((\"full\" . t)
+    (\"group1\" \"dict1\" \"dict2\" ...)
+    (\"group2\" \"dict2\" \"dict3\"))
+Any cons cell here means using all dictionaries.
+")
+
+(defvar sdcv-program-path "sdcv"
+  "The path of sdcv program.")
+
+(defvar sdcv-dictionary-path nil
+  "The path of dictionaries.")
+
+(defvar sdcv-word-processor nil
+  "This is the function that take a word (stirng) 
+and return a word or a list of words for lookup by `sdcv-search'.
+All lookup result(s) will finally be concatenated together.
+`nil' value means do nothing with the original word.
+The following is an example.  This function takes the original word and
+compare whether simplified and traditional form of the word are the same.
+If not, look up both of the words.
+      (lambda (word)
+        (let ((sim (chinese-conv word \"simplified\"))
+              (tra (chinese-conv word \"traditional\")))
+          (if (not (string= sim tra))
+              (list sim tra)
+            word)))
+")
+
+(defvar sdcv-hit-face 'font-lock-type-face
+  "Face for search hits")
+(defvar sdcv-failed-face 'font-lock-keyword-face
+  "Face for suggestions for a failed lookup.")
+(defvar sdcv-heading-face 'highlight
+  "Face for heading of lookup")
+
+;;; sdcv-mode.el ends here
+
+(global-set-key (kbd "s-d") 'sdcv-search)
+#+END_SRC
+
+* Navigation
+** Misc
+#+BEGIN_SRC emacs-lisp
+(global-set-key (kbd "C-x k") 'kill-this-buffer)
+(global-set-key (kbd "C-x w") 'kill-buffer-and-window)
+#+END_SRC
+
+** Avy
+#+BEGIN_SRC emacs-lisp
+(use-package avy
+  :ensure t
+  :bind
+  (("M-l" . avy-goto-line)
+   ("M-s" . avy-goto-word-or-subword-1)))
+#+END_SRC
+
+** Windmove to move between visible buffers
+#+BEGIN_SRC emacs-lisp
+(use-package windmove
+  :bind
+  (("s-<right>" . windmove-right)
+   ("s-<left>" . windmove-left)
+   ("s-<up>" . windmove-up)
+   ("s-<down>" . windmove-down)
+   ))
+#+END_SRC
+
+** Winner mode, undo-redo window configuration
+#+BEGIN_SRC emacs-lisp
+(use-package winner
+  :config (winner-mode 1))
+#+END_SRC
+
+* LaTeX
+#+BEGIN_SRC emacs-lisp
+(use-package tex
+  :ensure auctex
+  :config
+  (setq-default TeX-master nil)
+  (setq TeX-auto-save t)
+  (setq TeX-parse-self t)
+  (setq TeX-electric-math (cons "$" "$"))
+  (setq TeX-save-query nil)
+
+  (setq TeX-view-program-selection '((output-pdf "Okular"))
+        TeX-source-correlate-start-server t)
+
+  (add-hook 'LaTeX-mode-hook
+            (lambda ()
+              (flyspell-mode t)
+              ;;(TeX-PDF-mode -1)
+              (TeX-fold-mode t)
+              (turn-on-reftex)
+              (TeX-source-correlate-mode t)
+              (setq TeX-command-extra-options "--shell-escape")
+              (LaTeX-math-mode t)))
+
+  ;; reftex settings
+  (setq reftex-enable-partial-scans t)
+  (setq reftex-use-multiple-selection-buffers t)
+  (setq reftex-plug-into-AUCTeX t)
+  (setq reftex-ref-macro-prompt nil)
+
+  (setq TeX-outline-extra '(("\\\\frametitle\\b" 2)))
+  (setq font-latex-user-keyword-classes
+          '(("my-red-commands"
+             (("del" "[{"))
+             (:foreground "red"
+              :strike-through t)
+             command)
+            ("my-blue-commands"
+             (("add" "[{")
+              ("rep" "[{{"))
+             (:foreground "dodger blue")
+             command)
+            ("my-yellow-commands"
+             (("comment" "{{"))
+             (:foreground "yellow")
+             command)))
+ )
+#+END_SRC
+
+* org-mode
+#+BEGIN_SRC emacs-lisp
+(use-package org
+   :ensure org-plus-contrib
+   :config
+   (add-hook 'org-mode-hook 'turn-on-org-cdlatex)
+)
+#+END_SRC
+
+** Appearance
+#+BEGIN_SRC emacs-lisp
+;; Align text at column 1
+(setq org-adapt-indentation nil)
+
+;; Start with contents displayed
+(setq org-startup-folded 'content)
+
+;; Highlight latex fragments
+(setq org-highlight-latex-and-related '(latex))
+
+;; Increase the size of latex fragments in text:
+(plist-put org-format-latex-options :scale 1.5)
+
+;; Allow lists with letters in them.
+(setq org-list-allow-alphabetical t)
+
+;; Disable inline images
+(defun org-display-inline-images (&optional include-linked refresh beg end)
+  "This function is disabled. I dont like inline images."
+  (interactive "P")
+  (message "Disabled functionality"))
+#+END_SRC
+
+** Babel, code inside org
+*** Enable languages
+#+BEGIN_SRC emacs-lisp
+(require 'ob-shell)
+
+(use-package ob-ipython
+  :ensure t
+  :config
+  (setq org-babel-default-header-args:ipython
+        '((:results . "replace drawer")
+          (:session . "ipython")
+          (:exports . "both")
+          (:cache .   "no")
+          (:noweb . "no")
+          (:hlines . "no")
+          (:tangle . "no")
+          (:eval . "never-export"))))
+
+(org-babel-do-load-languages
+ 'org-babel-load-languages
+ '((emacs-lisp . t)
+   (python . t)
+   (ipython . t)
+   (shell . t)
+   (org . t)
+   (C . t)
+   (latex . t)
+   (awk . t)
+   (gnuplot . t)
+   (dot . t)))
+(add-to-list 'org-src-lang-modes '("dot" . "graphviz-dot"))
+#+END_SRC
+
+*** Set up Babel behavior
+Don't ask for confirmation when evaluating a code block.
+
+#+BEGIN_SRC emacs-lisp
+(setq org-confirm-babel-evaluate nil)
+#+END_SRC
+
+Code block indentation messes up indent sensitive languages like
+Python, disable it. While we are messing with indentation let's make
+tab behave as in the native major mode inside blocks.
+
+#+BEGIN_SRC emacs-lisp
+(setq org-src-preserve-indentation t)
+(setq org-src-tab-acts-natively t)
+#+END_SRC
+
+Do not evaluate on export.
+
+#+BEGIN_SRC emacs-lisp
+(add-to-list 'org-babel-default-header-args '(:eval . "no-export"))
+#+END_SRC
+
+Disable Flycheck when editing code blocks.
+
+#+BEGIN_SRC emacs-lisp
+(defun disable-flycheck-in-org-src-block ()
+  (setq-local flycheck-disabled-checkers '(emacs-lisp-checkdoc)))
+(add-hook 'org-src-mode-hook 'disable-flycheck-in-org-src-block)
+#+END_SRC 
+
+Edit code in same window
+#+BEGIN_SRC emacs-lisp
+(setq org-src-window-setup 'current-window)
+#+END_SRC
+
+** Footnotes
+In-line and still reference-able footnote definitions. Footnotes have
+random unique id's and being inline means it is difficult to mess up
+references by deleting stuff.
+
+#+BEGIN_SRC emacs-lisp
+(setq org-footnote-define-inline t)
+(setq org-footnote-auto-label 'random)
+(setq org-footnote-auto-adjust nil)
+#+END_SRC
+
+** Org mode links
+Enable storing, inserting and following links in any buffer:
+
+#+BEGIN_SRC emacs-lisp
+(global-set-key "\C-cl" 'org-store-link)
+(global-set-key "\C-cL" 'org-insert-link-global)
+(global-set-key "\C-co" 'org-open-at-point-global)
+
+(setq org-file-apps
+      '((auto-mode . emacs)
+        ("\\.mm\\'" . default)
+        ("\\.x?html?\\'" . "firefox %s")
+        ("\\.pdf\\'" . "okular %s")
+        ("\\.png\\'" . "feh -B white %s")
+        ("\\.jpg\\'" . "pqiv -i %s")
+        ("\\.svg\\'" . "pqiv -i %s")))
+#+END_SRC
+
+** Navigation
+Enable fast navigation on headers. To see a list of available commands
+press ? with the cursor at the beginning of a headline.
+
+#+BEGIN_SRC emacs-lisp
+(setq org-use-speed-commands t)
+#+END_SRC
+
+Function that replaces the entire key map for narrow widen in org.
+Narrowing is really useful to focus only on the relevant section we
+want to edit. Now we can narrow/widen smartly using only
+C-x n. Works globally, not only in org-mode, perhaps I should move
+this elsewhere.
+
+#+BEGIN_SRC emacs-lisp
+(defun latex-narrow-to-section ()
+  "Narrow to current section"
+  (LaTeX-mark-section)
+  (call-interactively 'narrow-to-region)
+  (deactivate-mark))
+
+(defun latex-on-section-header ()
+  "Return non-nil if point is on a section header."
+  (if (string-match "\\`\\\\\\(sub\\)*section{.*}" (thing-at-point 'line t))
+       t nil))
+
+(defun narrow-or-widen-dwim (p)
+  "Widen if buffer is narrowed, narrow-dwim otherwise.
+Dwim means: region, org-src-block, org-subtree, or
+defun, whichever applies first. Narrowing to
+org-src-block actually calls `org-edit-src-code'.
+
+With prefix P, don't widen, just narrow even if buffer
+is already narrowed."
+  (interactive "P")
+  (declare (interactive-only))
+  (cond ((and (buffer-narrowed-p) (not p)) (widen))
+        ((region-active-p)
+         (narrow-to-region (region-beginning)
+                           (region-end)))
+        ((derived-mode-p 'org-mode)
+         ;; `org-edit-src-code' is not a real narrowing
+         ;; command. Remove this first conditional if
+         ;; you don't want it.
+         (cond ((ignore-errors (org-edit-src-code) t)
+                (delete-other-windows))
+               ((ignore-errors (org-narrow-to-block) t))
+               (t (org-narrow-to-subtree))))
+        ((derived-mode-p 'latex-mode)
+         (if (latex-on-section-header)
+             (latex-narrow-to-section)
+           (LaTeX-narrow-to-environment)))
+        (t (narrow-to-defun))))
+
+;; This line actually replaces Emacs' entire narrowing
+;; keymap, that's how much I like this command. Only
+;; copy it if that's what you want.
+(define-key ctl-x-map "n" #'narrow-or-widen-dwim)
+(add-hook 'LaTeX-mode-hook
+          (lambda ()
+            (define-key LaTeX-mode-map "\C-xn"
+              nil)
+            ;; (define-key LaTeX-mode-map "\C-ci" 'counsel-outline)
+            ))
+#+END_SRC
+
+** Org mode exporter
+Org-mode allow us to export our document to different formats. The two
+I use the most are LaTeX and HTML.
+
+Set-up export back-ends
+
+#+BEGIN_SRC emacs-lisp
+(require 'ox-latex)
+(require 'ox-html)
+(require 'ox-koma-letter)
+#+END_SRC
+
+*** LaTeX back-end configuration
+The LaTeX back-end needs some extra configuration.
+
+Define extra packages to be included in latex exports.
+
+#+BEGIN_SRC emacs-lisp
+;; (setq org-latex-packages-alist
+;;       '(("" "lmodern" nil);; latin modern fonts
+;;         ("" "mathtools" t);; superseeds amsmath
+;;         ("" "url" nil);; enable \url{} for urls
+;;         ("" "color" nil)
+;;         ("" "amssymb" nil)
+;;         ("" "amsopn" nil)
+;;         ("" "nicefrac" nil)
+;;         ("" "units" nil)
+;;         ("" "gensymb" nil)
+;;         ;; ("" "svg" nil)
+;;         ))
+#+END_SRC
+
+To enable syntax highlighting for source code in LaTeX export we need
+pygmentize installed. Currently it's disabled because it breaks
+portability with standard LaTeX work flows, particularly my
+collaborators don't know how to compile a tex file with this enabled.
+It can be enables in each buffer by manually including the minted
+package via "#+LATEX_HEADER: /usepackage{minted}"
+
+#+BEGIN_SRC emacs-lisp
+;; Add minted to the defaults packages to include when exporting.
+;;(add-to-list 'org-latex-packages-alist '("" "minted" nil))
+
+;; Tell the latex export to use the minted package for source code
+;; coloration.
+(setq org-latex-listings 'minted)
+
+;; Let the exporter use the -shell-escape option to let latex execute
+;; external programs. This obviously and can be dangerous to activate!
+(setq org-latex-minted-options
+      '(("mathescape" "true")
+        ("linenos" "true")
+        ("numbersep" "5pt")
+        ("frame" "lines")
+        ("framesep" "2mm")))
+(setq org-latex-pdf-process
+      '("latexmk -pdflatex='pdflatex --shell-escape' -pdf %f"))
+#+END_SRC
+
+*** Export behavior
+I want to interpret "_" and "^" as sub and super indices only when
+braces are used.
+
+#+BEGIN_SRC emacs-lisp
+(setq org-export-with-sub-superscripts '{})
+#+END_SRC
+
+** Templates
+*** General purpose
+This is a template for a research/project aid document. The purpose of
+this document is to hold task, reading list, and some quick
+notes. It's available using the "<paper" expansion.
+
+#+BEGIN_SRC emacs-lisp
+(add-to-list 'org-structure-template-alist
+             `("paper"
+               ,(concat
+                "#+TITLE:\n"
+                "#+DATE:\n"
+                "#+PROPERTY: cookie_data recursive\n\n"
+                "Description:\n\n"
+                "* Files\n"
+                "* Tasks\n"
+                "** Writing\n"
+                "** Modeling\n"
+                "** Simulations\n"
+                "* Reading\n"
+                "** Must read\n"
+                "** Should read\n"
+                "** Already read and relevant\n"
+                "** Already read and not relevant\n"
+                "* Meetings\n")))
+#+END_SRC
+
+*** Code block templates
+#+BEGIN_SRC emacs-lisp
+;; add <p for python expansion
+(add-to-list 'org-structure-template-alist
+             '("p"
+               "#+BEGIN_SRC python\n?\n#+END_SRC"
+               "<src lang=\"python\">\n?\n</src>"))
+
+;; add <ip for python expansion
+(add-to-list 'org-structure-template-alist
+             '("ip"
+               "#+BEGIN_SRC ipython\n?\n#+END_SRC"
+               "<src lang=\"ipython\">\n?\n</src>"))
+
+;; add <el for emacs-lisp expansion
+(add-to-list 'org-structure-template-alist
+             '("el"
+               "#+BEGIN_SRC emacs-lisp\n?\n#+END_SRC"
+               "<src lang=\"emacs-lisp\">\n?\n</src>"))
+
+;; add <sh for shell
+(add-to-list 'org-structure-template-alist
+             '("sh"
+               "#+BEGIN_SRC sh\n?\n#+END_SRC"
+               "<src lang=\"shell\">\n?\n</src>"))
+#+END_SRC
+
+** Org-Download
+#+BEGIN_SRC emacs-lisp
+(use-package org-download
+  :ensure t
+  :config
+  (setq-default org-download-image-dir "./figures")
+  (setq-default org-download-heading-lvl nil))
+#+END_SRC
+
+* Programming
+** Parenthesis
+#+BEGIN_SRC emacs-lisp
+(show-paren-mode 1)
+(electric-pair-mode 1)
+
+(use-package rainbow-delimiters
+  :ensure t
+  :config
+  (add-hook 'prog-mode-hook #'rainbow-delimiters-mode))
+
+(use-package wrap-region
+  :ensure t
+  :config
+  (wrap-region-add-wrapper "$" "$" nil 'LaTeX-mode)
+  (wrap-region-global-mode t))
+#+END_SRC
+
+** Comments
+#+BEGIN_SRC emacs-lisp
+(defun comment-auto-fill ()
+  (setq-local comment-auto-fill-only-comments t)
+  (auto-fill-mode 1))
+(add-hook 'prog-mode-hook 'comment-auto-fill)
+
+(use-package comment-dwim-2
+  :ensure t
+  :bind ("M-;" . comment-dwim-2))
+#+END_SRC
+
+** Flycheck
+#+BEGIN_SRC emacs-lisp
+(use-package flycheck
+  :ensure t
+  :config (global-flycheck-mode 1))
+
+(use-package flycheck-pos-tip
+  :ensure t
+  :config
+  (with-eval-after-load 'flycheck
+    (flycheck-pos-tip-mode)))
+#+END_SRC
+
+** Semantic mode
+Semantic mode enables parsing of source code files.
+#+BEGIN_SRC emacs-lisp
+(require 'semantic)
+
+(global-semanticdb-minor-mode 1)
+(global-semantic-idle-scheduler-mode 1)
+(use-package stickyfunc-enhance
+  :ensure t
+  :init (global-semantic-stickyfunc-mode 1))
+(semantic-mode 1)
+
+(defun my/semantic-show-summary (point)
+  "Display a summary for the symbol under POINT."
+  (interactive "P")
+  (let* ((ctxt (semantic-analyze-current-context point))
+         (pf (when ctxt
+               (semantic-analyze-interesting-tag ctxt)))
+        )
+    (if pf
+        (popup-tip (format "%s" (semantic-format-tag-summarize pf nil t)))
+      (popup-tip "No summary info available"))))
+(define-key semantic-mode-map (kbd "s-i") 'my/semantic-show-summary)
+(define-key semantic-mode-map (kbd "s-j") 'semantic-ia-fast-jump)
+#+END_SRC
+
+** Projectile
+#+BEGIN_SRC emacs-lisp
+(use-package projectile
+  :ensure t
+  :init (setq projectile-use-git-grep t)
+  :config
+  (setq projectile-completion-system 'ivy)
+  (projectile-global-mode))
+#+END_SRC
+
+** Python
+#+BEGIN_SRC emacs-lisp
+;; Always run elpy-config to check possible issues
+(use-package elpy
+  :ensure t
+  :config
+  (elpy-enable))
+#+END_SRC
+
+** C
+#+BEGIN_SRC emacs-lisp
+(setq-default c-basic-offset 4)
+(require 'cc-mode)
+
+;; New functions
+(define-key c-mode-base-map (kbd "RET") 'newline-and-indent)
+
+(defun my/c-compile()
+  (interactive)
+  (compile "make -k"))
+(define-key c-mode-base-map (kbd "<f5>") 'my/c-compile)
+
+;; c99 mode
+(defun my-flycheck-c-setup ()
+  (setq flycheck-gcc-language-standard "gnu99"))
+(add-hook 'c-mode-hook #'my-flycheck-c-setup)
+
+;; function args mode
+(use-package function-args
+  :ensure t
+  :config (fa-config-default))
+#+END_SRC
+
+** Gnuplot
+#+BEGIN_SRC emacs-lisp
+(use-package gnuplot-mode
+  :ensure t)
+#+END_SRC
+
+** Markdown mode
+#+BEGIN_SRC emacs-lisp
+(use-package markdown-mode
+  :ensure t)
+#+END_SRC
+
+** Graphviz
+#+BEGIN_SRC emacs-lisp
+(use-package graphviz-dot-mode
+  :ensure t)
+#+END_SRC
+
+** ox-ipynb
+#+BEGIN_SRC emacs-lisp
+(use-package ox-ipynb
+  :load-path "~/.emacs.d/ox-ipynb/")
+#+END_SRC
+
+* End
+#+BEGIN_SRC emacs-lisp
+)
+#+END_SRC
+
+End.

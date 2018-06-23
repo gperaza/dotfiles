@@ -1,0 +1,7 @@
+[user]
+	name = Gonzalo Peraza
+	email = ggperaza@gmail.com
+[push]
+	default = simple
+[magit]
+	hideCampaign = true

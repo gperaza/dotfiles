@@ -1,0 +1,34 @@
+# -*- mode: snippet -*-
+# name: full template exam class
+# key: exam
+# --
+\documentclass[answers]{exam}
+% \documentclass[]{exam}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+
+\begin{document}
+\date{$1}
+\begin{center}
+\textbf{$2}
+\end{center}
+
+% \begin{center}
+% \fbox{\fbox{\parbox{5.5in}{\centering
+% }}}
+% \end{center}
+
+\vspace{5mm}
+
+\makebox[\textwidth]{Profesor:\enspace Gonzalo G. Peraza Mues\hfill}
+
+\vspace{5mm}
+
+\makebox[\textwidth]{Nombre:\enspace\hrulefill}
+
+\vspace{5mm}
+
+\makebox[\textwidth]{Grupo:\enspace\hrulefill}
+
+$0
+\end{document}

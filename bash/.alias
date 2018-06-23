@@ -1,0 +1,34 @@
+# Shortcuts
+
+alias reload="source ~/.bash_profile"
+# alias rr="rm -rf"
+
+
+# List declared aliases, functions, paths
+
+alias aliases="alias | sed 's/=.*//'"
+alias functions="declare -f | grep '^[a-z].* ()' | sed 's/{$//'"
+alias paths='echo -e ${PATH//:/\\n}'
+
+# Directory listing/traversal (requires exa)
+
+alias ..="cd .."
+alias ...="cd ../.."
+alias ....="cd ../../.."
+alias -- -="cd -"                  # Go to previous dir with -
+alias cd.='cd $(readlink -f .)'    # Go to real dir (i.e. if current dir is linked)
+
+alias l='exa -F'
+alias la='exa -a'
+alias ld='exa -d */'
+alias ll='exa -alF'
+alias ls='exa'
+
+alias tree="exa --tree --level 2"
+alias tree3="exa --tree --level 3"
+alias tree4="exa --tree --level 4"
+
+# Network
+
+alias ip="dig +short myip.opendns.com @resolver1.opendns.com"
+alias ipl="ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1'"
