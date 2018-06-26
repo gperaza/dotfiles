@@ -50,7 +50,7 @@ readarray -t line < <(echo "$line")
 key=$(echo "${line[1]}" | cut -d'{' -f4)
 pdf="$(echo "${line[1]}" | cut -d'{' -f5 | cut -d':' -f2)"
 doi=$(echo "${line[1]}" | cut -d'{' -f6)
-notes=~/Documents/SortedResources/Notes/${key}.org
+notes="${pdf%.*}".org
 line_num=$(grep -n "$key" "$bib_input_file" | cut -f1 -d:)
 
 case "${line[0]}" in
