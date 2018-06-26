@@ -12,3 +12,6 @@ echo "Be not afraid of life. Believe that life is worth living and your belief w
 . ~/.function
 . ~/.path
 . ~/.prompt
+
+# Load fzf fuzzy filter
+[ -f ~/.fzf.bash ] && source ~/.fzf.bash

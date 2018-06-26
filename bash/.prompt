@@ -2,7 +2,7 @@
 # Based on Liquid Prompt, but heavily simplified. Only for bash. #
 ##################################################################
 
-. ~/.dotfiles/set_colors.sh
+. .set_colors
 
 ###############
 # Who are we? #
