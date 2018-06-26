@@ -27,10 +27,15 @@ def get_fields(entry):
     if 'file' in entry and entry['file']:
         has_pdf = "⌘"
         pdf_path = entry['file']
+        note_path = os.path.splitext(pdf_path.split(':')[1])[0]+'.org'
+        if os.path.isfile(note_path):
+            has_notes = "✎"
+        else:
+            has_notes = " "
     else:
         has_pdf = " "
         pdf_path = ""
-    has_notes = "✎" if os.path.isfile(notes_dir + bib_key + ".org") else " "
+        has_notes = " "
 
     if 'doi' in entry and entry['doi']:
         doi = entry['doi']
