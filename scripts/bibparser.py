@@ -63,13 +63,13 @@ def build_fzf_line(entry):
                                      has_notes, entry_type, hidden_line)
 
 
-bib_input_file = '/home/gperaza/Documents/SortedResources/bibliography.bib'
+bib_input_file = '/home/gperaza/Documents/Library/bibliography.bib'
 notes_dir = "/home/gperaza/Documents/SortedResources/Notes/"
 rows, columns = os.popen('stty size', 'r').read().split()
 
 with open(bib_input_file) as bibtex_file:
-    parser = BibTexParser()
-    parser.customization = convert_to_unicode
+    parser = BibTexParser(common_strings=True)
+    # parser.customization = convert_to_unicode
     bib_database = bibtexparser.load(bibtex_file, parser=parser)
 
 for entry in bib_database.entries:
