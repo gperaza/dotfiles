@@ -29,7 +29,7 @@ This file must include personal information given as
 > (setq user-full-name "MY NAME"
 >       user-mail-address "MY EMAIL")
 #+BEGIN_SRC emacs-lisp
-(load "~/.dotfiles/personal.el")
+(load "~/.dotfiles/emacs/personal.el")
 #+END_SRC
 
 ** Setting up package manager and use-package
@@ -144,12 +144,16 @@ This file must include personal information given as
 ** Color theme
 #+BEGIN_SRC emacs-lisp
 ;; (load-theme 'flatland t)
-(load-theme 'dracula t)
+(use-package dracula-theme
+:ensure t
+:config
+(load-theme 'dracula t))
 #+END_SRC
 
 ** Smart mode line
 #+BEGIN_SRC emacs-lisp
 (use-package rich-minority
+  :ensure t
   :config
   (setq rm-whitelist "Projectile"))
 #+END_SRC
@@ -1165,6 +1169,7 @@ If not, look up both of the words.
 (use-package org
    :ensure org-plus-contrib
    :config
+   ;; Needs cdlatex package
    (add-hook 'org-mode-hook 'turn-on-org-cdlatex)
 )
 #+END_SRC
@@ -1617,9 +1622,10 @@ Semantic mode enables parsing of source code files.
 #+END_SRC
 
 ** ox-ipynb
+Org mode exporter for Jupyter notebooks.
 #+BEGIN_SRC emacs-lisp
-(use-package ox-ipynb
-  :load-path "~/.emacs.d/ox-ipynb/")
+;; (use-package ox-ipynb
+;;   :load-path "~/.emacs.d/ox-ipynb/")
 #+END_SRC
 
 * End
