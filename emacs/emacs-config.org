@@ -150,14 +150,6 @@ This file must include personal information given as
 (load-theme 'dracula t))
 #+END_SRC
 
-** Smart mode line
-#+BEGIN_SRC emacs-lisp
-(use-package rich-minority
-  :ensure t
-  :config
-  (setq rm-whitelist "Projectile"))
-#+END_SRC
-
 ** Nice scrolling, not centering after scrolling.
 #+BEGIN_SRC emacs-lisp
 (setq scroll-margin 0
@@ -168,12 +160,6 @@ This file must include personal information given as
 (setq mouse-wheel-progressive-speed nil) ;; don't accelerate scrolling
 (setq mouse-wheel-follow-mouse 't) ;; scroll window under mouse
 (setq auto-window-vscroll nil)
-#+END_SRC
-
-** Olivetti mode
-#+BEGIN_SRC emacs-lisp
-(use-package olivetti
-  :ensure t)
 #+END_SRC
 
 ** Page break lines
@@ -370,30 +356,6 @@ https://github.com/bbatsov/crux
 (add-hook 'org-mode-hook 'my-company-org-mode-setup)
 #+END_SRC
 
-** Deft
-[[https://github.com/jrblevin/deft][Deft]] is an Emacs mode for quickly browsing, filtering, and editing
-directories of plain text notes, inspired by Notational Velocity. It
-was designed for increased productivity when writing and taking notes
-by making it fast and simple to find the right file at the right time
-and by automating many of the usual tasks such as creating new files
-and saving files.
-
-#+BEGIN_SRC emacs-lisp
-(use-package deft
-  :ensure t
-  :bind ("<f8>" . deft)
-  :commands (deft)
-  :config
-  (setq deft-directory "~/Documents/Notes"
-        deft-extensions '("org" "tex"))
-  (setq deft-default-extension "org")
-  (setq deft-use-filter-string-for-filename t)
-  (setq deft-file-naming-rules
-        '((noslash . "-")
-          (nospace . "-")
-          (case-fn . downcase))))
-#+END_SRC
-
 ** Function: open-term-here
 A function for opening an external terminal emulator in the current
 path.
@@ -457,9 +419,7 @@ path.
   :config
   (setq bibtex-completion-bibliography
         '("/home/gperaza/Documents/SortedResources/bibliography.bib"))
-  (setq bibtex-completion-pdf-field "file")
-  (setq bibtex-completion-notes-path
-        "/home/gperaza/Documents/SortedResources/Notes"))
+  (setq bibtex-completion-pdf-field "file"))
 #+END_SRC
 
 ** Power thesaurus
