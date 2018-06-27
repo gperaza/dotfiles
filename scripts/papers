@@ -13,7 +13,7 @@
 
 export bred="\e[0;31m"
 pdfdir=
-bib_input_file=~/Documents/SortedResources/bibliography.bib
+bib_input_file=~/Documents/Library/bibliography.bib
 
 print_help () {
     key=$(echo "$1" | cut -d'{' -f4)
