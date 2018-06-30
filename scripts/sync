@@ -1,0 +1,66 @@
+#!/bin/bash
+
+# A list of actions to push changes to Google Drive
+
+# TODO: implement push pull actions
+# TODO: implement check actions
+# TODO: display help and abort if no valid option passed
+
+usage()
+{
+    echo "Valid actions: pull, push, check."
+    echo "Valid options: --test"
+}
+
+local="$HOME"
+cloud="gdrive:Backup"
+
+cmnd=
+trashbin=
+options=
+if [ "$1" != "" ]; then
+    case $1 in
+        push )    cmnd="sync"
+                  src=$local
+                  dest=$cloud
+                  trashbin="--backup-dir gdrive:Backup/Thrash"
+                  options="--update"
+                  ;;
+        pull )    cmnd="sync"
+                  src=$cloud
+                  dest=$local
+                  trashbin="--backup-dir $HOME/.RcloneThrash"
+                  options="--update"
+                  ;;
+        check )   cmnd="check"
+                  src=$local
+                  dest=$cloud
+                  ;;
+        * )       usage
+                  exit 1
+    esac
+else
+    usage
+    exit 1
+fi
+
+test=
+while [ "$2" != "" ]; do
+    case $2 in
+        -t | --test )           shift
+                                test="--dry-run"
+                                ;;
+        * )                     usage
+                                exit 1
+    esac
+    shift
+done
+
+# Global filters
+filter="$HOME/.dotfiles/rclone/global-filter"
+
+
+# Backup all Zotero managed files and associeted notes.
+target="Documents/Library/ZoteroPDFs/"
+
+rclone $cmnd "$src/$target" "$dest/$target" -v $trashbin $test $options --filter-from "$filter"
