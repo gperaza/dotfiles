@@ -1,3 +1,13 @@
+# Ignore backups, logs and auto saved files.
 - *.bak
 - *.log
 - *~
+
+# Ignore latex auxiliary files
+- *.aux
+- *.bbl
+- *.blg
+- *.out
+- *.synctex.gz
+- *.toc
+- auto/**
