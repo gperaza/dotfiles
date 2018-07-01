@@ -59,16 +59,17 @@ done
 # Global filters
 filter="$HOME/.dotfiles/rclone/global-filter"
 
+# Sync folders
+targets="Documents/Library/ZoteroPDFs/"
+targets+=" Documents/Notes"
+targets+=" Documents/code"
+targets+=" Documents/Personales"
+for target in $targets; do
+    rclone $cmnd "$src/$target" "$dest/$target" -v $trashbin $test $options --filter-from "$filter"
+done
 
-# Backup all Zotero managed files and associeted notes.
-target="Documents/Library/ZoteroPDFs/"
-rclone $cmnd "$src/$target" "$dest/$target" -v $trashbin $test $options --filter-from "$filter"
-
-target="Documents/Library/bibliography.bib"
-rclone $cmnd "$src/$target" "$dest/$target" -v $trashbin $test $options
-
-target="Documents/Notes"
-rclone $cmnd "$src/$target" "$dest/$target" -v $trashbin $test $options --filter-from "$filter"
-
-target="Documents/code"
-rclone $cmnd "$src/$target" "$dest/$target" -v $trashbin $test $options --filter-from "$filter"
+# Sync single files
+targets="Documents/Library/bibliography.bib"
+for target in $targets; do
+    rclone $cmnd "$src/$target" "$dest/$target" -v $trashbin $test $options
+done
