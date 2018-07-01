@@ -62,9 +62,9 @@ filter="$HOME/.dotfiles/rclone/global-filter"
 # Sync folders
 targets="Documents/Library/"
 targets+=" Documents/Notes"
-targets+=" Documents/code"
+# targets+=" Documents/code"
 targets+=" Documents/Personales"
-targets+=" Documents/Research"
+# targets+=" Documents/Research"
 for target in $targets; do
     rclone $cmnd "$src/$target" "$dest/$target" -v $trashbin $test $options --filter-from "$filter"
 done
