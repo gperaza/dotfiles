@@ -60,16 +60,11 @@ done
 filter="$HOME/.dotfiles/rclone/global-filter"
 
 # Sync folders
-targets="Documents/Library/ZoteroPDFs/"
+targets="Documents/Library/"
 targets+=" Documents/Notes"
 targets+=" Documents/code"
 targets+=" Documents/Personales"
+targets+=" Documents/Research"
 for target in $targets; do
     rclone $cmnd "$src/$target" "$dest/$target" -v $trashbin $test $options --filter-from "$filter"
-done
-
-# Sync single files
-targets="Documents/Library/bibliography.bib"
-for target in $targets; do
-    rclone $cmnd "$src/$target" "$dest/$target" -v $trashbin $test $options
 done
