@@ -64,7 +64,9 @@ targets="Documents/Library/"
 targets+=" Documents/Notes"
 # targets+=" Documents/code"
 targets+=" Documents/Personales"
-# targets+=" Documents/Research"
+targets+=" Documents/Research/published"
+targets+=" Documents/Talks"
+targets+=" Documents/Teaching"
 for target in $targets; do
     rclone $cmnd "$src/$target" "$dest/$target" -v $trashbin $test $options --filter-from "$filter"
 done
