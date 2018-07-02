@@ -5,9 +5,16 @@ sudo apt-get install silversearcher-ag
 sudo apt-get install texlive-full
 sudo apt-get install stow
 sudo apt-get install curl
-apt-get install shellcheck
+sudo apt-get install shellcheck
 
-# Rofi launcher from ppa
+# For qalc, download and complie. Dependencies:
+sudo apt-get install libqalculate6
+sudo apt-get install libxml2-dev libgmp-dev
+sudo apt-get build-dep qalc
+sudo apt-get install libcurl4-gnutls-dev
+sudo apt-get install libiconv-hook-dev
+
+# Rofi launcher from PPA
 sudo apt-get install rofi
 
 # Latest emacs stable from ppa
