@@ -6,6 +6,12 @@ sudo apt-get install texlive-full
 sudo apt-get install stow
 sudo apt-get install curl
 sudo apt-get install shellcheck
+sudo apt-get install gparted
+
+# Make caps a ctrl.
+# Add this line to /etc/default/keyboard
+XKBOPTIONS="ctrl:nocaps"
+sudo dpkg-reconfigure keyboard-configuration
 
 # For qalc, download and complie. Dependencies:
 sudo apt-get install libqalculate6
