@@ -57,10 +57,10 @@ case "${line[0]}" in
     "" )
         if [ ! -z "$pdf" ];then
             echo "Opening pdf..."
-            okular "$pdfdir$pdf" 1>/dev/null &
+            xdg-open "$pdfdir$pdf" 1>/dev/null &
         elif [ ! -z "$doi" ];then
             echo "Opening doi $doi..."
-            google-chrome-stable "https://dx.doi.org/$doi"
+            firefox "https://dx.doi.org/$doi" &
         else
             echo "No pdf nor doi. Doing nothing."
         fi
@@ -68,7 +68,7 @@ case "${line[0]}" in
     "ctrl-p" )
         if [ ! -z "$pdf" ];then
             echo "Opening pdf..."
-            okular "$pdfdir$pdf"&
+            xdg-open "$pdfdir$pdf"&
         else
             echo "No pdf. Doing nothing."
         fi
@@ -76,7 +76,7 @@ case "${line[0]}" in
     "ctrl-u" )
         if [ ! -z "$doi" ];then
             echo "Opening doi $doi..."
-            google-chrome-stable "https://dx.doi.org/$doi"
+            firefox "https://dx.doi.org/$doi" &
         else
             echo "No doi. Doing nothing."
         fi

@@ -66,9 +66,9 @@ if ! [ -z "$search_string" ]; then
     linenum=$(echo "$line" | cut -d : -f 2)
 
     if  [ -z "$notefile" ]; then exit 1; fi
-    emacsclient -a '' -c +"${linenum}" "$notefile"
+    emacsclient -a '' -nc +"${linenum}" "$notefile"
 elif ! [ -z "$file_to_create" ]; then
-    emacsclient -a '' -c "$file_to_create"
+    emacsclient -a '' -nc "$file_to_create"
 else # Run default action
 
     # Initially sort by modification date, newest first.
@@ -111,7 +111,7 @@ else # Run default action
 
     notefile=$(echo -e "$line_list" | fzf | rev | cut -f 2 -d ";"| rev)
     if  [ -z "$notefile" ]; then exit 1; fi
-    emacsclient -a '' -c "$notefile"
+    emacsclient -a '' -nc "$notefile"
 fi
 
 exit 0
