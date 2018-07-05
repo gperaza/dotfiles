@@ -263,9 +263,7 @@ https://github.com/bbatsov/crux
   (setq counsel-yank-pop-separator "\n--------------------------------------\n")
   (setq swiper-include-line-number-in-search t)
   (setq ivy-ignore-buffers
-        '("\\` "
-          "*Help*" "*scratch*" "*Messages*" "\\`\\*magit" "*toc*"
-          "synctex.gz"))
+        '("\\` " "\\`\\*" "\\`\\*magit" "synctex.gz"))
   (setq ivy-re-builders-alist
         '((t . ivy--regex-ignore-order)))
   (ivy-add-actions 'counsel-find-file
