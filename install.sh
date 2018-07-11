@@ -7,6 +7,7 @@ sudo apt-get install stow
 sudo apt-get install curl
 sudo apt-get install shellcheck
 sudo apt-get install gparted
+sudo apt-get install openjdk-11-jdk
 
 # Make caps a ctrl.
 # Add this line to /etc/default/keyboard

@@ -416,7 +416,7 @@ path.
   :ensure t
   :config
   (setq bibtex-completion-bibliography
-        '("/home/gperaza/Documents/SortedResources/bibliography.bib"))
+        '("/home/gperaza/Documents/Library/bibliography.bib"))
   (setq bibtex-completion-pdf-field "file"))
 #+END_SRC
 
