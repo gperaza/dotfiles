@@ -130,6 +130,10 @@ This file must include personal information given as
 
 ;; Ignore system colors
 (setq inhibit-x-resources 't)
+
+(global-visual-line-mode 1) ;; how long lines are handled.  This
+                            ;; appears to wrap long lines visually,
+                            ;; but not add line-returns
 #+END_SRC
 
 ** Font settings
@@ -143,11 +147,7 @@ This file must include personal information given as
 
 ** Color theme
 #+BEGIN_SRC emacs-lisp
-;; (load-theme 'flatland t)
-(use-package dracula-theme
-:ensure t
-:config
-(load-theme 'dracula t))
+(load-theme 'leuven t)
 #+END_SRC
 
 ** Nice scrolling, not centering after scrolling.
@@ -178,6 +178,7 @@ This file must include personal information given as
           python-mode))
   (global-page-break-lines-mode))
 #+END_SRC
+
 ** Dash board
 #+BEGIN_SRC emacs-lisp
 (use-package dashboard
@@ -434,6 +435,7 @@ path.
   :ensure t
   :bind (("s-w" . define-word-at-point)))
 #+END_SRC
+
 * Editing configuration
 ** Some general editing configurations
 #+BEGIN_SRC emacs-lisp
@@ -485,6 +487,10 @@ path.
 ;; Save whatever’s in the current (system) clipboard before
 ;; replacing it with the Emacs’ text.
 (setq save-interprogram-paste-before-kill t)
+
+;; Disable all version control. makes startup and opening files much faster
+;; except git which I actually use
+(setq vc-handled-backends '(Git))
 #+END_SRC
 
 ** White space mode
@@ -1453,6 +1459,7 @@ notes. It's available using the "<paper" expansion.
 ** Parenthesis
 #+BEGIN_SRC emacs-lisp
 (show-paren-mode 1)
+(setq show-paren-style 'mixed)
 (electric-pair-mode 1)
 
 (use-package rainbow-delimiters
@@ -1525,11 +1532,17 @@ Semantic mode enables parsing of source code files.
   :init (setq projectile-use-git-grep t)
   :config
   (setq projectile-completion-system 'ivy)
+  (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
   (projectile-global-mode))
 #+END_SRC
 
 ** Python
 #+BEGIN_SRC emacs-lisp
+;; This eliminates an annoying message about the interpreter not using
+;; readline. That doesn't seem to matter at all.
+(setq warning-suppress-types '((python)
+			       (emacs)))
+
 ;; Always run elpy-config to check possible issues
 (use-package elpy
   :ensure t
