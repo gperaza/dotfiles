@@ -1,4 +1,4 @@
-sudo apt-get install build-essentials
+sudo apt-get install build-essential
 sudo apt-get install git
 sudo apt-get install atools
 sudo apt-get install silversearcher-ag
@@ -60,3 +60,7 @@ sudo ln -s /opt/Zotero_linux-x86_64/zotero /usr/bin/zotero
 curl https://rclone.org/install.sh | sudo bash
 # Setup google drive auth, choose "gdrive" as name, follow all defaults
 
+# bat, alternative for cat. Download latest release from github repo.
+
+# A better du, disk space analyzer
+sudo apt-get install ncdu
