@@ -3,3 +3,4 @@ flycheck*.org
 /emacs-config.html
 /auto/frag-master.el
 /frag-master.tex
+*.oft
