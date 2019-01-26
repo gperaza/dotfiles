@@ -446,6 +446,15 @@ path.
   (global-set-key (kbd "C-h k") #'helpful-key))
 #+END_SRC
 
+** PDF Tools
+#+BEGIN_SRC emacs-lisp
+(use-package pdf-tools
+  :ensure t
+  :config
+  (pdf-tools-install)
+  (setq pdf-view-auto-slice-minor-mode t))
+#+END_SRC
+
 * Editing configuration
 ** Some general editing configurations
 #+BEGIN_SRC emacs-lisp
@@ -1100,8 +1109,11 @@ If not, look up both of the words.
   (setq TeX-electric-math (cons "$" "$"))
   (setq TeX-save-query nil)
 
-  (setq TeX-view-program-selection '((output-pdf "Atril"))
+  (setq TeX-view-program-selection '((output-pdf "PDF Tools"))
         TeX-source-correlate-start-server t)
+  ;; Update PDF buffers after successful LaTeX runs
+  (add-hook 'TeX-after-compilation-finished-functions
+            #'TeX-revert-document-buffer)
 
   (add-hook 'LaTeX-mode-hook
             (lambda ()
@@ -1497,105 +1509,91 @@ this document is to hold task, reading list, and some quick
 notes. It's available using the "<paper" expansion.
 
 #+BEGIN_SRC emacs-lisp
-(add-to-list 'org-structure-template-alist
-             `("paper"
-               ,(concat
-                "#+TITLE:\n"
-                "#+DATE:\n"
-                "#+PROPERTY: cookie_data recursive\n\n"
-                "Description:\n\n"
-                "* Files\n"
-                "* Tasks\n"
-                "** Writing\n"
-                "** Modeling\n"
-                "** Simulations\n"
-                "* Reading\n"
-                "** Must read\n"
-                "** Should read\n"
-                "** Already read and relevant\n"
-                "** Already read and not relevant\n"
-                "* Meetings\n")))
+;; (add-to-list 'org-structure-template-alist
+;;              `("paper"
+;;                ,(concat
+;;                 "#+TITLE:\n"
+;;                 "#+DATE:\n"
+;;                 "#+PROPERTY: cookie_data recursive\n\n"
+;;                 "Description:\n\n"
+;;                 "* Files\n"
+;;                 "* Tasks\n"
+;;                 "** Writing\n"
+;;                 "** Modeling\n"
+;;                 "** Simulations\n"
+;;                 "* Reading\n"
+;;                 "** Must read\n"
+;;                 "** Should read\n"
+;;                 "** Already read and relevant\n"
+;;                 "** Already read and not relevant\n"
+;;                 "* Meetings\n")))
 #+END_SRC
 
 ** Block templates
 #+BEGIN_SRC emacs-lisp
-;; add <p for python expansion
-(add-to-list 'org-structure-template-alist
-	     '("p" "#+BEGIN_SRC python :results output org drawer\n?\n#+END_SRC"
-	       "<src lang=\"python\">\n?\n</src>"))
+;; ;; add <p for python expansion
+;; (add-to-list 'org-structure-template-alist
+;; 	     '("p" "#+BEGIN_SRC python :results output org drawer\n?\n#+END_SRC"
+;; 	       "<src lang=\"python\">\n?\n</src>"))
 
-;; add <por for python expansion with raw output
-(add-to-list 'org-structure-template-alist
-	     '("por" "#+BEGIN_SRC python :results output raw\n?\n#+END_SRC"
-	       "<src lang=\"python\">\n?\n</src>"))
+;; ;; add <por for python expansion with raw output
+;; (add-to-list 'org-structure-template-alist
+;; 	     '("por" "#+BEGIN_SRC python :results output raw\n?\n#+END_SRC"
+;; 	       "<src lang=\"python\">\n?\n</src>"))
 
-;; add <pv for python expansion with value
-(add-to-list 'org-structure-template-alist
-	     '("pv" "#+BEGIN_SRC python :results value\n?\n#+END_SRC"
-	       "<src lang=\"python\">\n?\n</src>"))
+;; ;; add <pv for python expansion with value
+;; (add-to-list 'org-structure-template-alist
+;; 	     '("pv" "#+BEGIN_SRC python :results value\n?\n#+END_SRC"
+;; 	       "<src lang=\"python\">\n?\n</src>"))
 
-;; add <el for emacs-lisp expansion
-(add-to-list 'org-structure-template-alist
-	     '("el" "#+BEGIN_SRC emacs-lisp\n?\n#+END_SRC"
-	       "<src lang=\"emacs-lisp\">\n?\n</src>"))
+;; ;; add <el for emacs-lisp expansion
+;; (add-to-list 'org-structure-template-alist
+;; 	     '("el" "#+BEGIN_SRC emacs-lisp\n?\n#+END_SRC"
+;; 	       "<src lang=\"emacs-lisp\">\n?\n</src>"))
 
-(add-to-list 'org-structure-template-alist
-	     '("ell" "#+BEGIN_SRC emacs-lisp :lexical t\n?\n#+END_SRC"
-	       "<src lang=\"emacs-lisp\">\n?\n</src>"))
+;; (add-to-list 'org-structure-template-alist
+;; 	     '("ell" "#+BEGIN_SRC emacs-lisp :lexical t\n?\n#+END_SRC"
+;; 	       "<src lang=\"emacs-lisp\">\n?\n</src>"))
 
-;; add <sh for shell
-(add-to-list 'org-structure-template-alist
-	     '("sh" "#+BEGIN_SRC sh\n?\n#+END_SRC"
-	       "<src lang=\"shell\">\n?\n</src>"))
+;; ;; add <sh for shell
+;; (add-to-list 'org-structure-template-alist
+;; 	     '("sh" "#+BEGIN_SRC sh\n?\n#+END_SRC"
+;; 	       "<src lang=\"shell\">\n?\n</src>"))
 
-(add-to-list 'org-structure-template-alist
-	     '("lh" "#+latex_header: " ""))
+;; (add-to-list 'org-structure-template-alist
+;; 	     '("lh" "#+latex_header: " ""))
 
-(add-to-list 'org-structure-template-alist
-	     '("lc" "#+latex_class: " ""))
+;; (add-to-list 'org-structure-template-alist
+;; 	     '("lc" "#+latex_class: " ""))
 
-(add-to-list 'org-structure-template-alist
-	     '("lco" "#+latex_class_options: " ""))
+;; (add-to-list 'org-structure-template-alist
+;; 	     '("lco" "#+latex_class_options: " ""))
 
-(add-to-list 'org-structure-template-alist
-	     '("ao" "#+attr_org: " ""))
+;; (add-to-list 'org-structure-template-alist
+;; 	     '("ao" "#+attr_org: " ""))
 
-(add-to-list 'org-structure-template-alist
-	     '("al" "#+attr_latex: " ""))
+;; (add-to-list 'org-structure-template-alist
+;; 	     '("al" "#+attr_latex: " ""))
 
-(add-to-list 'org-structure-template-alist
-	     '("ca" "#+caption: " ""))
+;; (add-to-list 'org-structure-template-alist
+;; 	     '("ca" "#+caption: " ""))
 
-(add-to-list 'org-structure-template-alist
-	     '("tn" "#+tblname: " ""))
+;; (add-to-list 'org-structure-template-alist
+;; 	     '("tn" "#+tblname: " ""))
 
-(add-to-list 'org-structure-template-alist
-	     '("n" "#+name: " ""))
+;; (add-to-list 'org-structure-template-alist
+;; 	     '("n" "#+name: " ""))
 
-(add-to-list 'org-structure-template-alist
-	     '("o" "#+options: " ""))
+;; (add-to-list 'org-structure-template-alist
+;; 	     '("o" "#+options: " ""))
 
-(add-to-list 'org-structure-template-alist
-	     '("ti" "#+title: " ""))
+;; (add-to-list 'org-structure-template-alist
+;; 	     '("ti" "#+title: " ""))
 
-;; table expansions
-(loop for i from 1 to 6
-      do
-      (let ((template (make-string i ?t))
-	    (expansion (concat "|"
-			       (mapconcat
-				'identity
-				(loop for j to i collect "   ")
-				"|"))))
-	(setf (substring expansion 2 3) "?")
-	(add-to-list 'org-structure-template-alist
-		     `(,template ,expansion ""))))
-
-;; add <ip for python expansion
-(add-to-list 'org-structure-template-alist
-             '("ip"
-               "#+BEGIN_SRC ipython\n?\n#+END_SRC"
-               "<src lang=\"ipython\">\n?\n</src>"))
+;; (add-to-list 'org-structure-template-alist
+;;              '("ip"
+;;                "#+BEGIN_SRC ipython\n?\n#+END_SRC"
+;;                "<src lang=\"ipython\">\n?\n</src>"))
 #+END_SRC
 
 ** Org-Download
