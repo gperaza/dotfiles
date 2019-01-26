@@ -1,0 +1,6 @@
+[submodule "emacs/org-recipes"]
+	path = emacs/org-recipes
+	url = git@github.com:tuhdo/org-recipes.git
+[submodule "emacs/org-wiki"]
+	path = emacs/org-wiki
+	url = git@github.com:caiorss/org-wiki.git
