@@ -455,6 +455,23 @@ path.
   (setq pdf-view-auto-slice-minor-mode t))
 #+END_SRC
 
+** Org-recipes
+Org recipes requires helm, so we need to install it.
+#+begin_src elisp
+(use-package org-recipes
+  :ensure helm
+  :load-path "~/.dotfiles/emacs/org-recipes"
+  )
+#+end_src
+
+** Org wiki
+#+begin_src elisp
+(use-package org-wiki
+  :ensure helm
+  :load-path "~/.dotfiles/emacs/org-wiki"
+  )
+#+end_src
+
 * Editing configuration
 ** Some general editing configurations
 #+BEGIN_SRC emacs-lisp
