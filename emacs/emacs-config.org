@@ -179,14 +179,6 @@ This file must include personal information given as
   (global-page-break-lines-mode))
 #+END_SRC
 
-** Dash board
-#+BEGIN_SRC emacs-lisp
-(use-package dashboard
-  :ensure t
-  :config
-  (dashboard-setup-startup-hook))
-#+END_SRC
-
 * Utilities
 ** Crux
 Here I bind the functions I find useful, there are more. See:
@@ -455,20 +447,20 @@ path.
   (setq pdf-view-auto-slice-minor-mode t))
 #+END_SRC
 
-** Org-recipes
-Org recipes requires helm, so we need to install it.
-#+begin_src elisp
-(use-package org-recipes
-  :ensure helm
-  :load-path "~/.dotfiles/emacs/org-recipes"
-  )
-#+end_src
-
 ** Org wiki
-#+begin_src elisp
+#+begin_src emacs-lisp
 (use-package org-wiki
   :ensure helm
   :load-path "~/.dotfiles/emacs/org-wiki"
+  )
+#+end_src
+
+** Org-recipes
+Org recipes requires helm, so we need to install it.
+#+begin_src emacs-lisp
+(use-package org-recipes
+  :ensure helm
+  :load-path "~/.dotfiles/emacs/org-recipes"
   )
 #+end_src
 
