@@ -464,6 +464,27 @@ Org recipes requires helm, so we need to install it.
   )
 #+end_src
 
+** Mu4e
+#+begin_src emacs-lisp
+(add-to-list 'load-path "/usr/local/share/emacs/site-lisp/mu4e")
+(require 'mu4e)
+
+(setq mail-user-agent 'mu4e-user-agent)
+
+;; Initial conf for important variables
+(setq
+      ;; mu4e-sent-folder "/Outlook/Sent Items"
+      mu4e-drafts-folder "/Outlook/Drafts"
+      user-mail-address "gonzalo.peraza@upy.edu.mx"
+      smtpmail-default-smtp-server "smtp.office365.com"
+      smtpmail-local-domain "office365.mx"
+      smtpmail-smtp-server "smtp.office365.com"
+      smtpmail-stream-type 'starttls
+      smtpmail-smtp-service 587)
+
+(setq mu4e-sent-messages-behavior 'delete)
+#+end_src
+
 * Editing configuration
 ** Some general editing configurations
 #+BEGIN_SRC emacs-lisp
@@ -1707,6 +1728,21 @@ Semantic mode enables parsing of source code files.
   :ensure t
   :config
   (elpy-enable))
+;; (use-package anaconda-mode
+;;   :ensure t
+;;   :defer t
+;;   :init
+;;   (progn
+;;     (add-hook 'python-mode-hook 'anaconda-mode)
+;;     (add-hook 'python-mode-hook 'anaconda-eldoc-mode)
+;;     )
+;; )
+
+;; (use-package company-anaconda
+;;   :ensure t
+;;   :config
+;;   (eval-after-load "company"
+;;     '(add-to-list 'company-backends 'company-anaconda)))
 #+END_SRC
 
 ** C
@@ -1727,6 +1763,8 @@ Semantic mode enables parsing of source code files.
   (setq flycheck-gcc-language-standard "gnu99"))
 (add-hook 'c-mode-hook #'my-flycheck-c-setup)
 
+(setq c-default-style "linux"
+          c-basic-offset 4)
 ;; function args mode
 (use-package function-args
   :ensure t
