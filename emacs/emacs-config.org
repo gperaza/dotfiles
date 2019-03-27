@@ -466,23 +466,23 @@ Org recipes requires helm, so we need to install it.
 
 ** Mu4e
 #+begin_src emacs-lisp
-(add-to-list 'load-path "/usr/local/share/emacs/site-lisp/mu4e")
-(require 'mu4e)
+  ;; (add-to-list 'load-path "/usr/local/share/emacs/site-lisp/mu4e")
+  ;; (require 'mu4e)
 
-(setq mail-user-agent 'mu4e-user-agent)
+  ;; (setq mail-user-agent 'mu4e-user-agent)
 
-;; Initial conf for important variables
-(setq
-      ;; mu4e-sent-folder "/Outlook/Sent Items"
-      mu4e-drafts-folder "/Outlook/Drafts"
-      user-mail-address "gonzalo.peraza@upy.edu.mx"
-      smtpmail-default-smtp-server "smtp.office365.com"
-      smtpmail-local-domain "office365.mx"
-      smtpmail-smtp-server "smtp.office365.com"
-      smtpmail-stream-type 'starttls
-      smtpmail-smtp-service 587)
+  ;; ;; Initial conf for important variables
+  ;; (setq
+  ;;       ;; mu4e-sent-folder "/Outlook/Sent Items"
+  ;;       mu4e-drafts-folder "/Outlook/Drafts"
+  ;;       user-mail-address "gonzalo.peraza@upy.edu.mx"
+  ;;       smtpmail-default-smtp-server "smtp.office365.com"
+  ;;       smtpmail-local-domain "office365.mx"
+  ;;       smtpmail-smtp-server "smtp.office365.com"
+  ;;       smtpmail-stream-type 'starttls
+  ;;       smtpmail-smtp-service 587)
 
-(setq mu4e-sent-messages-behavior 'delete)
+  ;; (setq mu4e-sent-messages-behavior 'delete)
 #+end_src
 
 * Editing configuration
