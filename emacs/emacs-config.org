@@ -224,8 +224,9 @@ https://github.com/bbatsov/crux
 (global-set-key [remap fill-paragraph] #'fill-or-unfill)
 #+END_SRC
 
+
 ** Counsel
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :noexport
 (global-set-key (kbd "C-x C-b") 'ibuffer-other-window)
 (use-package smex ;;provides history to counsel-M-x
   :ensure t)
@@ -233,7 +234,7 @@ https://github.com/bbatsov/crux
   :ensure t
   :bind
   ("M-x" . counsel-M-x)
-  ("C-s" . counsel-grep-or-swiper)
+  ("C-s" . swiper-isearch)
   ("M-y" . counsel-yank-pop)
   ("C-x C-f" . counsel-find-file)
   ("C-x C-r" . counsel-recentf)
@@ -250,6 +251,7 @@ https://github.com/bbatsov/crux
   ("C-c V" . ivy-pop-view)
   :config
   (ivy-mode 1)
+  (setq ivy-format-function #'ivy-format-function-line)
   (setq ivy-height 7)
   (setq ivy-count-format "(%d/%d) ")
   (setq ivy-initial-inputs-alist nil)
@@ -267,6 +269,10 @@ https://github.com/bbatsov/crux
                               (insert (file-name-nondirectory (replace-regexp-in-string "/\\'" "" x)))))
                       "insert file name without any directory information")))
   )
+
+(use-package ivy-rich
+  :ensure t
+  :config (ivy-rich-mode 1))
 #+END_SRC
 
 ** Magit
@@ -544,10 +550,12 @@ Org recipes requires helm, so we need to install it.
 
 ** White space mode
 #+BEGIN_SRC emacs-lisp
-(setq whitespace-line-column 80)
-(setq whitespace-style '(face trailing lines-tail))
-(add-hook 'prog-mode-hook 'whitespace-mode)
-(add-hook 'LaTeX-mode-hook 'whitespace-mode)
+;; (setq whitespace-line-column 80)
+(setq-default indicate-empty-lines t)
+(setq-default show-trailing-whitespace t)
+;; (setq whitespace-style '(face trailing))
+;; (add-hook 'prog-mode-hook 'whitespace-mode)
+;; (add-hook 'LaTeX-mode-hook 'whitespace-mode)
 #+END_SRC
 
 ** Zzz-to-char (kills from current point to character, M-z/M-Z)
@@ -1636,6 +1644,12 @@ notes. It's available using the "<paper" expansion.
 #+END_SRC
 
 * Programming
+** Fill columns indicator and line numbers
+#+begin_src emacs-lisp
+(add-hook 'prog-mode-hook #'display-fill-column-indicator-mode)
+(add-hook 'prog-mode-hook #'display-line-numbers-mode)
+#+end_src
+
 ** Parenthesis
 #+BEGIN_SRC emacs-lisp
 (show-paren-mode 1)
