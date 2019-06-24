@@ -1296,6 +1296,13 @@ is positive, move after, and if negative, move before."
 ;; Edit code in same window
 (setq org-src-window-setup 'current-window)
 
+
+;; (use-package jupyter
+;;   :ensure t
+;;   :config
+;;   (setq org-babel-default-header-args:jupyter-python '((:async . "no")
+;;                                                       (:session . "py"))))
+
 ;; Register languages in org-mode
 (require 'ob-shell)
 (org-babel-do-load-languages
@@ -1309,7 +1316,9 @@ is positive, move after, and if negative, move before."
    (latex . t)
    (awk . t)
    (gnuplot . t)
-   (dot . t)))
+   (dot . t)
+   (jupyter . t)))
+;; (org-babel-jupyter-override-src-block "python")
 (add-to-list 'org-src-lang-modes '("dot" . "graphviz-dot"))
 
 (setq org-babel-default-header-args:python
@@ -1322,18 +1331,18 @@ is positive, move after, and if negative, move before."
 	(:tangle . "no")
 	(:eval . "never-export")))
 
-(use-package ob-ipython
-  :ensure t
-  :config
-  (setq org-babel-default-header-args:ipython
-        '((:results . "replace drawer")
-          (:session . "ipython")
-          (:exports . "both")
-          (:cache .   "no")
-          (:noweb . "no")
-          (:hlines . "no")
-          (:tangle . "no")
-          (:eval . "never-export"))))
+;; (use-package ob-ipython
+;;   :ensure t
+;;   :config
+;;   (setq org-babel-default-header-args:ipython
+;;         '((:results . "replace drawer")
+;;           (:session . "ipython")
+;;           (:exports . "both")
+;;           (:cache .   "no")
+;;           (:noweb . "no")
+;;           (:hlines . "no")
+;;           (:tangle . "no")
+;;           (:eval . "never-export"))))
 #+END_SRC
 
 ** Footnotes
