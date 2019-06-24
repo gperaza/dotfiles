@@ -1,4 +1,3 @@
-
 #+PROPERTY: header-args:emacs-lisp :tangle ~/.emacs.d/init.el
 
 * Load speedup
@@ -9,20 +8,6 @@ Load speed up:
 #+END_SRC
 
 * Setup
-** Setup path correctly
-#+BEGIN_SRC emacs-lisp
-(defun set-exec-path-from-shell-PATH ()
-  (interactive)
-  (let ((path-from-shell
-         (replace-regexp-in-string
-          "^.*\n.*shell\n" ""
-          (shell-command-to-string "$SHELL --login -i -c 'echo $PATH'"))))
-        (setenv "PATH" path-from-shell)
-        (setq exec-path (split-string path-from-shell path-separator))))
-
-(set-exec-path-from-shell-PATH)
-#+END_SRC
-
 ** Personal information
 Personal information is stored in personal.el.
 This file must include personal information given as
@@ -58,6 +43,14 @@ This file must include personal information given as
   (require 'use-package))
 (require 'bind-key)
 #+end_src
+
+** Setup path correctly
+#+BEGIN_SRC emacs-lisp
+(use-package exec-path-from-shell
+  :ensure t
+  :config
+  (exec-path-from-shell-initialize))
+#+END_SRC
 
 ** Some nice configurations
 #+BEGIN_SRC emacs-lisp
@@ -224,7 +217,6 @@ https://github.com/bbatsov/crux
 (global-set-key [remap fill-paragraph] #'fill-or-unfill)
 #+END_SRC
 
-
 ** Counsel
 #+BEGIN_SRC emacs-lisp :noexport
 (global-set-key (kbd "C-x C-b") 'ibuffer-other-window)
@@ -285,11 +277,6 @@ https://github.com/bbatsov/crux
 ** Undo
 #+BEGIN_SRC emacs-lisp
   (global-set-key (kbd "C-z") 'undo)
-;; (use-package undo-tree
-;;   :ensure t
-;;   :config
-;;   (global-undo-tree-mode)
-;;   (global-set-key (kbd "C-S-z") 'undo-tree-redo))
 #+END_SRC
 
 ** Flyspell
@@ -470,27 +457,6 @@ Org recipes requires helm, so we need to install it.
   )
 #+end_src
 
-** Mu4e
-#+begin_src emacs-lisp
-  ;; (add-to-list 'load-path "/usr/local/share/emacs/site-lisp/mu4e")
-  ;; (require 'mu4e)
-
-  ;; (setq mail-user-agent 'mu4e-user-agent)
-
-  ;; ;; Initial conf for important variables
-  ;; (setq
-  ;;       ;; mu4e-sent-folder "/Outlook/Sent Items"
-  ;;       mu4e-drafts-folder "/Outlook/Drafts"
-  ;;       user-mail-address "gonzalo.peraza@upy.edu.mx"
-  ;;       smtpmail-default-smtp-server "smtp.office365.com"
-  ;;       smtpmail-local-domain "office365.mx"
-  ;;       smtpmail-smtp-server "smtp.office365.com"
-  ;;       smtpmail-stream-type 'starttls
-  ;;       smtpmail-smtp-service 587)
-
-  ;; (setq mu4e-sent-messages-behavior 'delete)
-#+end_src
-
 * Editing configuration
 ** Some general editing configurations
 #+BEGIN_SRC emacs-lisp
@@ -550,21 +516,8 @@ Org recipes requires helm, so we need to install it.
 
 ** White space mode
 #+BEGIN_SRC emacs-lisp
-;; (setq whitespace-line-column 80)
 (setq-default indicate-empty-lines t)
 (setq-default show-trailing-whitespace t)
-;; (setq whitespace-style '(face trailing))
-;; (add-hook 'prog-mode-hook 'whitespace-mode)
-;; (add-hook 'LaTeX-mode-hook 'whitespace-mode)
-#+END_SRC
-
-** Zzz-to-char (kills from current point to character, M-z/M-Z)
-#+BEGIN_SRC emacs-lisp
-(use-package zzz-to-char
-  :ensure t
-  :config
-  (global-set-key (kbd "M-z") 'zzz-up-to-char)
-  (global-set-key (kbd "M-Z") 'zzz-to-char))
 #+END_SRC
 
 ** Move lines or region up and down
@@ -577,16 +530,8 @@ To imitate move lines outside org mode.
   (global-set-key (kbd "M-S-<down>") 'move-text-down))
 #+END_SRC
 
-** Volatile highlights, highlight things like undo, copy, etc.
-#+BEGIN_SRC emacs-lisp
-(use-package volatile-highlights
-  :ensure t
-  :config (volatile-highlights-mode t))
-#+END_SRC
-
 ** Make C-w/M-w kill/copy single line when not selection is active
 #+BEGIN_SRC emacs-lisp
-;; note - this should be after volatile-highlights is required
 (defadvice kill-region (before smart-cut activate compile)
   "When called interactively with no active region, kill a single line instead."
   (interactive
