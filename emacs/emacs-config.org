@@ -14,7 +14,7 @@ This file must include personal information given as
 > (setq user-full-name "MY NAME"
 >       user-mail-address "MY EMAIL")
 #+BEGIN_SRC emacs-lisp
-(load "~/.dotfiles/emacs/personal.el")
+(load "~/dotfiles/emacs/personal.el")
 #+END_SRC
 
 ** Setting up package manager and use-package
@@ -173,6 +173,35 @@ This file must include personal information given as
 #+END_SRC
 
 * Utilities
+** Bitlbee
+#+BEGIN_SRC emacs-lisp
+(defun i-wanna-be-social ()
+  "Connect to IM networks using bitlbee."
+  (interactive)
+  (erc :server "localhost" :port 6667 :nick "BotAnihilator"))
+#+END_SRC
+
+para que bipee cuando me hablen
+#+BEGIN_SRC emacs-lisp
+(defun sound-sound (proc parsed)
+  "probando el sonido"
+  (interactive)
+  (play-sound-file "/usr/share/sounds/purple/alert.wav" ))
+
+(add-hook 'erc-text-matched-hook 'erc-beep-on-match)
+(setq erc-beep-match-types '(current-nick palabra))
+
+(add-hook 'erc-insert-post-hook
+           (lambda () (goto-char (point-min))
+             (when (re-search-forward
+                    (regexp-quote  (erc-current-nick)) nil t) (ding))))
+
+(defun erc-say-ni (str)
+      "Play the Ni! sound file if STR contains Ni!"
+      (when (string-match "hola" str)
+        (play-sound-file "/usr/share/sounds/purple/send.wav")))
+#+END_SRC
+
 ** Crux
 Here I bind the functions I find useful, there are more. See:
 https://github.com/bbatsov/crux
