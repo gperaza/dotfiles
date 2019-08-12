@@ -104,7 +104,7 @@ This file must include personal information given as
 (setq initial-major-mode 'org-mode)
 
 ;;Disable blinking cursor and start up screen
-(blink-cursor-mode -1)
+;; (blink-cursor-mode -1)
 
 ;;Disable startup screen
 (setq inhibit-startup-screen t)
@@ -333,11 +333,11 @@ https://github.com/bbatsov/crux
   (add-hook 'completion-at-point-functions 'pcomplete-completions-at-point nil t))
 (add-hook 'org-mode-hook #'add-pcomplete-to-capf)
 
-(defun my-company-org-mode-setup ()
-  (setq-local company-backends
-              (append '(company-ob-ipython)
-                      company-backends)))
-(add-hook 'org-mode-hook 'my-company-org-mode-setup)
+;; (defun my-company-org-mode-setup ()
+;;   (setq-local company-backends
+;;               (append '(company-ob-ipython)
+;;                       company-backends)))
+;; (add-hook 'org-mode-hook 'my-company-org-mode-setup)
 #+END_SRC
 
 ** Function: open-term-here
@@ -403,7 +403,14 @@ path.
   :config
   (setq bibtex-completion-bibliography
         '("/home/gperaza/Documents/Library/bibliography.bib"))
-  (setq bibtex-completion-pdf-field "file"))
+  (setq bibtex-completion-pdf-field "file")
+  (setq bibtex-completion-notes-path
+        "/home/gperaza/Documents/Library/BibNotes")
+  (setq bibtex-completion-pdf-open-function
+        (lambda (fpath)
+          (call-process "okular" nil 0 nil fpath)))
+  (setq bibtex-completion-cite-prompt-for-optional-arguments nil)
+)
 #+END_SRC
 
 ** Power thesaurus
@@ -1297,11 +1304,8 @@ is positive, move after, and if negative, move before."
 (setq org-src-window-setup 'current-window)
 
 
-;; (use-package jupyter
-;;   :ensure t
-;;   :config
-;;   (setq org-babel-default-header-args:jupyter-python '((:async . "no")
-;;                                                       (:session . "py"))))
+(use-package jupyter
+  :ensure t)
 
 ;; Register languages in org-mode
 (require 'ob-shell)
@@ -1309,7 +1313,6 @@ is positive, move after, and if negative, move before."
  'org-babel-load-languages
  '((emacs-lisp . t)
    (python . t)
-   (ipython . t)
    (shell . t)
    (org . t)
    (C . t)
@@ -1318,7 +1321,11 @@ is positive, move after, and if negative, move before."
    (gnuplot . t)
    (dot . t)
    (jupyter . t)))
-;; (org-babel-jupyter-override-src-block "python")
+
+(setq org-babel-default-header-args:jupyter-python '((:async . "no")
+                                                     (:session . "py")))
+(org-babel-jupyter-override-src-block "python")
+
 (add-to-list 'org-src-lang-modes '("dot" . "graphviz-dot"))
 
 (setq org-babel-default-header-args:python
@@ -1597,10 +1604,17 @@ notes. It's available using the "<paper" expansion.
   (setq-default org-download-heading-lvl nil))
 #+END_SRC
 
+** Org reveal
+#+begin_src emacs-lisp
+;; (use-package ox-reveal
+;;   :ensure t
+;; )
+#+end_src
 * Programming
 ** Fill columns indicator and line numbers
 #+begin_src emacs-lisp
-(add-hook 'prog-mode-hook #'display-fill-column-indicator-mode)
+;; Wait for emacs 27
+;; (add-hook 'prog-mode-hook #'display-fill-column-indicator-mode)
 (add-hook 'prog-mode-hook #'display-line-numbers-mode)
 #+end_src
 
