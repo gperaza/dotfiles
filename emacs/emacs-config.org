@@ -14,7 +14,7 @@ This file must include personal information given as
 > (setq user-full-name "MY NAME"
 >       user-mail-address "MY EMAIL")
 #+BEGIN_SRC emacs-lisp
-(load "~/dotfiles/emacs/personal.el")
+(load "~/.dotfiles/emacs/personal.el")
 #+END_SRC
 
 ** Setting up package manager and use-package
@@ -78,9 +78,6 @@ This file must include personal information given as
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(custom-safe-themes
-   (quote
-    ("3c83b3676d796422704082049fc38b6966bcad960f896669dfc21a7a37a748fa" default)))
  '(safe-local-variable-values
    (quote
     ((eval setq system-time-locale "es")
@@ -103,9 +100,6 @@ This file must include personal information given as
 (scroll-bar-mode -1)
 (setq initial-major-mode 'org-mode)
 
-;;Disable blinking cursor and start up screen
-;; (blink-cursor-mode -1)
-
 ;;Disable startup screen
 (setq inhibit-startup-screen t)
 
@@ -122,25 +116,17 @@ This file must include personal information given as
 (setq frame-title-format "%b")
 
 ;; Ignore system colors
-(setq inhibit-x-resources 't)
+(setq inhibit-x-resources t)
 
 (global-visual-line-mode 1) ;; how long lines are handled.  This
                             ;; appears to wrap long lines visually,
                             ;; but not add line-returns
-#+END_SRC
 
-** Font settings
-#+BEGIN_SRC emacs-lisp
-;; adjust font size to screen resolution
-(if (display-graphic-p)
-    (if (< (x-display-pixel-width) 1920)
-        (set-face-attribute 'default nil :height 100)
-      (set-face-attribute 'default nil :height 120)))
-#+END_SRC
+;; Set bigger font size
+(set-face-attribute 'default nil :height 120)
 
-** Color theme
-#+BEGIN_SRC emacs-lisp
-(load-theme 'leuven t)
+;; color theme taken from personal.el
+(load-theme personal-theme t)
 #+END_SRC
 
 ** Nice scrolling, not centering after scrolling.
@@ -151,8 +137,6 @@ This file must include personal information given as
 
 (setq mouse-wheel-scroll-amount '(1 ((shift) . 1))) ;; one line at a time
 (setq mouse-wheel-progressive-speed nil) ;; don't accelerate scrolling
-(setq mouse-wheel-follow-mouse 't) ;; scroll window under mouse
-(setq auto-window-vscroll nil)
 #+END_SRC
 
 ** Page break lines
@@ -178,7 +162,7 @@ This file must include personal information given as
 (defun i-wanna-be-social ()
   "Connect to IM networks using bitlbee."
   (interactive)
-  (erc :server "localhost" :port 6667 :nick "BotAnihilator"))
+  (erc :server "localhost" :port 6667 :nick personal-bitlbee-nick))
 #+END_SRC
 
 para que bipee cuando me hablen
@@ -247,7 +231,7 @@ https://github.com/bbatsov/crux
 #+END_SRC
 
 ** Counsel
-#+BEGIN_SRC emacs-lisp :noexport
+#+BEGIN_SRC emacs-lisp
 (global-set-key (kbd "C-x C-b") 'ibuffer-other-window)
 (use-package smex ;;provides history to counsel-M-x
   :ensure t)
