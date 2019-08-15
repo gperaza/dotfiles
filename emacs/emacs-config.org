@@ -14,7 +14,7 @@ This file must include personal information given as
 > (setq user-full-name "MY NAME"
 >       user-mail-address "MY EMAIL")
 #+BEGIN_SRC emacs-lisp
-(load "~/dotfiles/emacs/personal.el")
+(load "~/.dotfiles/emacs/personal.el")
 #+END_SRC
 
 ** Setting up package manager and use-package
@@ -1352,7 +1352,8 @@ is positive, move after, and if negative, move before."
    (jupyter . t)))
 
 (setq org-babel-default-header-args:jupyter-python '((:async . "no")
-                                                     (:session . "py")))
+                                                     (:session . "py")
+                                                     (:kernel . "python3")))
 (org-babel-jupyter-override-src-block "python")
 
 (add-to-list 'org-src-lang-modes '("dot" . "graphviz-dot"))
