@@ -316,7 +316,7 @@ https://github.com/bbatsov/crux
 (use-package company
   :ensure t
   :config
-  (global-set-key (kbd "s-º") 'company-complete)
+  (global-set-key (kbd "s-|") 'company-complete)
   (add-hook 'after-init-hook 'global-company-mode)
   (setq company-backends (delete 'company-bbdb company-backends))
   (setq company-backends (delete 'company-nxml company-backends))
@@ -402,11 +402,9 @@ path.
 (use-package yasnippet
   :ensure t
   :config
-  (yas/global-mode 1)
-  )  ;; (define-key yas-minor-mode-map (kbd "s-<tab>") 'yas-expand)
-  ;; (define-key yas-minor-mode-map [(tab)]        nil)
-  ;; (define-key yas-minor-mode-map (kbd "TAB")    nil)
-  ;; (define-key yas-minor-mode-map (kbd "<tab>")  nil))
+  (yas/global-mode 1))
+
+;; (use-package yasnippet-snippets)
 #+END_SRC
 
 ** Ivy-bibtex
@@ -780,10 +778,12 @@ succeeds without error.
 ** Images in org-mode
 #+BEGIN_SRC emacs-lisp
 ;; Disable inline images
-(defun org-display-inline-images (&optional include-linked refresh beg end)
-  "This function is disabled. I dont like inline images."
-  (interactive "P")
-  (message "Disabled functionality"))
+;; (defun org-display-inline-images (&optional include-linked refresh beg end)
+;;   "This function is disabled. I dont like inline images."
+;;   (interactive "P")
+;;   (message "Disabled functionality"))
+
+(setq org-image-actual-width 400)
 
 ;; Enable pdf and eps images in org-mode
 ;; Suggested on the org-mode maillist by Julian Burgos
