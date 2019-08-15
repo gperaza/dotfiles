@@ -1057,7 +1057,7 @@ notes. It's available using the "<paper" expansion.
   (setq-default org-download-heading-lvl nil))
 #+END_SRC
 
-** DONE [#A] [Gerardo] Org Capture 
+** Org Capture
 #+BEGIN_SRC emacs-lisp
 (setq org-capture-templates
       '(("t" "Todo" entry (file+olp+datetree "~/Captures.org" "Tasks")
