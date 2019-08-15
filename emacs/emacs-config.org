@@ -402,7 +402,8 @@ path.
 (use-package yasnippet
   :ensure t
   :config
-  (yas/global-mode 1))
+  (yas/global-mode 1)
+  (setq yas-snippet-dirs "~/.dotfiles/emacs/snippets"))
 
 ;; (use-package yasnippet-snippets)
 #+END_SRC
@@ -1069,6 +1070,14 @@ notes. It's available using the "<paper" expansion.
 (show-paren-mode 1)
 (setq show-paren-style 'mixed)
 (electric-pair-mode 1)
+
+;; disable <> auto pairing in electric-pair-mode for org mode
+(add-hook
+ 'org-mode-hook
+ (lambda ()
+   (setq-local electric-pair-inhibit-predicate
+               `(lambda (c)
+                  (if (char-equal c ?<) t (,electric-pair-inhibit-predicate c))))))
 
 (use-package rainbow-delimiters
   :ensure t
