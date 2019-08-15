@@ -1066,6 +1066,7 @@ notes. It's available using the "<paper" expansion.
         ("n" "Random Note" entry (file+headline "~/Captures.org" "Notes")
          "* %?\nEntered on %U\n  %i\n  %a")
         ))
+(global-set-key (kbd "<f8>") 'org-capture)
 #+END_SRC
 * Programming
 ** Fill columns indicator and line numbers
