@@ -197,7 +197,6 @@ para que bipee cuando me hablen
   (dropbox-connect)
   :demand t)
 #+END_SRC
-<<<<<<< HEAD
 
 ** Crux
 =======
