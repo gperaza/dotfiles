@@ -197,7 +197,7 @@ para que bipee cuando me hablen
   (dropbox-connect)
   :demand t)
 #+END_SRC
-** Crux
+*** Crux
 Here I bind the functions I find useful, there are more. See:
 https://github.com/bbatsov/crux
 #+BEGIN_SRC emacs-lisp
