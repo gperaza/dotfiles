@@ -14,7 +14,7 @@ This file must include personal information given as
 > (setq user-full-name "MY NAME"
 >       user-mail-address "MY EMAIL")
 #+BEGIN_SRC emacs-lisp
-(load "~/.dotfiles/emacs/personal.el")
+(load "~/dotfiles/emacs/personal.el")
 #+END_SRC
 
 ** Setting up package manager and use-package
@@ -197,10 +197,6 @@ para que bipee cuando me hablen
   (dropbox-connect)
   :demand t)
 #+END_SRC
-
-#+RESULTS:
-: t
-
 ** Crux
 Here I bind the functions I find useful, there are more. See:
 https://github.com/bbatsov/crux
