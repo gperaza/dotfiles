@@ -118,15 +118,15 @@ This file must include personal information given as
 ;; Ignore system colors
 (setq inhibit-x-resources t)
 
-(global-visual-line-mode 1) ;; how long lines are handled.  This
-                            ;; appears to wrap long lines visually,
-                            ;; but not add line-returns
+;; Turn on visual line mode only in text buffers
+(add-hook 'text-mode-hook 'turn-on-visual-line-mode)
+(setq visual-line-fringe-indicators '(left-curly-arrow right-curly-arrow))
 
 ;; Set bigger font size
 (set-face-attribute 'default nil :height 120)
 
 ;; color theme taken from personal.el
-(load-theme personal-theme t)
+(load-theme 'humanoid-light t)
 #+END_SRC
 
 ** Nice scrolling, not centering after scrolling.
@@ -188,14 +188,14 @@ para que bipee cuando me hablen
 
 ** Dropbox
 #+BEGIN_SRC emacs-lisp
-(use-package dropbox
-  :ensure t
-  :custom
-  (dropbox-access-token dropbox-token)
-  (dropbox-verbose t)
-  :config
-  (dropbox-connect)
-  :demand t)
+;; (use-package dropbox
+;;   :ensure t
+;;   :custom
+;;   (dropbox-access-token dropbox-token)
+;;   (dropbox-verbose t)
+;;   :config
+;;   (dropbox-connect)
+;;   :demand t)
 #+END_SRC
 
 ** Crux
@@ -542,6 +542,14 @@ Org recipes requires helm, so we need to install it.
 ;; Disable all version control. makes startup and opening files much faster
 ;; except git which I actually use
 (setq vc-handled-backends '(Git))
+#+END_SRC
+
+** Visual fill column mode
+#+BEGIN_SRC emacs-lisp
+(use-package visual-fill-column
+  :ensure t
+  :config
+  (add-hook 'visual-line-mode-hook #'visual-fill-column-mode))
 #+END_SRC
 
 ** White space mode
