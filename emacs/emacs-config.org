@@ -119,7 +119,7 @@ This file must include personal information given as
 (setq inhibit-x-resources t)
 
 ;; Turn on visual line mode only in text buffers
-(add-hook 'text-mode-hook 'turn-on-visual-line-mode)
+;; (add-hook 'text-mode-hook 'turn-on-visual-line-mode)
 ;; (add-hook 'prog-mode-hook 'turn-on-visual-line-mode)
 ;; (global-visual-line-mode)
 (setq visual-line-fringe-indicators '(left-curly-arrow right-curly-arrow))
@@ -129,29 +129,30 @@ This file must include personal information given as
 
 ;; color theme taken from personal.el
 ;; (load-theme 'humanoid-light t)
+(load-theme 'parchment t)
 
-(use-package modus-operandi-theme
-  :ensure t
-  :init
-  (setq modus-operandi-theme-slanted-constructs t
-        modus-operandi-theme-bold-constructs t
-        modus-operandi-theme-visible-fringes t
-        modus-operandi-theme-3d-modeline t
-        modus-operandi-theme-subtle-diffs t
-        modus-operandi-theme-intense-hl-line t
-        modus-operandi-theme-intense-standard-completions t
-        modus-operandi-theme-org-blocks 'greyscale
-        modus-operandi-theme-variable-pitch-headings nil
-        modus-operandi-theme-rainbow-headings t
-        modus-operandi-theme-section-headings t
-        modus-operandi-theme-scale-headings nil
-        modus-operandi-theme-scale-1 1.05
-        modus-operandi-theme-scale-2 1.1
-        modus-operandi-theme-scale-3 1.15
-        modus-operandi-theme-scale-4 1.2
-        modus-operandi-theme-scale-5 1.3)
-  :config
-  (load-theme 'modus-operandi t))
+;; (use-package modus-operandi-theme
+;;   :ensure t
+;;   :init
+;;   (setq modus-operandi-theme-slanted-constructs t
+;;         modus-operandi-theme-bold-constructs t
+;;         modus-operandi-theme-visible-fringes t
+;;         modus-operandi-theme-3d-modeline nil
+;;         modus-operandi-theme-subtle-diffs t
+;;         modus-operandi-theme-intense-hl-line t
+;;         modus-operandi-theme-intense-standard-completions t
+;;         modus-operandi-theme-org-blocks 'greyscale
+;;         modus-operandi-theme-variable-pitch-headings nil
+;;         modus-operandi-theme-rainbow-headings nil
+;;         modus-operandi-theme-section-headings t
+;;         modus-operandi-theme-scale-headings t
+;;         modus-operandi-theme-scale-1 1.05
+;;         modus-operandi-theme-scale-2 1.1
+;;         modus-operandi-theme-scale-3 1.15
+;;         modus-operandi-theme-scale-4 1.2
+;;         modus-operandi-theme-scale-5 1.3)
+;;   :config
+;;   (load-theme 'modus-operandi t))
 #+END_SRC
 
 ** Nice scrolling, not centering after scrolling.
@@ -224,9 +225,6 @@ para que bipee cuando me hablen
 #+END_SRC
 
 ** Crux
-=======
-*** Crux
->>>>>>> 700a6ed0cc327e8431eb5ad58b33fec1ba6597cc
 Here I bind the functions I find useful, there are more. See:
 https://github.com/bbatsov/crux
 #+BEGIN_SRC emacs-lisp
@@ -906,13 +904,13 @@ succeeds without error.
 
 (setq org-babel-default-header-args:python
       '((:results . "output replace")
-	(:session . "none")
-	(:exports . "both")
-	(:cache .   "no")
-	(:noweb . "no")
-	(:hlines . "no")
-	(:tangle . "no")
-	(:eval . "never-export")))
+        (:session . "none")
+        (:exports . "both")
+        (:cache .   "no")
+        (:noweb . "no")
+        (:hlines . "no")
+        (:tangle . "no")
+        (:eval . "never-export")))
 
 ;; (use-package ob-ipython
 ;;   :ensure t
@@ -1024,23 +1022,21 @@ is already narrowed."
 #+END_SRC
 
 *** LaTeX back-end configuration
-The LaTeX back-end needs some extra configuration.
-
-Define extra packages to be included in latex exports.
-
 #+BEGIN_SRC emacs-lisp
-;; (setq org-latex-packages-alist
-;;       '(("" "lmodern" nil);; latin modern fonts
-;;         ("" "mathtools" t);; superseeds amsmath
-;;         ("" "url" nil);; enable \url{} for urls
-;;         ("" "color" nil)
-;;         ("" "amssymb" nil)
-;;         ("" "amsopn" nil)
-;;         ("" "nicefrac" nil)
-;;         ("" "units" nil)
-;;         ("" "gensymb" nil)
-;;         ;; ("" "svg" nil)
-;;         ))
+(eval-after-load 'ox '(require 'ox-koma-letter))
+
+(eval-after-load 'ox '(add-to-list 'org-latex-classes
+                                   '("koma-article"
+                                     "\\documentclass{scrartcl}"
+                                     ("\\section{%s}" . "\\section*{%s}")
+                                     ("\\subsection{%s}" . "\\subsection*{%s}")
+                                     ("\\subsubsection{%s}"
+                                      . "\\subsubsection*{%s}")
+                                     ("\\paragraph{%s}" . "\\paragraph*{%s}")
+                                     ("\\subparagraph{%s}"
+                                      . "\\subparagraph*{%s}"))) )
+
+(require 'ox-latex)
 #+END_SRC
 
 To enable syntax highlighting for source code in LaTeX export we need
@@ -1057,6 +1053,8 @@ package via "#+LATEX_HEADER: /usepackage{minted}"
 ;; Tell the latex export to use the minted package for source code
 ;; coloration.
 (setq org-latex-listings 'minted)
+(add-to-list 'org-latex-minted-langs '(python "python"))
+(add-to-list 'org-latex-minted-langs '(ipython "python"))
 
 ;; Let the exporter use the -shell-escape option to let latex execute
 ;; external programs. This obviously and can be dangerous to activate!
@@ -1066,8 +1064,12 @@ package via "#+LATEX_HEADER: /usepackage{minted}"
         ("numbersep" "5pt")
         ("frame" "lines")
         ("framesep" "2mm")))
+
+
 (setq org-latex-pdf-process
-      '("latexmk -pdflatex='pdflatex --shell-escape' -pdf %f"))
+      '("pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+        "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+        "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
 #+END_SRC
 
 *** Export behavior
@@ -1076,6 +1078,165 @@ braces are used.
 
 #+BEGIN_SRC emacs-lisp
 (setq org-export-with-sub-superscripts '{})
+#+END_SRC
+
+** Org-Coursepack
+#+begin_src emacs-lisp
+(use-package htmlize
+  :ensure t)
+
+;; * Org-Coursepack settings
+;; ** General settings
+;; *** Allow remembering risky variables
+;;(advice-add 'risky-local-variable-p :override #'ignore)
+(defun risky-local-variable-p (sym &optional _ignored) nil)
+
+;; *** org-global-prop-value
+;; Source: https://emacs.stackexchange.com/questions/21713
+(defun org-global-props (&optional property buffer)
+  "Get the plists of global org properties of current buffer."
+  (unless property (setq property "PROPERTY"))
+  (with-current-buffer (or buffer (current-buffer))
+    (org-element-map (org-element-parse-buffer)
+        'keyword (lambda (el)
+                   (when (string-match
+                          property (org-element-property :key el)) el)))))
+
+(defun org-global-prop-value (key)
+  "Get global org property KEY of current buffer."
+  (org-element-property :value (car (org-global-props key))))
+
+;; *** bind f5 to keyboard macro of export-last-subtree
+;; (fset 'export-last-subtree
+;;       "\C-u\C-c\C-e")
+
+(eval-after-load "org"
+  '(progn
+     (define-key org-mode-map (kbd "<f5>") 'export-last-subtree)))
+
+#+end_src
+
+#+BEGIN_SRC emacs-lisp
+;; *** custom timestamp for syllabus
+(defun org-export-filter-timestamp-remove-brackets (timestamp backend info)
+  "removes relevant brackets from a timestamp"
+  (cond
+   ((org-export-derived-backend-p backend 'latex)
+    (replace-regexp-in-string "[<>]\\|[][]" "" timestamp))
+   ((org-export-derived-backend-p backend 'html)
+    (replace-regexp-in-string "&[lg]t;\\|[][]" "" timestamp))))
+
+(eval-after-load 'ox '(add-to-list
+                       'org-export-filter-timestamp-functions
+                       'org-export-filter-timestamp-remove-brackets))
+
+;; *** beamer export
+(eval-after-load 'ox
+
+  ;; update the list of LaTeX classes and associated header (encoding, etc.)
+  ;; and structure
+  '(add-to-list 'org-latex-classes
+                `("beamer"
+                  ,(concat "\\documentclass[presentation]{beamer}\n"
+                           "[DEFAULT-PACKAGES]"
+                           "[PACKAGES]"
+                           "[EXTRA]\n")
+                  ("\\section{%s}" . "\\section*{%s}")
+                  ("\\subsection{%s}" . "\\subsection*{%s}")
+                  ("\\subsubsection{%s}" . "\\subsubsection*{%s}"))))
+
+(require 'ox-beamer)
+
+;; ** reveal.js export
+(use-package ox-reveal
+  :ensure t)
+
+; ** Other export functionalities
+;; *** ignore headlines of subtrees with :ignore: tag in export
+(require 'ox-extra)
+(ox-extras-activate '(ignore-headlines))
+
+;; *** support slideonly and handoutonly tags
+(defun org/parse-headings (backend)
+  "Remove every headline with certain tags in the
+  current buffer. BACKEND is the export back-end being used, as
+  a symbol.
+  "
+
+  (if (member backend '(latex rst))
+      (org-map-entries
+       (lambda ()
+         (progn
+           (org-narrow-to-subtree)
+           (org-cut-subtree)
+           (widen)
+           ))
+       "+slideonly"))
+
+  (if (member backend '(reveal beamer))
+      (org-map-entries
+       (lambda ()
+         (progn
+           (org-narrow-to-subtree)
+           (org-cut-subtree)
+           (widen)
+           ))
+       "+handoutonly"))
+
+  )
+
+(add-hook 'org-export-before-parsing-hook 'org/parse-headings)
+
+;; *** Subtrees with :newpage: tag will be exported on a new page
+(defun org/get-headline-string-element  (headline backend info)
+  "Return the org element representation of an element.
+  Won't work on ~verb~/=code=-only headers"
+  (let ((prop-point (next-property-change 0 headline)))
+    (if prop-point (plist-get (text-properties-at prop-point headline) :parent))))
+
+(defun org/ensure-latex-clearpage (headline backend info)
+  (when (org-export-derived-backend-p backend 'latex)
+    (let ((elmnt (org/get-headline-string-element headline backend info)))
+      (when (member "newpage" (org-element-property :tags elmnt))
+        (concat "\\clearpage\n" headline)))))
+
+(eval-after-load 'ox '(add-to-list
+                       'org-export-filter-headline-functions
+                       'org/ensure-latex-clearpage))
+
+;; *** Special blocks
+(defun string/starts-with (string prefix)
+  "Return t if STRING starts with prefix."
+  (and (string-match (rx-to-string `(: bos ,prefix) t) string) t))
+
+(defun my/process-NOTES-blocks (text backend info)
+  "Filter NOTES special blocks in export."
+  (cond
+   ((eq backend 'latex)
+    (if (string/starts-with text "\\begin{NOTES}") ""))
+   ((eq backend 'rst)
+    (if (string/starts-with text ".. NOTES::") ""))
+   ((eq backend 'html)
+    (if (string/starts-with text "<div class=\"NOTES\">") ""))
+   ((eq backend 'beamer)
+    (let ((text (replace-regexp-in-string "\\\\begin{NOTES}" "\\\\note{" text)))
+      (replace-regexp-in-string "\\\\end{NOTES}" "}" text)))
+   ))
+
+(eval-after-load 'ox '(add-to-list
+                       'org-export-filter-special-block-functions
+                       'my/process-NOTES-blocks))
+
+(defun my/process-mdframed-blocks (text backend info)
+  "Filter mdframed special blocks in export."
+  (cond
+   ((org-export-derived-backend-p backend 'rst)
+    (replace-regexp-in-string ".. mdframed::" ".. note::" text t t))
+   ))
+
+(eval-after-load 'ox '(add-to-list
+                       'org-export-filter-special-block-functions
+                       'my/process-mdframed-blocks))
 #+END_SRC
 
 ** Project templates
@@ -1226,7 +1387,7 @@ Semantic mode enables parsing of source code files.
 ;; This eliminates an annoying message about the interpreter not using
 ;; readline. That doesn't seem to matter at all.
 (setq warning-suppress-types '((python)
-			       (emacs)))
+                               (emacs)))
 
 ;; Always run elpy-config to check possible issues
 (use-package elpy

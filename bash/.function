@@ -7,3 +7,8 @@ function random() {
 }
 
 [ -f ~/.fzf.bash ] && source ~/.fzf.bash
+
+function org2hand {
+    out=$(echo "$1" | rev | cut -d"." -f2-  | rev).pdf
+    pandoc $1 -o "$out" --from org --template eisvogel  --variable colorlinks=true --highlight pygments --listings --toc
+}
