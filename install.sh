@@ -1,13 +1,12 @@
-sudo apt-get install build-essential
-sudo apt-get install git
-sudo apt-get install atools
-sudo apt-get install silversearcher-ag
-sudo apt-get install texlive-full
-sudo apt-get install stow
-sudo apt-get install curl
-sudo apt-get install shellcheck
-sudo apt-get install gparted
-sudo apt-get install openjdk-11-jdk
+sudo apt install build-essential
+sudo apt install git
+sudo apt install atool
+sudo apt install ripgrep
+sudo apt install texlive-full
+sudo apt install stow
+sudo apt install curl
+sudo apt install shellcheck
+sudo apt install openjdk-11-jdk
 
 # Make caps a ctrl.
 # Add this line to /etc/default/keyboard
@@ -37,6 +36,7 @@ google-chrome
 
 # Download and install exa (replacement for ls)
 exa
+bat
 
 # FZF fuzzy completion for bash, follow github repo instructions,
 # install from git
