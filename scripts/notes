@@ -16,7 +16,7 @@
 # TODO: Add actions: delete, rename, create.
 # Customization
 
-NOTESDIR=~/Documents/Notes/
+NOTESDIR=~/Drive/Notes/
 NOTE_EXTENSION="org"
 SEPARATOR=" --- "
 SEP_LEN=${#SEPARATOR}

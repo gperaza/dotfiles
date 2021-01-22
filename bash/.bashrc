@@ -13,3 +13,4 @@ esac
 
 # Load fzf fuzzy filter
 [ -f ~/.fzf.bash ] && source ~/.fzf.bash
+export LIBGL_ALWAYS_SOFTWARE=1

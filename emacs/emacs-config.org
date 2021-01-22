@@ -14,7 +14,7 @@ This file must include personal information given as
 > (setq user-full-name "MY NAME"
 >       user-mail-address "MY EMAIL")
 #+BEGIN_SRC emacs-lisp
-(load "~/.dotfiles/emacs/personal.el")
+;(load "~/.dotfiles/emacs/personal.el")
 #+END_SRC
 
 ** Setting up package manager and use-package
@@ -128,8 +128,8 @@ This file must include personal information given as
 (set-face-attribute 'default nil :height 120)
 
 ;; color theme taken from personal.el
-;; (load-theme 'humanoid-light t)
-(load-theme 'parchment t)
+(load-theme 'humanoid-light t)
+;; (load-theme 'parchment t)
 
 ;; (use-package modus-operandi-theme
 ;;   :ensure t
@@ -183,6 +183,60 @@ This file must include personal information given as
 #+END_SRC
 
 * Utilities
+** Org-roam
+#+begin_src emacs-lisp
+(use-package org-roam
+      :ensure t
+      :hook
+      (after-init . org-roam-mode)
+      :custom
+      (org-roam-directory "/home/gperaza/Drive/Notes")
+      (org-roam-capture-templates
+            '(
+              ("d" "default" plain (function org-roam--capture-get-point)
+              "%?"
+              :file-name "%<%Y%m%d%H%M%S>-${slug}"
+              :head "#+TITLE: ${title}\n#+HUGO_BASE_DIR: /home/gperaza/braindump/\n##+roam_key:\n"
+              :unnarrowed t)
+              ))
+      (org-roam-dailies-directory "daily/")
+      (org-roam-dailies-capture-templates
+            '(("d" "default" entry
+               #'org-roam-capture--get-point
+               "* %?"
+               :file-name "daily/%<%Y-%m-%d>"
+               :head "#+title: %<%Y-%m-%d>\n\n")))
+      :bind (:map org-roam-mode-map
+              (("C-c n r" . org-roam)
+               ("C-c n f" . org-roam-find-file)
+               ("C-c n g" . org-roam-graph)
+               ("C-c n c t" . org-roam-dailies-capture-today)
+               ("C-c n c y" . org-roam-dailies-capture-today)
+               ("C-c n c f t" . org-roam-dailies-capture-today)
+               ("C-c n c f y" . org-roam-dailies-capture-today))
+              :map org-mode-map
+              (("C-c n i" . org-roam-insert))
+              (("C-c n I" . org-roam-insert-immediate))))
+#+end_src
+** Deft
+#+begin_src emacs-lisp
+(use-package deft
+  :ensure t
+  :after org
+  :bind
+  ("C-c n d" . deft)
+  :custom
+  (deft-recursive t)
+  (deft-use-filter-string-for-filename t)
+  (deft-default-extension "org")
+  (deft-directory "/home/gperaza/Drive/Notes"))
+#+end_src
+** ox-hugo
+#+begin_src emacs-lisp
+(use-package ox-hugo
+  :ensure t
+  :after ox)
+#+end_src
 ** Bitlbee
 #+BEGIN_SRC emacs-lisp
 (defun i-wanna-be-social ()
@@ -239,7 +293,7 @@ https://github.com/bbatsov/crux
   ("C-c D" . crux-delete-file-and-buffer)
   ("C-c r" . crux-rename-file-and-buffer)
   ("C-c k" . crux-kill-other-buffers)
-  ("C-c n" . crux-cleanup-buffer-or-region)
+  ("C-c w" . crux-cleanup-buffer-or-region)
   ("s-k" . crux-kill-line-backwards)
   ("C-M-z" . crux-indent-defun)
   ("C-`" . crux-switch-to-previous-buffer)
@@ -372,6 +426,11 @@ https://github.com/bbatsov/crux
   :config
   (add-to-list 'company-backends 'company-math-symbols-unicode))
 
+(use-package company-org-roam
+  :ensure t
+  :config
+  (push 'company-org-roam company-backends))
+
 (defun my-company-latex-mode-setup ()
   (setq-local company-backends
               (append '((company-math-symbols-latex company-latex-commands))
@@ -452,10 +511,10 @@ path.
   :ensure t
   :config
   (setq bibtex-completion-bibliography
-        '("/home/gperaza/Documents/Library/bibliography.bib"))
+        '("/home/gperaza/Drive/Library/bibliography.bib"))
   (setq bibtex-completion-pdf-field "file")
   (setq bibtex-completion-notes-path
-        "/home/gperaza/Documents/Library/BibNotes")
+        "/home/gperaza/Drive/Notes")
   (setq bibtex-completion-pdf-open-function
         (lambda (fpath)
           (call-process "okular" nil 0 nil fpath)))
@@ -498,19 +557,19 @@ path.
 
 ** Org wiki
 #+begin_src emacs-lisp
-(use-package org-wiki
-  :ensure helm
-  :load-path "~/.dotfiles/emacs/org-wiki"
-  )
+;; (use-package org-wiki
+;;   :ensure helm
+;;   :load-path "~/.dotfiles/emacs/org-wiki"
+;;   )
 #+end_src
 
 ** Org-recipes
 Org recipes requires helm, so we need to install it.
 #+begin_src emacs-lisp
-(use-package org-recipes
-  :ensure helm
-  :load-path "~/.dotfiles/emacs/org-recipes"
-  )
+;; (use-package org-recipes
+;;   :ensure helm
+;;   :load-path "~/.dotfiles/emacs/org-recipes"
+;;   )
 #+end_src
 
 ** Emacs IPython Notebook (EIN)
@@ -587,6 +646,14 @@ Org recipes requires helm, so we need to install it.
 #+BEGIN_SRC emacs-lisp
 (setq-default indicate-empty-lines t)
 (setq-default show-trailing-whitespace t)
+
+(dolist (hook '(special-mode-hook
+                     term-mode-hook
+                     comint-mode-hook
+                     compilation-mode-hook
+                     minibuffer-setup-hook))
+       (add-hook hook
+         (lambda () (setq show-trailing-whitespace nil))))
 #+END_SRC
 
 ** Move lines or region up and down
@@ -787,6 +854,8 @@ succeeds without error.
    ;; Needs cdlatex package
    (add-hook 'org-mode-hook 'turn-on-org-cdlatex)
 )
+
+(setq org-link-frame-setup '((file . find-file)))
 
 ;; Make editing invisible regions smart
 (setq org-catch-invisible-edits 'smart)
@@ -1290,8 +1359,8 @@ notes. It's available using the "<paper" expansion.
 ** Fill columns indicator and line numbers
 #+begin_src emacs-lisp
 ;; Wait for emacs 27
-;; (add-hook 'prog-mode-hook #'display-fill-column-indicator-mode)
-;; (add-hook 'prog-mode-hook #'display-line-numbers-mode)
+(add-hook 'prog-mode-hook #'display-fill-column-indicator-mode)
+(add-hook 'prog-mode-hook #'display-line-numbers-mode)
 #+end_src
 
 ** Parenthesis

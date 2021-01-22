@@ -12,3 +12,16 @@ function org2hand {
     out=$(echo "$1" | rev | cut -d"." -f2-  | rev).pdf
     pandoc $1 -o "$out" --from org --template eisvogel  --variable colorlinks=true --highlight pygments --listings --toc
 }
+
+function compressmp4 {
+    ffmpeg -i $1 -vcodec libx265 -crf 28 $2
+}
+
+function compressmp42 {
+    ffmpeg -i $1 -vcodec libx264 -crf 28 $2
+}
+
+function NBG {
+    docker run --init --rm -v $(pwd):/assignments/ jupyter/nbgrader $1 $2
+}
+

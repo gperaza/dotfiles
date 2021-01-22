@@ -55,12 +55,5 @@ sudo ln -s /opt/Zotero_linux-x86_64/zotero /usr/bin/zotero
 # In sync, syn autmatic and full text should be checked. UNCHECK two option of sycn atachments.
 # In advanced, set base directory to the same as in zotfile. Leave data dir alone.
 
-# setup and install rclone for sync and backup
-# Look at the docs for always to date install instructions, usually by doing:
-curl https://rclone.org/install.sh | sudo bash
-# Setup google drive auth, choose "gdrive" as name, follow all defaults
-
-# bat, alternative for cat. Download latest release from github repo.
-
 # A better du, disk space analyzer
 sudo apt-get install ncdu

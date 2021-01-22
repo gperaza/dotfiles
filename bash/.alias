@@ -45,3 +45,10 @@ alias et="emacsclient -t --alternate-editor=\"\""
 
 # bat, and alternative for cat
 alias cat="bat"
+
+#alias NBG="docker run --init --rm -v $(pwd):/assignments/ jupyter/nbgrader"
+alias clone-all="/home/gperaza/Drive/Teaching/nbgrader-scripts/clone-all.py --assignment"
+alias git-feedback="/home/gperaza/Drive/Teaching/nbgrader-scripts/git-feedback.py --assignment"
+alias git-init="/home/gperaza/Drive/Teaching/nbgrader-scripts/git-init.py"
+
+alias picinpic="mplayer tv:// -tv driver=v4l2:width=400:height=300:device=/dev/video2 -vo xv -geometry 100%:100% -noborder"
