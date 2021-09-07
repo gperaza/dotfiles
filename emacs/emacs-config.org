@@ -128,31 +128,29 @@ This file must include personal information given as
 (set-face-attribute 'default nil :height 120)
 
 ;; color theme taken from personal.el
-(load-theme 'humanoid-light t)
+;; (load-theme 'humanoid-light t)
 ;; (load-theme 'parchment t)
 
-;; (use-package modus-operandi-theme
-;;   :ensure t
-;;   :init
-;;   (setq modus-operandi-theme-slanted-constructs t
-;;         modus-operandi-theme-bold-constructs t
-;;         modus-operandi-theme-visible-fringes t
-;;         modus-operandi-theme-3d-modeline nil
-;;         modus-operandi-theme-subtle-diffs t
-;;         modus-operandi-theme-intense-hl-line t
-;;         modus-operandi-theme-intense-standard-completions t
-;;         modus-operandi-theme-org-blocks 'greyscale
-;;         modus-operandi-theme-variable-pitch-headings nil
-;;         modus-operandi-theme-rainbow-headings nil
-;;         modus-operandi-theme-section-headings t
-;;         modus-operandi-theme-scale-headings t
-;;         modus-operandi-theme-scale-1 1.05
-;;         modus-operandi-theme-scale-2 1.1
-;;         modus-operandi-theme-scale-3 1.15
-;;         modus-operandi-theme-scale-4 1.2
-;;         modus-operandi-theme-scale-5 1.3)
-;;   :config
-;;   (load-theme 'modus-operandi t))
+(use-package modus-themes
+  :ensure t
+  :init
+  (setq modus-themes-slanted-constructs t
+        modus-themes-bold-constructs t
+        modus-themes-syntax nil
+        modus-themes-fringes 'subtle
+        modus-themes-mode-line 'borderless
+        modus-themes-org-blocks 'greyscale
+        modus-themes-variable-pitch-headings nil
+        modus-themes-scale-headings t
+        modus-themes-scale-1 1.05
+        modus-themes-scale-2 1.1
+        modus-themes-scale-3 1.15
+        modus-themes-scale-4 1.2
+        modus-themes-scale-5 1.3)
+  (modus-themes-load-themes)
+  :config
+  (modus-themes-load-operandi)
+  :bind ("<f7>" . modus-themes-toggle))
 #+END_SRC
 
 ** Nice scrolling, not centering after scrolling.
@@ -180,6 +178,11 @@ This file must include personal information given as
           latex-mode
           python-mode))
   (global-page-break-lines-mode))
+#+END_SRC
+
+** Make emacs split vertically
+#+BEGIN_SRC emacs-lisp
+(setq split-width-threshold 140)
 #+END_SRC
 
 * Utilities
@@ -218,6 +221,7 @@ This file must include personal information given as
               (("C-c n i" . org-roam-insert))
               (("C-c n I" . org-roam-insert-immediate))))
 #+end_src
+
 ** Deft
 #+begin_src emacs-lisp
 (use-package deft
@@ -231,52 +235,13 @@ This file must include personal information given as
   (deft-default-extension "org")
   (deft-directory "/home/gperaza/Drive/Notes"))
 #+end_src
+
 ** ox-hugo
 #+begin_src emacs-lisp
 (use-package ox-hugo
   :ensure t
   :after ox)
 #+end_src
-** Bitlbee
-#+BEGIN_SRC emacs-lisp
-(defun i-wanna-be-social ()
-  "Connect to IM networks using bitlbee."
-  (interactive)
-  (erc :server "localhost" :port 6667 :nick personal-bitlbee-nick))
-#+END_SRC
-
-para que bipee cuando me hablen
-#+BEGIN_SRC emacs-lisp
-(defun sound-sound (proc parsed)
-  "probando el sonido"
-  (interactive)
-  (play-sound-file "/usr/share/sounds/purple/alert.wav" ))
-
-(add-hook 'erc-text-matched-hook 'erc-beep-on-match)
-(setq erc-beep-match-types '(current-nick palabra))
-
-(add-hook 'erc-insert-post-hook
-           (lambda () (goto-char (point-min))
-             (when (re-search-forward
-                    (regexp-quote  (erc-current-nick)) nil t) (ding))))
-
-(defun erc-say-ni (str)
-      "Play the Ni! sound file if STR contains Ni!"
-      (when (string-match "hola" str)
-        (play-sound-file "/usr/share/sounds/purple/send.wav")))
-#+END_SRC
-
-** Dropbox
-#+BEGIN_SRC emacs-lisp
-;; (use-package dropbox
-;;   :ensure t
-;;   :custom
-;;   (dropbox-access-token dropbox-token)
-;;   (dropbox-verbose t)
-;;   :config
-;;   (dropbox-connect)
-;;   :demand t)
-#+END_SRC
 
 ** Crux
 Here I bind the functions I find useful, there are more. See:
@@ -319,7 +284,14 @@ https://github.com/bbatsov/crux
            fill-column)))
     (call-interactively #'fill-paragraph)))
 
-(global-set-key [remap fill-paragraph] #'fill-or-unfill)
+;; (global-set-key [remap fill-paragraph] #'fill-or-unfill)
+#+END_SRC
+
+** OSPL mode
+#+BEGIN_SRC emacs-lisp
+(use-package ospl-mode
+  :load-path "~/.dotfiles/emacs/ospl"
+  :hook (text-mode . ospl-mode))
 #+END_SRC
 
 ** Counsel
@@ -400,7 +372,7 @@ https://github.com/bbatsov/crux
   :ensure t
   :config
   (define-key
-    flyspell-mode-map (kbd "C-;") #'flyspell-correct-previous-word-generic))
+    flyspell-mode-map (kbd "C-;") #'flyspell-correct-wrapper))
 #+END_SRC
 
 ** Company
@@ -408,7 +380,7 @@ https://github.com/bbatsov/crux
 (use-package company
   :ensure t
   :config
-  (global-set-key (kbd "s-|") 'company-complete)
+  (global-set-key (kbd "s-<tab>") 'company-complete)
   (add-hook 'after-init-hook 'global-company-mode)
   (setq company-backends (delete 'company-bbdb company-backends))
   (setq company-backends (delete 'company-nxml company-backends))
@@ -459,7 +431,7 @@ path.
   (interactive)
   "Open a terminal in current buffer's path."
   (call-process
-   "xfce4-terminal"
+   "gnome-terminal"
    nil 0 nil
    (concat "--working-directory="
            (file-name-directory (or load-file-name buffer-file-name)))))
@@ -505,21 +477,54 @@ path.
 ;; (use-package yasnippet-snippets)
 #+END_SRC
 
-** Ivy-bibtex
+** Ivy-bibtex and org-ref
 #+BEGIN_SRC emacs-lisp
 (use-package ivy-bibtex
   :ensure t
   :config
-  (setq bibtex-completion-bibliography
-        '("/home/gperaza/Drive/Library/bibliography.bib"))
-  (setq bibtex-completion-pdf-field "file")
-  (setq bibtex-completion-notes-path
-        "/home/gperaza/Drive/Notes")
-  (setq bibtex-completion-pdf-open-function
-        (lambda (fpath)
-          (call-process "okular" nil 0 nil fpath)))
-  (setq bibtex-completion-cite-prompt-for-optional-arguments nil)
-)
+  (setq bibtex-completion-bibliography '("/home/gperaza/Drive/Library/bibliography.bib")
+        bibtex-completion-pdf-field "file"
+        bibtex-completion-notes-path "/home/gperaza/Drive/Notes"
+        bibtex-completion-pdf-open-function (lambda (fpath) (call-process "evince" nil 0 nil fpath))
+        bibtex-completion-cite-prompt-for-optional-arguments nil))
+
+(use-package org-ref
+  :ensure
+  :init
+  (setq org-ref-completion-library 'org-ref-ivy-cite)
+  :config
+  (setq reftex-default-bibliography bibtex-completion-bibliography
+        org-ref-notes-directory bibtex-completion-notes-path
+        org-ref-default-bibliography bibtex-completion-bibliography
+        org-ref-pdf-directory "/home/gperaza/Drive/Library/ZoteroPDFs/"
+        org-latex-prefer-user-labels t
+        org-ref-notes-function 'org-ref-notes-function-many-files)
+
+  (defun my/org-ref-open-pdf-at-point ()
+  "Open the pdf for bibtex key under point if it exists.(Zotero)"
+  (interactive)
+  (let* ((results (org-ref-get-bibtex-key-and-file))
+         (key (car results))
+	 (pdf-file (car (bibtex-completion-find-pdf key))))
+    (if (file-exists-p pdf-file)
+	(org-open-file pdf-file)
+      (message "No PDF found for %s" key))))
+
+  (setq org-ref-open-pdf-function 'my/org-ref-open-pdf-at-point)
+  ;; Don't mess up bibtex keys
+  (setq org-ref-clean-bibtex-entry-hook '(org-ref-bibtex-format-url-if-doi
+                                          orcb-key-comma
+                                          org-ref-replace-nonascii
+                                          orcb-&
+                                          orcb-%
+                                          org-ref-title-case-article
+                                          orcb-clean-year
+                                          orcb-clean-doi
+                                          orcb-clean-pages
+                                          orcb-check-journal
+                                          org-ref-sort-bibtex-entry
+                                          orcb-fix-spacing))
+  )
 #+END_SRC
 
 ** Thesaurus
@@ -552,16 +557,9 @@ path.
   :ensure t
   :config
   (pdf-tools-install)
-  (setq pdf-view-auto-slice-minor-mode t))
+  ;; :hook (pdf-view-mode . pdf-view-auto-slice-minor-mode)
+  )
 #+END_SRC
-
-** Org wiki
-#+begin_src emacs-lisp
-;; (use-package org-wiki
-;;   :ensure helm
-;;   :load-path "~/.dotfiles/emacs/org-wiki"
-;;   )
-#+end_src
 
 ** Org-recipes
 Org recipes requires helm, so we need to install it.
@@ -572,10 +570,12 @@ Org recipes requires helm, so we need to install it.
 ;;   )
 #+end_src
 
-** Emacs IPython Notebook (EIN)
+** ox-ipynb
+Org recipes requires helm, so we need to install it.
 #+begin_src emacs-lisp
-(use-package ein
-  :ensure t)
+(use-package ox-ipynb
+   :load-path "~/.dotfiles/emacs/ox-ipynb"
+   )
 #+end_src
 
 * Editing configuration
@@ -621,7 +621,7 @@ Org recipes requires helm, so we need to install it.
 ;; (add-hook 'text-mode-hook 'turn-on-auto-fill)
 
 ;;Set fill column
-(setq-default fill-column 80)
+(setq-default fill-column 70)
 
 ;; Save whatever’s in the current (system) clipboard before
 ;; replacing it with the Emacs’ text.
@@ -637,7 +637,7 @@ Org recipes requires helm, so we need to install it.
 (use-package visual-fill-column
   :ensure t
   :config
-  (add-hook 'visual-line-mode-hook #'visual-fill-column-mode)
+  ;; (add-hook 'visual-line-mode-hook #'visual-fill-column-mode)
   (setq split-window-preferred-function 'visual-fill-column-split-window-sensibly)
   (advice-add 'text-scale-adjust :after #'visual-fill-column-adjust))
 #+END_SRC
@@ -687,39 +687,6 @@ To imitate move lines outside org mode.
 (use-package expand-region
   :ensure t
   :bind ("M-2" . er/expand-region))
-#+END_SRC
-
-** Automatically indent yanked text in programming modes
-#+BEGIN_SRC emacs-lisp
-(defun yank-advised-indent-function (beg end)
-  "Do indentation, as long as the region isn't too large."
-  (if (<= (- end beg) 1000)
-      (indent-region beg end nil)))
-
-(defcustom prelude-yank-indent-modes '(LaTeX-mode TeX-mode)
-  "Modes in which to indent regions that are yanked (or yank-popped).
-      Only modes that don't derive from `prog-mode' should be listed here."
-  :type 'list
-  :group 'prelude)
-
-(defmacro advise-commands (advice-name commands class &rest body)
-  "Apply advice named ADVICE-NAME to multiple COMMANDS.
-      The body of the advice is in BODY."
-  `(progn
-     ,@(mapcar (lambda (command)
-                 `(defadvice ,command (,class ,(intern (concat (symbol-name command) "-" advice-name)) activate)
-                    ,@body))
-               commands)))
-
-(advise-commands "indent" (yank yank-pop) after
-                 "If current mode is one of `prelude-yank-indent-modes',
-      indent yanked text (with prefix arg don't indent)."
-                 (if (and (not (ad-get-arg 0))
-                          (not (member major-mode crux-indent-sensitive-modes))
-                          (or (derived-mode-p 'prog-mode)
-                              (member major-mode prelude-yank-indent-modes)))
-                     (let ((transient-mark-mode nil))
-                       (yank-advised-indent-function (region-beginning) (region-end)))))
 #+END_SRC
 
 ** Compilation
@@ -865,6 +832,8 @@ succeeds without error.
 
 ;; setup archive location in archive directory in current folder
 (setq org-archive-location "archive/%s_archive::")
+
+(global-set-key [remap org-set-tags-command] #'counsel-org-tag)
 #+END_SRC
 
 ** Speed commands
@@ -970,29 +939,6 @@ succeeds without error.
 (org-babel-jupyter-override-src-block "python")
 
 (add-to-list 'org-src-lang-modes '("dot" . "graphviz-dot"))
-
-(setq org-babel-default-header-args:python
-      '((:results . "output replace")
-        (:session . "none")
-        (:exports . "both")
-        (:cache .   "no")
-        (:noweb . "no")
-        (:hlines . "no")
-        (:tangle . "no")
-        (:eval . "never-export")))
-
-;; (use-package ob-ipython
-;;   :ensure t
-;;   :config
-;;   (setq org-babel-default-header-args:ipython
-;;         '((:results . "replace drawer")
-;;           (:session . "ipython")
-;;           (:exports . "both")
-;;           (:cache .   "no")
-;;           (:noweb . "no")
-;;           (:hlines . "no")
-;;           (:tangle . "no")
-;;           (:eval . "never-export"))))
 #+END_SRC
 
 ** Footnotes
@@ -1019,7 +965,7 @@ Enable storing, inserting and following links in any buffer:
         ("\\.mm\\'" . default)
         ("\\.x?html?\\'" . "firefox %s")
         ("\\.pdf\\'" . "atril %s")
-        ("\\.png\\'" . "feh -B white %s")
+        ("\\.png\\'" . "pqiv --background-pattern=white -i %s")
         ("\\.jpg\\'" . "pqiv -i %s")
         ("\\.svg\\'" . "pqiv -i %s")))
 #+END_SRC
@@ -1032,6 +978,8 @@ C-x n. Works globally, not only in org-mode, perhaps I should move
 this elsewhere.
 
 #+BEGIN_SRC emacs-lisp
+(setq org-imenu-depth 4)
+
 (defun latex-narrow-to-section ()
   "Narrow to current section"
   (LaTeX-mark-section)
@@ -1135,10 +1083,7 @@ package via "#+LATEX_HEADER: /usepackage{minted}"
         ("framesep" "2mm")))
 
 
-(setq org-latex-pdf-process
-      '("pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
-        "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
-        "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
+(setq org-latex-pdf-process (list "latexmk -shell-escape -bibtex -f -pdf %f"))
 #+END_SRC
 
 *** Export behavior
@@ -1149,170 +1094,12 @@ braces are used.
 (setq org-export-with-sub-superscripts '{})
 #+END_SRC
 
-** Org-Coursepack
-#+begin_src emacs-lisp
-(use-package htmlize
-  :ensure t)
-
-;; * Org-Coursepack settings
-;; ** General settings
-;; *** Allow remembering risky variables
-;;(advice-add 'risky-local-variable-p :override #'ignore)
-(defun risky-local-variable-p (sym &optional _ignored) nil)
-
-;; *** org-global-prop-value
-;; Source: https://emacs.stackexchange.com/questions/21713
-(defun org-global-props (&optional property buffer)
-  "Get the plists of global org properties of current buffer."
-  (unless property (setq property "PROPERTY"))
-  (with-current-buffer (or buffer (current-buffer))
-    (org-element-map (org-element-parse-buffer)
-        'keyword (lambda (el)
-                   (when (string-match
-                          property (org-element-property :key el)) el)))))
-
-(defun org-global-prop-value (key)
-  "Get global org property KEY of current buffer."
-  (org-element-property :value (car (org-global-props key))))
-
-;; *** bind f5 to keyboard macro of export-last-subtree
-;; (fset 'export-last-subtree
-;;       "\C-u\C-c\C-e")
-
-(eval-after-load "org"
-  '(progn
-     (define-key org-mode-map (kbd "<f5>") 'export-last-subtree)))
-
-#+end_src
-
-#+BEGIN_SRC emacs-lisp
-;; *** custom timestamp for syllabus
-(defun org-export-filter-timestamp-remove-brackets (timestamp backend info)
-  "removes relevant brackets from a timestamp"
-  (cond
-   ((org-export-derived-backend-p backend 'latex)
-    (replace-regexp-in-string "[<>]\\|[][]" "" timestamp))
-   ((org-export-derived-backend-p backend 'html)
-    (replace-regexp-in-string "&[lg]t;\\|[][]" "" timestamp))))
-
-(eval-after-load 'ox '(add-to-list
-                       'org-export-filter-timestamp-functions
-                       'org-export-filter-timestamp-remove-brackets))
-
-;; *** beamer export
-(eval-after-load 'ox
-
-  ;; update the list of LaTeX classes and associated header (encoding, etc.)
-  ;; and structure
-  '(add-to-list 'org-latex-classes
-                `("beamer"
-                  ,(concat "\\documentclass[presentation]{beamer}\n"
-                           "[DEFAULT-PACKAGES]"
-                           "[PACKAGES]"
-                           "[EXTRA]\n")
-                  ("\\section{%s}" . "\\section*{%s}")
-                  ("\\subsection{%s}" . "\\subsection*{%s}")
-                  ("\\subsubsection{%s}" . "\\subsubsection*{%s}"))))
-
-(require 'ox-beamer)
-
-;; ** reveal.js export
-(use-package ox-reveal
-  :ensure t)
-
-; ** Other export functionalities
-;; *** ignore headlines of subtrees with :ignore: tag in export
-(require 'ox-extra)
-(ox-extras-activate '(ignore-headlines))
-
-;; *** support slideonly and handoutonly tags
-(defun org/parse-headings (backend)
-  "Remove every headline with certain tags in the
-  current buffer. BACKEND is the export back-end being used, as
-  a symbol.
-  "
-
-  (if (member backend '(latex rst))
-      (org-map-entries
-       (lambda ()
-         (progn
-           (org-narrow-to-subtree)
-           (org-cut-subtree)
-           (widen)
-           ))
-       "+slideonly"))
-
-  (if (member backend '(reveal beamer))
-      (org-map-entries
-       (lambda ()
-         (progn
-           (org-narrow-to-subtree)
-           (org-cut-subtree)
-           (widen)
-           ))
-       "+handoutonly"))
-
-  )
-
-(add-hook 'org-export-before-parsing-hook 'org/parse-headings)
-
-;; *** Subtrees with :newpage: tag will be exported on a new page
-(defun org/get-headline-string-element  (headline backend info)
-  "Return the org element representation of an element.
-  Won't work on ~verb~/=code=-only headers"
-  (let ((prop-point (next-property-change 0 headline)))
-    (if prop-point (plist-get (text-properties-at prop-point headline) :parent))))
-
-(defun org/ensure-latex-clearpage (headline backend info)
-  (when (org-export-derived-backend-p backend 'latex)
-    (let ((elmnt (org/get-headline-string-element headline backend info)))
-      (when (member "newpage" (org-element-property :tags elmnt))
-        (concat "\\clearpage\n" headline)))))
-
-(eval-after-load 'ox '(add-to-list
-                       'org-export-filter-headline-functions
-                       'org/ensure-latex-clearpage))
-
-;; *** Special blocks
-(defun string/starts-with (string prefix)
-  "Return t if STRING starts with prefix."
-  (and (string-match (rx-to-string `(: bos ,prefix) t) string) t))
-
-(defun my/process-NOTES-blocks (text backend info)
-  "Filter NOTES special blocks in export."
-  (cond
-   ((eq backend 'latex)
-    (if (string/starts-with text "\\begin{NOTES}") ""))
-   ((eq backend 'rst)
-    (if (string/starts-with text ".. NOTES::") ""))
-   ((eq backend 'html)
-    (if (string/starts-with text "<div class=\"NOTES\">") ""))
-   ((eq backend 'beamer)
-    (let ((text (replace-regexp-in-string "\\\\begin{NOTES}" "\\\\note{" text)))
-      (replace-regexp-in-string "\\\\end{NOTES}" "}" text)))
-   ))
-
-(eval-after-load 'ox '(add-to-list
-                       'org-export-filter-special-block-functions
-                       'my/process-NOTES-blocks))
-
-(defun my/process-mdframed-blocks (text backend info)
-  "Filter mdframed special blocks in export."
-  (cond
-   ((org-export-derived-backend-p backend 'rst)
-    (replace-regexp-in-string ".. mdframed::" ".. note::" text t t))
-   ))
-
-(eval-after-load 'ox '(add-to-list
-                       'org-export-filter-special-block-functions
-                       'my/process-mdframed-blocks))
-#+END_SRC
-
 ** Project templates
 This is a template for a research/project aid document. The purpose of
 this document is to hold task, reading list, and some quick
 notes. It's available using the "<paper" expansion.
 
+Templating for org has been removed, migrate to Yanippet.
 #+BEGIN_SRC emacs-lisp
 ;; (add-to-list 'org-structure-template-alist
 ;;              `("paper"
@@ -1343,22 +1130,10 @@ notes. It's available using the "<paper" expansion.
   (setq-default org-download-heading-lvl nil))
 #+END_SRC
 
-** Org Capture
-#+BEGIN_SRC emacs-lisp
-(setq org-capture-templates
-      '(("t" "Todo" entry (file+olp+datetree "~/Captures.org" "Tasks")
-         "* TODO %?\n  %i\n  %a")
-        ("j" "Journal" entry (file+datetree "~/Captures.org")
-         "* %?\nEntered on %U\n  %i\n  %a")
-        ("n" "Random Note" entry (file+headline "~/Captures.org" "Notes")
-         "* %?\nEntered on %U\n  %i\n  %a")
-        ))
-(global-set-key (kbd "<f8>") 'org-capture)
-#+END_SRC
+
 * Programming
 ** Fill columns indicator and line numbers
 #+begin_src emacs-lisp
-;; Wait for emacs 27
 (add-hook 'prog-mode-hook #'display-fill-column-indicator-mode)
 (add-hook 'prog-mode-hook #'display-line-numbers-mode)
 #+end_src
@@ -1391,14 +1166,16 @@ notes. It's available using the "<paper" expansion.
 
 ** Comments
 #+BEGIN_SRC emacs-lisp
-;; (defun comment-auto-fill ()
-;;   (setq-local comment-auto-fill-only-comments t)
-;;   (auto-fill-mode 1))
-;; (add-hook 'prog-mode-hook 'comment-auto-fill)
-
 (use-package comment-dwim-2
   :ensure t
   :bind ("M-;" . comment-dwim-2))
+
+(use-package numpydoc
+  :ensure t
+  :bind (:map python-mode-map
+              ("C-c d" . numpydoc-generate))
+  :config
+  (setq numpydoc-insertion-style nil))
 #+END_SRC
 
 ** Flycheck
@@ -1412,32 +1189,6 @@ notes. It's available using the "<paper" expansion.
   :config
   (with-eval-after-load 'flycheck
     (flycheck-pos-tip-mode)))
-#+END_SRC
-
-** Semantic mode
-Semantic mode enables parsing of source code files.
-#+BEGIN_SRC emacs-lisp
-(require 'semantic)
-
-(global-semanticdb-minor-mode 1)
-(global-semantic-idle-scheduler-mode 1)
-(use-package stickyfunc-enhance
-  :ensure t
-  :init (global-semantic-stickyfunc-mode 1))
-(semantic-mode 1)
-
-(defun my/semantic-show-summary (point)
-  "Display a summary for the symbol under POINT."
-  (interactive "P")
-  (let* ((ctxt (semantic-analyze-current-context point))
-         (pf (when ctxt
-               (semantic-analyze-interesting-tag ctxt)))
-        )
-    (if pf
-        (popup-tip (format "%s" (semantic-format-tag-summarize pf nil t)))
-      (popup-tip "No summary info available"))))
-(define-key semantic-mode-map (kbd "s-i") 'my/semantic-show-summary)
-(define-key semantic-mode-map (kbd "s-j") 'semantic-ia-fast-jump)
 #+END_SRC
 
 ** Projectile
@@ -1463,21 +1214,6 @@ Semantic mode enables parsing of source code files.
   :ensure t
   :config
   (elpy-enable))
-;; (use-package anaconda-mode
-;;   :ensure t
-;;   :defer t
-;;   :init
-;;   (progn
-;;     (add-hook 'python-mode-hook 'anaconda-mode)
-;;     (add-hook 'python-mode-hook 'anaconda-eldoc-mode)
-;;     )
-;; )
-
-;; (use-package company-anaconda
-;;   :ensure t
-;;   :config
-;;   (eval-after-load "company"
-;;     '(add-to-list 'company-backends 'company-anaconda)))
 #+END_SRC
 
 ** C
@@ -1500,10 +1236,6 @@ Semantic mode enables parsing of source code files.
 
 (setq c-default-style "linux"
           c-basic-offset 4)
-;; function args mode
-(use-package function-args
-  :ensure t
-  :config (fa-config-default))
 #+END_SRC
 
 ** Gnuplot
@@ -1514,8 +1246,8 @@ Semantic mode enables parsing of source code files.
 
 ** Markdown mode
 #+BEGIN_SRC emacs-lisp
-;; (use-package markdown-mode
-;;   :ensure t)
+(use-package markdown-mode
+  :ensure t)
 #+END_SRC
 
 ** Graphviz
@@ -1524,12 +1256,6 @@ Semantic mode enables parsing of source code files.
   :ensure t)
 #+END_SRC
 
-** ox-ipynb
-Org mode exporter for Jupyter notebooks.
-#+BEGIN_SRC emacs-lisp
-;; (use-package ox-ipynb
-;;   :load-path "~/.emacs.d/ox-ipynb/")
-#+END_SRC
 
 * End
 #+BEGIN_SRC emacs-lisp
