@@ -568,9 +568,9 @@ Org recipes requires helm, so we need to install it.
 ** ox-ipynb
 Org recipes requires helm, so we need to install it.
 #+begin_src emacs-lisp
-(use-package ox-ipynb
-   :load-path "~/.dotfiles/emacs/ox-ipynb"
-   )
+;;(use-package ox-ipynb
+;;   :load-path "~/.dotfiles/emacs/ox-ipynb"
+;;   )
 #+end_src
 
 * Editing configuration
