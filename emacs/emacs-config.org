@@ -398,11 +398,6 @@ https://github.com/bbatsov/crux
   :config
   (add-to-list 'company-backends 'company-math-symbols-unicode))
 
-(use-package company-org-roam
-  :ensure t
-  :config
-  (push 'company-org-roam company-backends))
-
 (defun my-company-latex-mode-setup ()
   (setq-local company-backends
               (append '((company-math-symbols-latex company-latex-commands))
