@@ -19,29 +19,29 @@ This file must include personal information given as
 
 ** Setting up package manager and use-package
 #+begin_src emacs-lisp
-;; Please don't load outdated byte code
-(setq load-prefer-newer t)
+  ;; Please don't load outdated byte code
+  (setq load-prefer-newer t)
 
-(require 'package)
-(setq package-enable-at-startup nil)
+  (require 'package)
+  (setq package-enable-at-startup nil)
 
-(setq package-archives
-      '(("gnu" . "http://elpa.gnu.org/packages/")
-        ("melpa" . "http://melpa.org/packages/" )
-        ("elpy" . "https://jorgenschaefer.github.io/packages/")
-        ("org" . "https://orgmode.org/elpa/")
-        ))
+  (setq package-archives
+        '(("gnu" . "http://elpa.gnu.org/packages/")
+          ("nongnu" . "http://elpa.nongnu.org/nongnu/")
+          ("melpa" . "http://melpa.org/packages/" )
+          ("elpy" . "https://jorgenschaefer.github.io/packages/")
+          ))
 
-(package-initialize)
+  (package-initialize)
 
-;; Bootstrap `use-package'
-(unless (package-installed-p 'use-package)
-  (package-refresh-contents)
-  (package-install 'use-package))
+  ;; Bootstrap `use-package'
+  (unless (package-installed-p 'use-package)
+    (package-refresh-contents)
+    (package-install 'use-package))
 
-(eval-when-compile
-  (require 'use-package))
-(require 'bind-key)
+  (eval-when-compile
+    (require 'use-package))
+  (require 'bind-key)
 #+end_src
 
 ** Setup path correctly
@@ -138,7 +138,7 @@ This file must include personal information given as
         modus-themes-bold-constructs t
         modus-themes-syntax nil
         modus-themes-fringes 'subtle
-        modus-themes-mode-line 'borderless
+        modus-themes-mode-line (quote (borderless))
         modus-themes-org-blocks 'greyscale
         modus-themes-variable-pitch-headings nil
         modus-themes-scale-headings t
@@ -185,41 +185,384 @@ This file must include personal information given as
 (setq split-width-threshold 140)
 #+END_SRC
 
+* org-mode
+** Configuration of org-mode
+#+BEGIN_SRC emacs-lisp
+  (use-package cdlatex
+    :ensure t)
+
+  (use-package org-contrib
+    :ensure t)
+
+  (use-package org
+     :config
+     ;; Needs cdlatex package
+     (add-hook 'org-mode-hook 'turn-on-org-cdlatex)
+  )
+
+  (setq org-link-frame-setup '((file . find-file)))
+
+  ;; Make editing invisible regions smart
+  (setq org-catch-invisible-edits 'smart)
+
+  ;; Allow lists with letters in them.
+  (setq org-list-allow-alphabetical t)
+
+  ;; setup archive location in archive directory in current folder
+  (setq org-archive-location "archive/%s_archive::")
+
+  (global-set-key [remap org-set-tags-command] #'counsel-org-tag)
+#+END_SRC
+
+** Appearance
+#+BEGIN_SRC emacs-lisp
+;; Align text at column 1
+(setq org-adapt-indentation nil)
+
+;; Start with contents displayed
+(setq org-startup-folded 'content)
+
+;; Increase the size of latex fragments in text:
+(plist-put org-format-latex-options :scale 1.5)
+
+;; Highlight Latex fragments
+(setq org-highlight-latex-and-related '(latex script entities))
+(set-face-foreground 'org-latex-and-related "blue")
+#+END_SRC
+
+** Images in org-mode
+#+BEGIN_SRC emacs-lisp
+;; Disable inline images
+;; (defun org-display-inline-images (&optional include-linked refresh beg end)
+;;   "This function is disabled. I dont like inline images."
+;;   (interactive "P")
+;;   (message "Disabled functionality"))
+
+(setq org-image-actual-width 400)
+
+;; Enable pdf and eps images in org-mode
+;; Suggested on the org-mode maillist by Julian Burgos
+(add-to-list 'image-file-name-extensions "pdf")
+(add-to-list 'image-file-name-extensions "eps")
+
+(add-to-list 'image-type-file-name-regexps '("\\.eps\\'" . imagemagick))
+(add-to-list 'image-file-name-extensions "eps")
+(add-to-list 'image-type-file-name-regexps '("\\.pdf\\'" . imagemagick))
+(add-to-list 'image-file-name-extensions "pdf")
+
+(setq imagemagick-types-inhibit (remove 'PDF imagemagick-types-inhibit))
+#+END_SRC
+
+** Babel settings
+#+BEGIN_SRC emacs-lisp
+;; use syntax highlighting in org-file code blocks
+(setq org-src-tab-acts-natively t)
+
+;; enable prompt-free code running
+(setq org-confirm-babel-evaluate nil
+      org-confirm-elisp-link-function nil
+      org-confirm-shell-link-function nil)
+
+;; no extra indentation in the source blocks
+(setq org-src-preserve-indentation t)
+
+(add-to-list 'org-babel-default-header-args '(:eval . "no-export"))
+
+;; Disable Flycheck when editing code blocks.
+(defun disable-flycheck-in-org-src-block ()
+  (setq-local flycheck-disabled-checkers '(emacs-lisp-checkdoc)))
+(add-hook 'org-src-mode-hook 'disable-flycheck-in-org-src-block)
+
+;; Edit code in same window
+(setq org-src-window-setup 'current-window)
+
+
+(use-package conda
+  :ensure t
+  :init
+  (setq conda-anaconda-home (expand-file-name "~/anaconda3")
+	conda-env-home-directory (expand-file-name "~/anaconda3"))
+  :config
+  (conda-env-initialize-interactive-shells)
+  (conda-env-initialize-eshell))
+
+(use-package jupyter
+  :ensure t)
+
+;; Register languages in org-mode
+(require 'ob-shell)
+(org-babel-do-load-languages
+ 'org-babel-load-languages
+ '((emacs-lisp . t)
+   (python . t)
+   (shell . t)
+   (org . t)
+   (C . t)
+   (latex . t)
+   (awk . t)
+   (gnuplot . t)
+   (dot . t)
+   (jupyter . t)))
+
+(setq org-babel-default-header-args:jupyter-python '((:async . "no")
+                                                     (:session . "py")
+                                                     (:kernel . "python3")))
+(org-babel-jupyter-override-src-block "python")
+
+(add-to-list 'org-src-lang-modes '("dot" . "graphviz-dot"))
+#+END_SRC
+
+** Footnotes
+In-line and still reference-able footnote definitions. Footnotes have
+random unique id's and being inline means it is difficult to mess up
+references by deleting stuff.
+
+#+BEGIN_SRC emacs-lisp
+(setq org-footnote-define-inline t)
+(setq org-footnote-auto-label 'random)
+(setq org-footnote-auto-adjust nil)
+#+END_SRC
+
+** Org mode links
+Enable storing, inserting and following links in any buffer:
+
+#+BEGIN_SRC emacs-lisp
+(global-set-key "\C-cl" 'org-store-link)
+(global-set-key "\C-cL" 'org-insert-link-global)
+(global-set-key "\C-co" 'org-open-at-point-global)
+
+(setq org-file-apps
+      '((auto-mode . emacs)
+        ("\\.mm\\'" . default)
+        ("\\.x?html?\\'" . "firefox %s")
+        ("\\.pdf\\'" . "atril %s")
+        ("\\.png\\'" . "pqiv --background-pattern=white -i %s")
+        ("\\.jpg\\'" . "pqiv -i %s")
+        ("\\.svg\\'" . "pqiv -i %s")))
+#+END_SRC
+
+** Navigation
+Function that replaces the entire key map for narrow widen in org.
+Narrowing is really useful to focus only on the relevant section we
+want to edit. Now we can narrow/widen smartly using only
+C-x n. Works globally, not only in org-mode, perhaps I should move
+this elsewhere.
+
+#+BEGIN_SRC emacs-lisp
+(setq org-imenu-depth 4)
+
+(defun latex-narrow-to-section ()
+  "Narrow to current section"
+  (LaTeX-mark-section)
+  (call-interactively 'narrow-to-region)
+  (deactivate-mark))
+
+(defun latex-on-section-header ()
+  "Return non-nil if point is on a section header."
+  (if (string-match "\\`\\\\\\(sub\\)*section{.*}" (thing-at-point 'line t))
+       t nil))
+
+(defun narrow-or-widen-dwim (p)
+  "Widen if buffer is narrowed, narrow-dwim otherwise.
+Dwim means: region, org-src-block, org-subtree, or
+defun, whichever applies first. Narrowing to
+org-src-block actually calls `org-edit-src-code'.
+
+With prefix P, don't widen, just narrow even if buffer
+is already narrowed."
+  (interactive "P")
+  (declare (interactive-only))
+  (cond ((and (buffer-narrowed-p) (not p)) (widen))
+        ((region-active-p)
+         (narrow-to-region (region-beginning)
+                           (region-end)))
+        ((derived-mode-p 'org-mode)
+         ;; `org-edit-src-code' is not a real narrowing
+         ;; command. Remove this first conditional if
+         ;; you don't want it.
+         (cond ((ignore-errors (org-edit-src-code) t)
+                (delete-other-windows))
+               ((ignore-errors (org-narrow-to-block) t))
+               (t (org-narrow-to-subtree))))
+        ((derived-mode-p 'latex-mode)
+         (if (latex-on-section-header)
+             (latex-narrow-to-section)
+           (LaTeX-narrow-to-environment)))
+        (t (narrow-to-defun))))
+
+;; This line actually replaces Emacs' entire narrowing
+;; keymap, that's how much I like this command. Only
+;; copy it if that's what you want.
+(define-key ctl-x-map "n" #'narrow-or-widen-dwim)
+(add-hook 'LaTeX-mode-hook
+          (lambda ()
+            (define-key LaTeX-mode-map "\C-xn"
+              nil)
+            ;; (define-key LaTeX-mode-map "\C-ci" 'counsel-outline)
+            ))
+#+END_SRC
+
+** Latex Export Settings
+#+BEGIN_SRC emacs-lisp
+(require 'ox-latex)
+(require 'ox-html)
+(require 'ox-koma-letter)
+#+END_SRC
+
+*** LaTeX back-end configuration
+#+BEGIN_SRC emacs-lisp
+(eval-after-load 'ox '(require 'ox-koma-letter))
+
+(eval-after-load 'ox '(add-to-list 'org-latex-classes
+                                   '("koma-article"
+                                     "\\documentclass{scrartcl}"
+                                     ("\\section{%s}" . "\\section*{%s}")
+                                     ("\\subsection{%s}" . "\\subsection*{%s}")
+                                     ("\\subsubsection{%s}"
+                                      . "\\subsubsection*{%s}")
+                                     ("\\paragraph{%s}" . "\\paragraph*{%s}")
+                                     ("\\subparagraph{%s}"
+                                      . "\\subparagraph*{%s}"))) )
+
+(require 'ox-latex)
+#+END_SRC
+
+To enable syntax highlighting for source code in LaTeX export we need
+pygmentize installed. Currently it's disabled because it breaks
+portability with standard LaTeX work flows, particularly my
+collaborators don't know how to compile a tex file with this enabled.
+It can be enables in each buffer by manually including the minted
+package via "#+LATEX_HEADER: /usepackage{minted}"
+
+#+BEGIN_SRC emacs-lisp
+;; Add minted to the defaults packages to include when exporting.
+;;(add-to-list 'org-latex-packages-alist '("" "minted" nil))
+
+;; Tell the latex export to use the minted package for source code
+;; coloration.
+(setq org-latex-listings 'minted)
+(add-to-list 'org-latex-minted-langs '(python "python"))
+(add-to-list 'org-latex-minted-langs '(ipython "python"))
+
+;; Let the exporter use the -shell-escape option to let latex execute
+;; external programs. This obviously and can be dangerous to activate!
+(setq org-latex-minted-options
+      '(("mathescape" "true")
+        ("linenos" "true")
+        ("numbersep" "5pt")
+        ("frame" "lines")
+        ("framesep" "2mm")))
+
+
+(setq org-latex-pdf-process (list "latexmk -shell-escape -bibtex -f -pdf %f"))
+#+END_SRC
+
+*** Export behavior
+I want to interpret "_" and "^" as sub and super indices only when
+braces are used.
+
+#+BEGIN_SRC emacs-lisp
+(setq org-export-with-sub-superscripts '{})
+#+END_SRC
+
+** Project templates
+This is a template for a research/project aid document. The purpose of
+this document is to hold task, reading list, and some quick
+notes. It's available using the "<paper" expansion.
+
+Templating for org has been removed, migrate to Yanippet.
+#+BEGIN_SRC emacs-lisp
+;; (add-to-list 'org-structure-template-alist
+;;              `("paper"
+;;                ,(concat
+;;                 "#+TITLE:\n"
+;;                 "#+DATE:\n"
+;;                 "#+PROPERTY: cookie_data recursive\n\n"
+;;                 "Description:\n\n"
+;;                 "* Files\n"
+;;                 "* Tasks\n"
+;;                 "** Writing\n"
+;;                 "** Modeling\n"
+;;                 "** Simulations\n"
+;;                 "* Reading\n"
+;;                 "** Must read\n"
+;;                 "** Should read\n"
+;;                 "** Already read and relevant\n"
+;;                 "** Already read and not relevant\n"
+;;                 "* Meetings\n")))
+#+END_SRC
+
+** Org-Download
+#+BEGIN_SRC emacs-lisp
+(use-package org-download
+  :ensure t
+  :config
+  (setq-default org-download-image-dir "./figures")
+  (setq-default org-download-heading-lvl nil))
+#+END_SRC
+
+
 * Utilities
 ** Org-roam
 #+begin_src emacs-lisp
 (use-package org-roam
-      :ensure t
-      :hook
-      (after-init . org-roam-mode)
-      :custom
-      (org-roam-directory "/home/gperaza/Drive/Notes")
-      (org-roam-capture-templates
-            '(
-              ("d" "default" plain (function org-roam--capture-get-point)
-              "%?"
-              :file-name "%<%Y%m%d%H%M%S>-${slug}"
-              :head "#+TITLE: ${title}\n#+HUGO_BASE_DIR: /home/gperaza/braindump/\n##+roam_key:\n"
-              :unnarrowed t)
-              ))
-      (org-roam-dailies-directory "daily/")
-      (org-roam-dailies-capture-templates
-            '(("d" "default" entry
-               #'org-roam-capture--get-point
-               "* %?"
-               :file-name "daily/%<%Y-%m-%d>"
-               :head "#+title: %<%Y-%m-%d>\n\n")))
-      :bind (:map org-roam-mode-map
-              (("C-c n r" . org-roam)
-               ("C-c n f" . org-roam-find-file)
-               ("C-c n g" . org-roam-graph)
-               ("C-c n c t" . org-roam-dailies-capture-today)
-               ("C-c n c y" . org-roam-dailies-capture-today)
-               ("C-c n c f t" . org-roam-dailies-capture-today)
-               ("C-c n c f y" . org-roam-dailies-capture-today))
-              :map org-mode-map
-              (("C-c n i" . org-roam-insert))
-              (("C-c n I" . org-roam-insert-immediate))))
+  :ensure t
+  :custom
+  (org-roam-directory "/home/gperaza/Drive/Notes")
+  ;; (org-roam-capture-templates
+  ;;  '(
+  ;;    ("d" "default" plain (function org-roam--capture-get-point)
+  ;;     "%?"
+  ;;     :file-name "%<%Y%m%d%H%M%S>-${slug}"
+  ;;     :head "#+TITLE: ${title}\n#+HUGO_BASE_DIR: /home/gperaza/braindump/\n##+roam_key:\n"
+  ;;     :unnarrowed t)
+  ;;    ))
+  :bind (("C-c n l" . org-roam-buffer-toggle)
+         ("C-c n f" . org-roam-node-find)
+         ("C-c n g" . org-roam-graph)
+         ("C-c n i" . org-roam-node-insert)
+         ("C-c n c" . org-roam-capture)
+         ;; Dailies
+         ("C-c n j" . org-roam-dailies-capture-today))
+  :config
+  ;; If you're using a vertical completion framework, you might want a more informative completion interface
+  (setq org-roam-node-display-template (concat "${title:*} " (propertize "${tags:10}" 'face 'org-tag)))
+  (org-roam-db-autosync-mode))
+#+end_src
+
+#+begin_src emacs-lisp
+  ;; (use-package org-roam
+  ;;       :ensure t
+  ;;       :hook
+  ;;       (after-init . org-roam-mode)
+  ;;       :custom
+  ;;       (org-roam-directory "/home/gperaza/Drive/Notes")
+  ;;       (org-roam-capture-templates
+  ;;             '(
+  ;;               ("d" "default" plain (function org-roam--capture-get-point)
+  ;;               "%?"
+  ;;               :file-name "%<%Y%m%d%H%M%S>-${slug}"
+  ;;               :head "#+TITLE: ${title}\n#+HUGO_BASE_DIR: /home/gperaza/braindump/\n##+roam_key:\n"
+  ;;               :unnarrowed t)
+  ;;               ))
+  ;;       (org-roam-dailies-directory "daily/")
+  ;;       (org-roam-dailies-capture-templates
+  ;;             '(("d" "default" entry
+  ;;                #'org-roam-capture--get-point
+  ;;                "* %?"
+  ;;                :file-name "daily/%<%Y-%m-%d>"
+  ;;                :head "#+title: %<%Y-%m-%d>\n\n")))
+  ;;       :bind (:map org-roam-mode-map
+  ;;               (("C-c n r" . org-roam)
+  ;;                ("C-c n f" . org-roam-find-file)
+  ;;                ("C-c n g" . org-roam-graph)
+  ;;                ("C-c n c t" . org-roam-dailies-capture-today)
+  ;;                ("C-c n c y" . org-roam-dailies-capture-today)
+  ;;                ("C-c n c f t" . org-roam-dailies-capture-today)
+  ;;                ("C-c n c f y" . org-roam-dailies-capture-today))
+  ;;               :map org-mode-map
+  ;;               (("C-c n i" . org-roam-insert))
+  ;;               (("C-c n I" . org-roam-insert-immediate))))
 #+end_src
 
 ** Deft
@@ -229,11 +572,32 @@ This file must include personal information given as
   :after org
   :bind
   ("C-c n d" . deft)
-  :custom
-  (deft-recursive t)
-  (deft-use-filter-string-for-filename t)
-  (deft-default-extension "org")
-  (deft-directory "/home/gperaza/Drive/Notes"))
+  :config
+  (setq deft-recursive t)
+  (setq deft-use-filter-string-for-filename t)
+  (setq deft-default-extension "org")
+  (setq deft-directory "/home/gperaza/Drive/Notes")
+  (setq deft-strip-summary-regexp
+        (concat "\\("
+	        "^:.+:.*\n" ; any line with a :SOMETHING:
+	        "\\|^#\\+.*\n" ; anyline starting with a #+
+	        "\\|^##.*\n" ; anyline starting with a ##
+	        "\\|^\\- tags:.*\n" ; anyline starting with ::tags
+	        "\\|^\\*.+.*\n" ; anyline where an asterisk starts the line
+	        "\\)"))
+  )
+
+(advice-add 'deft-parse-title :override 
+    (lambda (file contents)
+      (if deft-use-filename-as-title
+	  (deft-base-filename file)
+	(let* ((case-fold-search 't)
+	       (begin (string-match "title: " contents))
+	       (end-of-begin (match-end 0))
+	       (end (string-match "\n" contents begin)))
+	  (if begin 
+	      (substring contents end-of-begin end)
+	    (format "%s" file))))))
 #+end_src
 
 ** ox-hugo
@@ -483,43 +847,43 @@ path.
         bibtex-completion-pdf-open-function (lambda (fpath) (call-process "evince" nil 0 nil fpath))
         bibtex-completion-cite-prompt-for-optional-arguments nil))
 
-(use-package org-ref
-  :ensure
-  :init
-  (setq org-ref-completion-library 'org-ref-ivy-cite)
-  :config
-  (setq reftex-default-bibliography bibtex-completion-bibliography
-        org-ref-notes-directory bibtex-completion-notes-path
-        org-ref-default-bibliography bibtex-completion-bibliography
-        org-ref-pdf-directory "/home/gperaza/Drive/Library/ZoteroPDFs/"
-        org-latex-prefer-user-labels t
-        org-ref-notes-function 'org-ref-notes-function-many-files)
+;; (use-package org-ref
+;;   :ensure
+;;   :init
+;;   (setq org-ref-completion-library 'org-ref-ivy-cite)
+;;   :config
+;;   (setq reftex-default-bibliography bibtex-completion-bibliography
+;;         org-ref-notes-directory bibtex-completion-notes-path
+;;         org-ref-default-bibliography bibtex-completion-bibliography
+;;         org-ref-pdf-directory "/home/gperaza/Drive/Library/ZoteroPDFs/"
+;;         org-latex-prefer-user-labels t
+;;         org-ref-notes-function 'org-ref-notes-function-many-files)
 
-  (defun my/org-ref-open-pdf-at-point ()
-  "Open the pdf for bibtex key under point if it exists.(Zotero)"
-  (interactive)
-  (let* ((results (org-ref-get-bibtex-key-and-file))
-         (key (car results))
-	 (pdf-file (car (bibtex-completion-find-pdf key))))
-    (if (file-exists-p pdf-file)
-	(org-open-file pdf-file)
-      (message "No PDF found for %s" key))))
+;;   (defun my/org-ref-open-pdf-at-point ()
+;;   "Open the pdf for bibtex key under point if it exists.(Zotero)"
+;;   (interactive)
+;;   (let* ((results (org-ref-get-bibtex-key-and-file))
+;;          (key (car results))
+;; 	 (pdf-file (car (bibtex-completion-find-pdf key))))
+;;     (if (file-exists-p pdf-file)
+;; 	(org-open-file pdf-file)
+;;       (message "No PDF found for %s" key))))
 
-  (setq org-ref-open-pdf-function 'my/org-ref-open-pdf-at-point)
-  ;; Don't mess up bibtex keys
-  (setq org-ref-clean-bibtex-entry-hook '(org-ref-bibtex-format-url-if-doi
-                                          orcb-key-comma
-                                          org-ref-replace-nonascii
-                                          orcb-&
-                                          orcb-%
-                                          org-ref-title-case-article
-                                          orcb-clean-year
-                                          orcb-clean-doi
-                                          orcb-clean-pages
-                                          orcb-check-journal
-                                          org-ref-sort-bibtex-entry
-                                          orcb-fix-spacing))
-  )
+;;   (setq org-ref-open-pdf-function 'my/org-ref-open-pdf-at-point)
+;;   ;; Don't mess up bibtex keys
+;;   (setq org-ref-clean-bibtex-entry-hook '(org-ref-bibtex-format-url-if-doi
+;;                                           orcb-key-comma
+;;                                           org-ref-replace-nonascii
+;;                                           orcb-&
+;;                                           orcb-%
+;;                                           org-ref-title-case-article
+;;                                           orcb-clean-year
+;;                                           orcb-clean-doi
+;;                                           orcb-clean-pages
+;;                                           orcb-check-journal
+;;                                           org-ref-sort-bibtex-entry
+;;                                           orcb-fix-spacing))
+;;   )
 #+END_SRC
 
 ** Thesaurus
@@ -872,328 +1236,6 @@ succeeds without error.
              command)))
  )
 #+END_SRC
-
-* org-mode
-** Configuration of org-mode
-#+BEGIN_SRC emacs-lisp
-(use-package cdlatex
-  :ensure t)
-
-(use-package org
-   :ensure org-plus-contrib
-   :config
-   ;; Needs cdlatex package
-   (add-hook 'org-mode-hook 'turn-on-org-cdlatex)
-)
-
-(setq org-link-frame-setup '((file . find-file)))
-
-;; Make editing invisible regions smart
-(setq org-catch-invisible-edits 'smart)
-
-;; Allow lists with letters in them.
-(setq org-list-allow-alphabetical t)
-
-;; setup archive location in archive directory in current folder
-(setq org-archive-location "archive/%s_archive::")
-
-(global-set-key [remap org-set-tags-command] #'counsel-org-tag)
-#+END_SRC
-
-** Speed commands
-#+BEGIN_SRC emacs-lisp
-;; To see a list of available commands press ? with the cursor at the beginning
-;; of a headline.
-(setq org-use-speed-commands t)
-
-(add-to-list 'org-speed-commands-user (cons "P" 'org-set-property))
-(add-to-list 'org-speed-commands-user (cons "d" 'org-deadline))
-
-;; Mark a subtree
-(add-to-list 'org-speed-commands-user (cons "m" 'org-mark-subtree))
-
-;; Widen
-(add-to-list 'org-speed-commands-user (cons "S" 'widen))
-#+END_SRC
-
-** Appearance
-#+BEGIN_SRC emacs-lisp
-;; Align text at column 1
-(setq org-adapt-indentation nil)
-
-;; Start with contents displayed
-(setq org-startup-folded 'content)
-
-;; Increase the size of latex fragments in text:
-(plist-put org-format-latex-options :scale 1.5)
-
-;; Highlight Latex fragments
-(setq org-highlight-latex-and-related '(latex script entities))
-(set-face-foreground 'org-latex-and-related "blue")
-#+END_SRC
-
-** Images in org-mode
-#+BEGIN_SRC emacs-lisp
-;; Disable inline images
-;; (defun org-display-inline-images (&optional include-linked refresh beg end)
-;;   "This function is disabled. I dont like inline images."
-;;   (interactive "P")
-;;   (message "Disabled functionality"))
-
-(setq org-image-actual-width 400)
-
-;; Enable pdf and eps images in org-mode
-;; Suggested on the org-mode maillist by Julian Burgos
-(add-to-list 'image-file-name-extensions "pdf")
-(add-to-list 'image-file-name-extensions "eps")
-
-(add-to-list 'image-type-file-name-regexps '("\\.eps\\'" . imagemagick))
-(add-to-list 'image-file-name-extensions "eps")
-(add-to-list 'image-type-file-name-regexps '("\\.pdf\\'" . imagemagick))
-(add-to-list 'image-file-name-extensions "pdf")
-
-(setq imagemagick-types-inhibit (remove 'PDF imagemagick-types-inhibit))
-#+END_SRC
-
-** Babel settings
-#+BEGIN_SRC emacs-lisp
-;; use syntax highlighting in org-file code blocks
-(setq org-src-tab-acts-natively t)
-
-;; enable prompt-free code running
-(setq org-confirm-babel-evaluate nil
-      org-confirm-elisp-link-function nil
-      org-confirm-shell-link-function nil)
-
-;; no extra indentation in the source blocks
-(setq org-src-preserve-indentation t)
-
-(add-to-list 'org-babel-default-header-args '(:eval . "no-export"))
-
-;; Disable Flycheck when editing code blocks.
-(defun disable-flycheck-in-org-src-block ()
-  (setq-local flycheck-disabled-checkers '(emacs-lisp-checkdoc)))
-(add-hook 'org-src-mode-hook 'disable-flycheck-in-org-src-block)
-
-;; Edit code in same window
-(setq org-src-window-setup 'current-window)
-
-
-(use-package jupyter
-  :ensure t)
-
-;; Register languages in org-mode
-(require 'ob-shell)
-(org-babel-do-load-languages
- 'org-babel-load-languages
- '((emacs-lisp . t)
-   (python . t)
-   (shell . t)
-   (org . t)
-   (C . t)
-   (latex . t)
-   (awk . t)
-   (gnuplot . t)
-   (dot . t)
-   (jupyter . t)))
-
-(setq org-babel-default-header-args:jupyter-python '((:async . "no")
-                                                     (:session . "py")
-                                                     (:kernel . "python3")))
-(org-babel-jupyter-override-src-block "python")
-
-(add-to-list 'org-src-lang-modes '("dot" . "graphviz-dot"))
-#+END_SRC
-
-** Footnotes
-In-line and still reference-able footnote definitions. Footnotes have
-random unique id's and being inline means it is difficult to mess up
-references by deleting stuff.
-
-#+BEGIN_SRC emacs-lisp
-(setq org-footnote-define-inline t)
-(setq org-footnote-auto-label 'random)
-(setq org-footnote-auto-adjust nil)
-#+END_SRC
-
-** Org mode links
-Enable storing, inserting and following links in any buffer:
-
-#+BEGIN_SRC emacs-lisp
-(global-set-key "\C-cl" 'org-store-link)
-(global-set-key "\C-cL" 'org-insert-link-global)
-(global-set-key "\C-co" 'org-open-at-point-global)
-
-(setq org-file-apps
-      '((auto-mode . emacs)
-        ("\\.mm\\'" . default)
-        ("\\.x?html?\\'" . "firefox %s")
-        ("\\.pdf\\'" . "atril %s")
-        ("\\.png\\'" . "pqiv --background-pattern=white -i %s")
-        ("\\.jpg\\'" . "pqiv -i %s")
-        ("\\.svg\\'" . "pqiv -i %s")))
-#+END_SRC
-
-** Navigation
-Function that replaces the entire key map for narrow widen in org.
-Narrowing is really useful to focus only on the relevant section we
-want to edit. Now we can narrow/widen smartly using only
-C-x n. Works globally, not only in org-mode, perhaps I should move
-this elsewhere.
-
-#+BEGIN_SRC emacs-lisp
-(setq org-imenu-depth 4)
-
-(defun latex-narrow-to-section ()
-  "Narrow to current section"
-  (LaTeX-mark-section)
-  (call-interactively 'narrow-to-region)
-  (deactivate-mark))
-
-(defun latex-on-section-header ()
-  "Return non-nil if point is on a section header."
-  (if (string-match "\\`\\\\\\(sub\\)*section{.*}" (thing-at-point 'line t))
-       t nil))
-
-(defun narrow-or-widen-dwim (p)
-  "Widen if buffer is narrowed, narrow-dwim otherwise.
-Dwim means: region, org-src-block, org-subtree, or
-defun, whichever applies first. Narrowing to
-org-src-block actually calls `org-edit-src-code'.
-
-With prefix P, don't widen, just narrow even if buffer
-is already narrowed."
-  (interactive "P")
-  (declare (interactive-only))
-  (cond ((and (buffer-narrowed-p) (not p)) (widen))
-        ((region-active-p)
-         (narrow-to-region (region-beginning)
-                           (region-end)))
-        ((derived-mode-p 'org-mode)
-         ;; `org-edit-src-code' is not a real narrowing
-         ;; command. Remove this first conditional if
-         ;; you don't want it.
-         (cond ((ignore-errors (org-edit-src-code) t)
-                (delete-other-windows))
-               ((ignore-errors (org-narrow-to-block) t))
-               (t (org-narrow-to-subtree))))
-        ((derived-mode-p 'latex-mode)
-         (if (latex-on-section-header)
-             (latex-narrow-to-section)
-           (LaTeX-narrow-to-environment)))
-        (t (narrow-to-defun))))
-
-;; This line actually replaces Emacs' entire narrowing
-;; keymap, that's how much I like this command. Only
-;; copy it if that's what you want.
-(define-key ctl-x-map "n" #'narrow-or-widen-dwim)
-(add-hook 'LaTeX-mode-hook
-          (lambda ()
-            (define-key LaTeX-mode-map "\C-xn"
-              nil)
-            ;; (define-key LaTeX-mode-map "\C-ci" 'counsel-outline)
-            ))
-#+END_SRC
-
-** Latex Export Settings
-#+BEGIN_SRC emacs-lisp
-(require 'ox-latex)
-(require 'ox-html)
-(require 'ox-koma-letter)
-#+END_SRC
-
-*** LaTeX back-end configuration
-#+BEGIN_SRC emacs-lisp
-(eval-after-load 'ox '(require 'ox-koma-letter))
-
-(eval-after-load 'ox '(add-to-list 'org-latex-classes
-                                   '("koma-article"
-                                     "\\documentclass{scrartcl}"
-                                     ("\\section{%s}" . "\\section*{%s}")
-                                     ("\\subsection{%s}" . "\\subsection*{%s}")
-                                     ("\\subsubsection{%s}"
-                                      . "\\subsubsection*{%s}")
-                                     ("\\paragraph{%s}" . "\\paragraph*{%s}")
-                                     ("\\subparagraph{%s}"
-                                      . "\\subparagraph*{%s}"))) )
-
-(require 'ox-latex)
-#+END_SRC
-
-To enable syntax highlighting for source code in LaTeX export we need
-pygmentize installed. Currently it's disabled because it breaks
-portability with standard LaTeX work flows, particularly my
-collaborators don't know how to compile a tex file with this enabled.
-It can be enables in each buffer by manually including the minted
-package via "#+LATEX_HEADER: /usepackage{minted}"
-
-#+BEGIN_SRC emacs-lisp
-;; Add minted to the defaults packages to include when exporting.
-;;(add-to-list 'org-latex-packages-alist '("" "minted" nil))
-
-;; Tell the latex export to use the minted package for source code
-;; coloration.
-(setq org-latex-listings 'minted)
-(add-to-list 'org-latex-minted-langs '(python "python"))
-(add-to-list 'org-latex-minted-langs '(ipython "python"))
-
-;; Let the exporter use the -shell-escape option to let latex execute
-;; external programs. This obviously and can be dangerous to activate!
-(setq org-latex-minted-options
-      '(("mathescape" "true")
-        ("linenos" "true")
-        ("numbersep" "5pt")
-        ("frame" "lines")
-        ("framesep" "2mm")))
-
-
-(setq org-latex-pdf-process (list "latexmk -shell-escape -bibtex -f -pdf %f"))
-#+END_SRC
-
-*** Export behavior
-I want to interpret "_" and "^" as sub and super indices only when
-braces are used.
-
-#+BEGIN_SRC emacs-lisp
-(setq org-export-with-sub-superscripts '{})
-#+END_SRC
-
-** Project templates
-This is a template for a research/project aid document. The purpose of
-this document is to hold task, reading list, and some quick
-notes. It's available using the "<paper" expansion.
-
-Templating for org has been removed, migrate to Yanippet.
-#+BEGIN_SRC emacs-lisp
-;; (add-to-list 'org-structure-template-alist
-;;              `("paper"
-;;                ,(concat
-;;                 "#+TITLE:\n"
-;;                 "#+DATE:\n"
-;;                 "#+PROPERTY: cookie_data recursive\n\n"
-;;                 "Description:\n\n"
-;;                 "* Files\n"
-;;                 "* Tasks\n"
-;;                 "** Writing\n"
-;;                 "** Modeling\n"
-;;                 "** Simulations\n"
-;;                 "* Reading\n"
-;;                 "** Must read\n"
-;;                 "** Should read\n"
-;;                 "** Already read and relevant\n"
-;;                 "** Already read and not relevant\n"
-;;                 "* Meetings\n")))
-#+END_SRC
-
-** Org-Download
-#+BEGIN_SRC emacs-lisp
-(use-package org-download
-  :ensure t
-  :config
-  (setq-default org-download-image-dir "./figures")
-  (setq-default org-download-heading-lvl nil))
-#+END_SRC
-
 
 * Programming
 ** Fill columns indicator and line numbers
