@@ -845,7 +845,23 @@ path.
         bibtex-completion-pdf-field "file"
         bibtex-completion-notes-path "/home/gperaza/Drive/Notes"
         bibtex-completion-pdf-open-function (lambda (fpath) (call-process "evince" nil 0 nil fpath))
-        bibtex-completion-cite-prompt-for-optional-arguments nil))
+        bibtex-completion-cite-prompt-for-optional-arguments nil)
+
+  (setq org-cite-global-bibliography '("/home/gperaza/Drive/Library/bibliography.bib"))
+
+  (org-cite-register-processor 'my-bibtex-org-cite-follow
+    :follow (lambda (_ _) (ivy-bibtex)))
+
+  (setq org-cite-follow-processor 'my-bibtex-org-cite-follow)
+
+  (setq bibtex-completion-format-citation-functions
+        '((org-mode . bibtex-completion-format-citation-org-cite)
+          (latex-mode . bibtex-completion-format-citation-cite)
+          (markdown-mode . bibtex-completion-format-citation-pandoc-citeproc)
+          (python-mode . bibtex-completion-format-citation-sphinxcontrib-bibtex)
+          (rst-mode . bibtex-completion-format-citation-sphinxcontrib-bibtex)
+          (default . bibtex-completion-format-citation-default)))
+  )
 
 ;; (use-package org-ref
 ;;   :ensure
@@ -1001,6 +1017,17 @@ Org recipes requires helm, so we need to install it.
                  (version . "3.5.2")))
 )
    )
+#+end_src
+
+** org-re-reveal
+#+begin_src emacs-lisp
+;; (use-package ox-reveal
+;;   :ensure t
+;;   :config
+;;   (setq org-reveal-root "https://cdn.jsdelivr.net/npm/reveal.js"))
+(add-to-list 'load-path "~/.emacs.d/emacs-reveal")
+(require 'emacs-reveal)
+
 #+end_src
 
 * Editing configuration
@@ -1320,6 +1347,14 @@ succeeds without error.
   :ensure t
   :config
   (elpy-enable))
+
+(use-package numpydoc
+  :ensure t
+  :bind (:map python-mode-map
+              ("C-c C-n" . numpydoc-generate))
+  :config
+  (setq numpydoc-insertion-style 'yas)
+  (setq numpydoc-insert-examples-block nil))
 #+END_SRC
 
 ** C
